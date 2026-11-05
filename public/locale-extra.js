@@ -171,5 +171,12 @@ V 时代飞艇工场先研发航空工程，再生产侦察热气球、运输飞
 海陆远征|Land & Sea Expedition
 保存|Save
 加载|Load
+石城门 · 纵向|Stone Gate · Vertical
+纵向城门，衔接纵向城墙；己方和盟友可穿行|A vertical gate connecting north–south walls. Friendly and allied troops can pass.
+连续筑城指令已发送|Fortification orders sent
+此处已有城防|Fortifications already exist here
+城防模式：拖线铺墙，连续点放；再次点击图标退出|Fortifications: drag to lay a wall or tap repeatedly. Tap the icon again to exit.
+已安排|Scheduled
+段城防|fortification segments
 确认|Confirm
 `.trim().split('\n').map(l=>{const i=l.indexOf('|');return[l.slice(0,i),l.slice(i+1)]})));if(typeof module!=='undefined')module.exports=root.KingdomLocaleData})(typeof window==='undefined'?globalThis:window);

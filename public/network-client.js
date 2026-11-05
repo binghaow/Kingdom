@@ -12,6 +12,7 @@ class Client extends Base{
  order(units,order){if(!units.length)return;this.issue('order',{ids:units.map(u=>u.id),order})}
  train(b,kind){const e=this.unitError(b,kind);if(e)return e;return this.issue('train',{id:b.id,kind})?'':'正在重新连接，请稍候'}
  research(b,key){const e=this.researchError(b,key);if(e)return e;return this.issue('research',{id:b.id,key})?'':'正在重新连接，请稍候'}
+ constructLine(kind,a,b,workers){const plan=K.wallPlan(kind,a,b);return this.issue('wallLine',{kind,a,b,ids:workers.map(u=>u.id)})?{count:plan.length,pending:true}:{count:0,error:'正在重新连接，请稍候'}}
  construct(kind,x,y,workers){const e=this.placementError(kind,x,y,0);if(e)return{error:e};return this.issue('construct',{kind,x,y,ids:workers.map(u=>u.id)})?{pending:true}:{error:'正在重新连接，请稍候'}}
  board(u){this.issue('board',{id:u.id});return '运输指令已发送'}
  unload(u){this.issue('unload',{id:u.id});return '运输指令已发送'}
