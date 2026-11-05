@@ -1,4 +1,18 @@
 ((root)=>{Object.assign(root.KingdomLocaleData,Object.fromEntries(`
+糖豆和团团暂时回家了，再次输入密匙可召回|Tangdou and Tuantuan have gone home. Enter the key again to bring them back
+无限资源已关闭，恢复开启前的资源|Unlimited resources disabled. Your previous resource balance has been restored
+无限资源已开启；时代、科技和建造仍需按流程完成。再次输入可关闭|Unlimited resources enabled. Ages, research and construction still follow the usual progression. Enter again to disable
+轻缓中世纪氛围：三段缓慢变奏，柔和弦乐、木笛和稀疏鲁特琴。敲击仅在当前画面内响起；采矿和施工使用低沉音色。选择、受击与落成声独立混音。|Gentle medieval atmosphere: three slowly varying chapters with soft strings, woodwind and sparse lute. Work sounds play only inside your view, with low-pitched mining and building. Selection, damage and completion have their own effects.
+试听采石|Preview Stone Mining
+试听建筑受击|Preview Building Impact
+试听建筑倒塌|Preview Building Collapse
+试听动物|Preview Animal
+试听恶龙|Preview Dragon
+试听伙伴攻击|Preview Companion Attack
+选择村民后点击此处采集。|Select a villager and click here to gather.
+资源|Resources
+牛|Cow
+羊|Sheep
 战役已结束|The battle has ended
 团团|Tuantuan
 可爱的单机彩蛋伙伴：星星魔法、强力攻击，可挑战 KC 守卫|A cute single-player companion with powerful star magic, able to challenge KC guardians
