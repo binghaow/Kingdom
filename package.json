@@ -1,0 +1,9 @@
+{
+  "name": "frontier-kingdom",
+  "private": true,
+  "scripts": {
+    "build": "node scripts/build.cjs",
+    "dev": "node preview.cjs",
+    "test": "node check-all.cjs"
+  }
+}

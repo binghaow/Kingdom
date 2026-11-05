@@ -1,4 +1,4 @@
-const assert=require('node:assert/strict'),K=require('./dist/dynasties.js'),D=K.defs,T=K.tech,done=[];
+const assert=require('node:assert/strict'),K=require('./public/dynasties.js'),D=K.defs,T=K.tech,done=[];
 function test(n,f){f();done.push(n)}
 function fresh(nations=['japan','prussia'],level='beginner'){const s=new K.Sim(level,null,{nations,groups:[1,2],difficulties:[null,level]});s.ai=()=>{};s.raids=()=>{};return s}
 function rich(s){for(const r of s.state.resources)Object.assign(r,{food:100000,wood:100000,gold:100000,stone:100000})}

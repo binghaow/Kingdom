@@ -1,0 +1,9 @@
+dist/
+.local/
+*.sqlite
+*.sqlite-shm
+*.sqlite-wal
+node_modules/
+.sites-runtime/
+.wrangler/
+.worker-scaffold/

@@ -1,4 +1,4 @@
-const assert=require('node:assert/strict'),K=require('./dist/coalitions.js'),done=[];
+const assert=require('node:assert/strict'),K=require('./public/coalitions.js'),done=[];
 function test(name,fn){fn();done.push(name)}
 function fresh(){const sim=new K.Sim('easy',null,{nations:['britain','france','china','britain'],groups:[1,2,1,2]});sim.ai=()=>{};sim.raids=()=>{};return sim}
 function step(s,t){for(let i=0;i<t/.05;i++)s.tick(.05)}

@@ -1,4 +1,4 @@
-const assert=require('node:assert/strict'),K=require('./dist/worlds.js'),D=K.defs,done=[];
+const assert=require('node:assert/strict'),K=require('./public/worlds.js'),D=K.defs,done=[];
 function test(n,f){f();done.push(n)}
 function fresh(options={}){const s=new K.Sim('beginner',null,{nations:['britain','japan'],groups:[1,2],mapId:'coast_s',seed:12345,...options});s.ai=()=>{};s.raids=()=>{};return s}
 function step(s,t){for(let i=0;i<t/.05;i++)s.tick(.05)}

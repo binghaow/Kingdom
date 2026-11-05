@@ -1,2 +1,2 @@
 const {spawnSync}=require('node:child_process');
-for(const f of ['check.cjs','check-maritime.cjs','check-coalitions.cjs','check-feedback.cjs','check-dynasties.cjs','check-worlds.cjs','check-frontiers.cjs','check-siege.cjs','check-locales.cjs','check-companions.cjs','check-immersion.cjs']){const r=spawnSync(process.execPath,[f],{stdio:'inherit'});if(r.status!==0)process.exit(r.status||1)}
+for(const f of ['check.cjs','check-maritime.cjs','check-coalitions.cjs','check-feedback.cjs','check-dynasties.cjs','check-worlds.cjs','check-frontiers.cjs','check-siege.cjs','check-locales.cjs','check-companions.cjs','check-immersion.cjs','check-network.cjs']){const r=spawnSync(process.execPath,[f],{stdio:'inherit'});if(r.status!==0)process.exit(r.status||1)}

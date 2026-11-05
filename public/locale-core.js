@@ -1,5 +1,5 @@
 ((root)=>{'use strict';const dictionary=root.KingdomLocaleData||{},keys=Object.keys(dictionary).sort((a,b)=>b.length-a.length),escape=s=>s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),pattern=new RegExp(keys.map(escape).join('|'),'g'),longPattern=new RegExp(keys.filter(k=>k.length>=12).map(escape).join('|'),'g');
-function translate(value,lang='en'){if(typeof value!=='string'||lang!=='en'||!/[\u3400-\u9fff]/.test(value))return value;return value
+function translate(value,lang='en'){if(typeof value!=='string'||lang!=='en'||!/[\u3400-\u9fff]/.test(value))return value;let names;if((names=value.match(/^(.+) 与 (.+) 已结成临时联盟$/)))return names[1]+' and '+names[2]+' have formed a temporary alliance';if((names=value.match(/^(.+) 向 (.+) 宣战，10 秒后恢复交战$/)))return names[1]+' declared war on '+names[2]+'. Combat resumes in 10 seconds';if((names=value.match(/^(.+) 与 (.+) 现已敌对$/)))return names[1]+' and '+names[2]+' are now hostile';if((names=value.match(/^(.+) 已退出战役$/)))return names[1]+' has been defeated';return value
  .replace(longPattern,key=>dictionary[key])
  .replace(/以([\u3400-\u9fff]+)开启新战役/g,(_m,n)=>'Start as '+translate(n,'en'))
  .replace(/第\s*(\d+)\s*队/g,'Team $1').replace(/电脑\s*(\d+)/g,'AI $1').replace(/(\d+)\s*名电脑/g,'$1 AI')

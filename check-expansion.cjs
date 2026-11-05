@@ -1,5 +1,5 @@
 const assert=require('node:assert/strict');
-const {Sim,defs,map,river}=require('./dist/engine.js');
+const {Sim,defs,map,river}=require('./public/engine.js');
 const results=[];
 function fresh(){const sim=new Sim('easy');sim.ai=()=>{};sim.state.units=[];sim.state.effects=[];sim.events=[];return sim}
 function step(sim,seconds){for(let i=0;i<Math.ceil(seconds/.05);i++)sim.tick(.05)}
