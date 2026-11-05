@@ -55,6 +55,7 @@ class Coalitions extends Base{
   const army=this.s.units.filter(u=>u.team===team&&u.kind!=='villager'&&!this.sea(u)&&D[u.kind].damage>0&&!u.embarkedOn).slice(0,this.s.difficulty==='easy'?8:12);if(army.length>=4){this.order(army,{type:'advance',x:enemy.x,y:enemy.y});this.emit('raid',{team,target:enemy.team})}
   const dock=this.s.buildings.find(b=>b.team===enemy.team&&b.kind==='dock'),navy=this.s.units.filter(u=>u.team===team&&this.sea(u)&&D[u.kind].damage>0);if(dock&&navy.length>=2){this.order(navy.slice(0,4),{type:'advance',x:dock.x,y:K.coast(dock.x)+145});this.emit('navalRaid',{team,target:enemy.team})}
  }}
+ aiPlayer(team){super.ai(team)}
  ai(){for(let team=1;team<this.s.nations.length;team++){if(this.s.defeated.includes(team))continue;super.ai(team);const market=this.s.buildings.find(b=>b.team===team&&b.kind==='market'&&b.complete);if(market&&this.s.units.filter(u=>u.team===team&&u.kind==='trader').length<2&&!market.queue.length)this.train(market,'trader')}}
  tick(dt){if(this.s.ended)return;super.tick(dt);if(this.s.ended)return;const s=this.s;
   for(const u of s.units.filter(u=>u.kind==='trader'&&u.trade&&!u.embarkedOn)){
