@@ -1,0 +1,3 @@
+(()=>{'use strict';const $=id=>document.getElementById(id),K=window.KingdomSim;const guide=document.createElement('section');guide.innerHTML='<h3>要塞、工事与航空</h3><p>击败 KC 守卫后，要塞归伤害贡献最高的国家。除了宝物，还可在要塞训练符文卫士、研发符文熔炉并解锁余烬投射车。要塞被摧毁后不能重建。</p><p>II 时代建造横向或纵向石城墙、城门；城门允许己方和盟友通过。III 时代攻城器械营生产配重投石机；IV 时代工程车负责施工与修复，棱堡炮塔自动防御。</p><p>V 时代飞艇工场先研发航空工程，再生产侦察热气球、运输飞艇与武装运输飞艇。飞艇可以越山渡海；火枪、弓兵、箭塔与棱堡炮塔可防空。运输飞艇只能在安全陆地卸载，坠毁会损失载员。</p><p>采集速度降低 25%，新战役初始资源减少。地图扩大约 20%，不设战役时限。</p>';document.querySelector('#guide-eras').append(guide);
+const extra=document.createElement('p');extra.textContent='击败守卫后占领要塞，可生产独有兵种并研究独有科技；选中地图上的己方要塞即可操作。';$('kc-state').after(extra);
+})();
