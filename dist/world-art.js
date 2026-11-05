@@ -16,7 +16,7 @@ A.worldTerrain=(c,sim)=>{const w=sim.world,W=w.width,H=w.height,cell=48,cols=W/c
  for(const p of w.starts){c.strokeStyle='#c3ad7942';c.lineWidth=20;c.beginPath();c.moveTo(p.x,p.y+110);const dx=w.center.x-p.x,dy=w.center.y-p.y,d=Math.hypot(dx,dy);c.lineTo(p.x+dx/d*550,p.y+dy/d*550);c.stroke()}
  c.strokeStyle='#91a77355';c.lineWidth=2;for(let i=0;i<200;i++){const x=(i*137.7)%W,y=(i*269.3)%H;if(!K.worldPlayable(w,x,y)||K.worldWater(w,x,y))continue;c.beginPath();c.moveTo(x,y);c.lineTo(x+2,y-9);c.moveTo(x+4,y);c.lineTo(x+7,y-13);c.stroke()}
  // A distinct, defensible clearing makes the neutral objective readable without adding a new large texture.
- const cc=w.center;c.fillStyle='#82705244';ellipse(c,cc.x,cc.y,340,150,c.fillStyle);c.strokeStyle='#a78b5a5c';c.lineWidth=6;ellipse(c,cc.x,cc.y,320,140,null,c.strokeStyle);
+ const cc=w.objective||w.center;c.fillStyle='#82705244';ellipse(c,cc.x,cc.y,340,150,c.fillStyle);c.strokeStyle='#a78b5a5c';c.lineWidth=6;ellipse(c,cc.x,cc.y,320,140,null,c.strokeStyle);
 };
 let fogCanvas=null,fogRevision=-1,fogWorld=null;
 A.fog=(c,sim,width=sim.world.width,height=sim.world.height)=>{if(!sim.state.fogEnabled||!sim.fog)return;const f=sim.fog;if(fogRevision!==f.revision||fogWorld!==sim){fogWorld=sim;fogRevision=f.revision;fogCanvas=make(f.cols,f.rows);const g=fogCanvas.getContext('2d'),p=g.createImageData(f.cols,f.rows);for(let i=0;i<f.visible[0].length;i++){const a=f.visible[0][i]?0:f.explored[0][i]?178:255;p.data.set([6,15,22,a],i*4)}g.putImageData(p,0,0)}c.save();c.imageSmoothingEnabled=true;c.drawImage(fogCanvas,0,0,width,height);c.restore()};

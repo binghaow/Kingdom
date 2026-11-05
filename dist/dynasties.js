@@ -4,12 +4,12 @@
 const K=typeof module!=='undefined'&&module.exports?require('./coalitions.js'):root.KingdomSim;
 const Base=K.Sim,D=K.defs,T=K.tech,N=K.nations,dist=K.distance;
 const levels={
- sandbox:{name:'沙盒',grace:Infinity,economy:.45,damage:0,cap:0,wave:0,raid:Infinity,train:2,age:2.2,think:21,description:'电脑不会伤害你的联盟，适合自由建设与试验'},
- beginner:{name:'入门',grace:1200,economy:.45,damage:.55,cap:14,wave:4,raid:360,train:1.8,age:1.9,think:21,description:'20 分钟保护，电脑慢发展、低伤害、小规模进攻'},
- easy:{name:'休闲',grace:720,economy:.65,damage:.72,cap:22,wave:6,raid:270,train:1.45,age:1.5,think:14,description:'12 分钟保护，较弱经济与温和攻势'},
- normal:{name:'标准',grace:360,economy:.9,damage:1,cap:36,wave:8,raid:200,train:1.15,age:1.1,think:7,description:'6 分钟保护，正常伤害与渐进进攻'},
- hard:{name:'困难',grace:180,economy:1.08,damage:1,cap:48,wave:12,raid:145,train:1,age:.95,think:7,description:'3 分钟保护，更快发展与更大编队'},
- expert:{name:'专家',grace:90,economy:1.22,damage:1.06,cap:60,wave:16,raid:110,train:.9,age:.85,think:7,description:'90 秒保护，经济加速与持续军队压力'}
+ sandbox:{name:'沙盒',grace:0,economy:.45,damage:0,cap:0,wave:0,raid:Infinity,train:2,age:2.2,think:21,description:'电脑不主动组织军队，适合自由建设与试验'},
+ beginner:{name:'入门',grace:0,economy:.45,damage:.55,cap:14,wave:4,raid:360,train:1.8,age:1.9,think:21,description:'电脑慢发展、低伤害、小规模进攻'},
+ easy:{name:'休闲',grace:0,economy:.65,damage:.72,cap:22,wave:6,raid:270,train:1.45,age:1.5,think:14,description:'较弱经济与温和攻势'},
+ normal:{name:'标准',grace:0,economy:.9,damage:1,cap:36,wave:8,raid:200,train:1.15,age:1.1,think:7,description:'正常伤害与渐进进攻'},
+ hard:{name:'困难',grace:0,economy:1.08,damage:1,cap:48,wave:12,raid:145,train:1,age:.95,think:7,description:'更快发展与更大编队'},
+ expert:{name:'专家',grace:0,economy:1.22,damage:1.06,cap:60,wave:16,raid:110,train:.9,age:.85,think:7,description:'经济加速与持续军队压力'}
 };
 const extra=[
  ['japan','日本','桜','武士与近战','samurai','dojo','近战步兵攻击 +8%','建筑石料成本 +10%','武士道','武士与近战步兵移动 +8%'],
