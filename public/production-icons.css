@@ -1,0 +1,6 @@
+/* Give the picture its own shrinking grid track; never push it above the button. */
+#actions .action{display:grid;grid-template-rows:minmax(0,1fr) auto auto;align-items:center;justify-content:stretch;gap:2px;padding:3px 4px 4px;min-height:0}
+#actions .action .icon{display:flex;align-items:center;justify-content:center;align-self:stretch;min-height:0;height:auto!important;width:100%;overflow:hidden;line-height:1}
+#actions .action .icon img{display:block;min-height:0;max-height:100%;max-width:100%;height:100%!important;width:100%!important;object-fit:contain;object-position:center;margin:0!important;filter:none}
+#actions .action strong{margin:0!important;line-height:1.25;min-width:0;overflow:hidden;text-overflow:ellipsis}
+#actions .action small{line-height:1.25;min-width:0;overflow:hidden;text-overflow:ellipsis}
