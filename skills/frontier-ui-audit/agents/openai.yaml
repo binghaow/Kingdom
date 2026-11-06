@@ -1,0 +1,4 @@
+interface:
+  display_name: "边境王国界面与比例检查"
+  short_description: "检查游戏跨设备界面、文字遮挡、操作冲突、图像比例和点击范围"
+  default_prompt: "Use $frontier-ui-audit to check this game's interface, controls and sprite scale across phone, tablet and desktop, fix observed problems and record the evidence."
