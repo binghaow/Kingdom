@@ -1,0 +1,2 @@
+/* Reversible building health stages and collapse timeline, shared by QA and renderer. */
+((root)=>{const stage=b=>!b.complete?0:b.hp/b.maxhp<=.33?2:b.hp/b.maxhp<=.7?1:0;const collapse=age=>age<.55?0:age<1.15?0:age<1.9?1:age<2.8?2:3;const api={stage,collapse};if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.KingdomBuildingCondition=api})(typeof window==='undefined'?globalThis:window);

@@ -125,7 +125,7 @@
 派村民耕作，持续提供食物|Assign villagers to farm for a steady food supply
 高速冲锋，克制远程与火炮|Fast charge, strong against ranged units and artillery
 爆炸范围伤害，擅长拆建筑|Explosive area damage, strong against buildings
-选择单位或建筑以查看命令|Select a unit or building to view orders
+选择单位或建筑以查看命令|Select a unit or building
 正在撤退 · 不追击敌人|Retreating · No pursuit
 正在移动 · 不追击敌人|Moving · No pursuit
 施工完成后可使用这座建筑|Available after construction is complete
