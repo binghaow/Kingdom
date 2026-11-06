@@ -12,6 +12,7 @@ Use CSS viewport sizes as repeatable layout probes, not claims about physical de
 - Army/idle-worker/fleet shortcuts: all three remain on screen and inside the footer when expanded/collapsed. Select the expected units rather than only checking button visibility.
 - Battlefield: resizing and orientation changes preserve uniform world scale and sufficient usable central view. Header, minimap, map tools, touch toolbar, placement confirmation, groups, chat and tutorial panel must not accidentally cover one another's controls or critical confirmation/error text.
 - Actual commands: select → move / retreat → resource gather → build/confirm/cancel; production and rally points. Exercise affected controls with real UI actions and verify the visible result. Check that scrolling commands does not pan the world and closing a panel restores input. Use physical touch only if available; do not describe mouse simulation as a verified pinch gesture.
+- Selected production buildings: default/custom rally flags stay at one position while frames render, nearby units move and new units spawn. Rendering must never reserve a spawn slot or modify simulation/save state. The regression check is check-rally-preview.cjs; it exercises the real drawRally function against campaign and network simulations.
 - Settings/dialogs: buttons align, text fits and the close/resume action is reachable in both orientations. Active modal content must be scrollable when longer than the viewport.
 
 ## Image and world scale
