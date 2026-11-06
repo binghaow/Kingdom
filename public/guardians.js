@@ -1,0 +1,10 @@
+/* Guardian animation states and map-specific marine economies share authoritative rules. */
+((root)=>{'use strict';const K=typeof module!=='undefined'&&module.exports?require('./clarity.js'):root.KingdomSim,Base=K.Sim,D=K.defs;
+function guardianPose(u,time){if((u.guardianFireUntil||0)>time)return 'fire';if((u.castUntil||0)>time)return 'charge';if(u.guardianAction==='melee'&&time-(u.guardianActionAt??-10)<.85)return 'melee';return u.path?.length?'walk':'idle'}
+class Guardians extends Base{
+ constructor(difficulty,saved,options={}){super(difficulty,saved,options);if(!saved&&this.world.layout){const s=this.s;for(let team=0;team<s.nations.length;team++){const start=this.world.starts[team],port=s.buildings.find(b=>b.team===team&&b.kind==='dock'),origin=port?.harbor||start;let sea=this.nearest(origin,s.nodes.filter(n=>n.domain==='sea'&&n.subtype==='seaFish'&&K.distance(n,this.world.objective)>900));if(!sea){for(let r=700;r<2300&&!sea;r+=96)for(let i=0;i<48;i++){const a=i*Math.PI/24,p={x:start.x+Math.cos(a)*r,y:start.y+Math.sin(a)*r};if(K.worldWater(this.world,p.x,p.y)&&K.distance(p,this.world.objective)>900){sea=p;break}}}if(sea){for(let i=0;i<3;i++){const p={x:sea.x+Math.cos(i*2.1)*80,y:sea.y+Math.sin(i*2.1)*80},q=K.worldWater(this.world,p.x,p.y)?p:sea;this.node('food',q.x,q.y,5000,'seaFish','sea',team)}this.node('gold',sea.x,sea.y,1400,'pearlBank','sea',team)}}if(this.world.layout==='straits')for(const f of [.32,.5,.68]){const x=this.world.width*f,y=this.world.height*.69;for(let i=0;i<8;i++){const a=i*Math.PI/4,X=x+Math.cos(a)*70,Y=y+Math.sin(a)*55;if(!this.blocked(X,Y))this.node(i<2?'gold':i<4?'stone':'wood',X,Y,i<4?1800:480,i<4?'ore':'forest')}}this.updateFog()}}
+ emit(type,data={}){if(type==='sound'&&data.kind==='mine'&&this.s.units.some(u=>u.kind==='fishingboat'&&u.working&&u.x===data.x&&u.y===data.y))data={...data,kind:'seamove'};return super.emit(type,data)}
+ gatherRate(u,n){return super.gatherRate(u,n)*(n.subtype==='pearlBank'?.72:1)}
+}
+const api={...K,Sim:Guardians,guardianPose};if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.KingdomSim=api;
+})(typeof window==='undefined'?globalThis:window);

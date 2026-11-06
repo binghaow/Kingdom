@@ -1,5 +1,5 @@
 /* Shared authoritative multiplayer rules. The browser receives a filtered view only. */
-((root)=>{'use strict';const K=typeof module!=='undefined'&&module.exports?require('./clarity.js'):root.KingdomSim,Base=K.Sim,D=K.defs;
+((root)=>{'use strict';const K=typeof module!=='undefined'&&module.exports?require('./guardians.js'):root.KingdomSim,Base=K.Sim,D=K.defs;
 class NetworkSim extends Base{
  constructor(difficulty='beginner',saved=null,options={}){super(difficulty,saved,{...options,mode:'multiplayer',networked:true,humanTeams:options.humanTeams||[0,1]});this.s.netTreaties??={};this.s.netOffers??=[];this.s.netEvents??=[];this.s.netEventSeq??=0;this.s.netEffectSeq??=0;this.s.playerNames??=this.s.nations.map((_,i)=>'玩家 '+(i+1));this.s.cooperation={}}
  human(t){return this.s.humanTeams?.includes(t)}
