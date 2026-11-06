@@ -26,5 +26,9 @@
   "chain": "oga-rpg-pack/RPG Sound Pack/inventory/chainmail1.wav",
   "ring": "oga-rpg-pack/RPG Sound Pack/inventory/metal-ringing.wav",
   "swing": "oga-rpg-pack/RPG Sound Pack/battle/swing.wav",
-  "growl": "oga-rpg-pack/RPG Sound Pack/NPC/giant/giant1.wav"
+  "growl": "oga-rpg-pack/RPG Sound Pack/NPC/giant/giant1.wav",
+  "charge-horn-a": "https://bigsoundbank.com/horn-1-s2520.html (CC0; trimmed PCM)",
+  "charge-horn-b": "https://bigsoundbank.com/trompe-ou-corne-2-s2521.html (CC0; trimmed PCM)",
+  "battle-alert": "https://bigsoundbank.com/trompe-ou-corne-5-s2524.html (CC0; excerpt)",
+  "battle-cry": "https://freesound.org/people/joelcarrsound/sounds/521831/ (CC0; public HQ preview converted to PCM)"
 }

@@ -13,6 +13,13 @@ All sound effects in the active game use audio files, not oscillators or procedu
 
 CC0: https://creativecommons.org/publicdomain/zero/1.0/
 
+## Recorded charge and engagement update (v27)
+
+* Joseph SARDIN / BigSoundBank, CC0: Horn #1 (2520), Horn #2 (2521), Horn #5 (2524). These are realistic outdoor recordings of a person blowing a traditional horn, recorded with SoundDevices MixPre-3 and Sennheiser ME66. Sources: https://bigsoundbank.com/horn-1-s2520.html , https://bigsoundbank.com/trompe-ou-corne-2-s2521.html , https://bigsoundbank.com/trompe-ou-corne-5-s2524.html . `charge-horn-a.wav` / `charge-horn-b.wav` trim quiet recorder tails, normalize levels and apply short endpoint fades; `battle-alert.wav` is a short faded excerpt from #5. Original pitch and speed retained.
+* joelcarrsound / Freesound, CC0: “Middle Ages War Cry 3.wav”, an MS stereo recording of a Battle of Hastings re-enactment: https://freesound.org/people/joelcarrsound/sounds/521831/ . Public HQ preview used as source, converted to mono PCM, trimmed and normalized as `battle-cry.wav`; no generated voices or artificial pitch variations. `charge-preview.wav` is a review mix of recorded horn A and this field recording, at their runtime relative levels.
+
+The legacy `horn.mp3` morning-call bugle remains only as an old asset. The active v27 charge, engagement and alarm cues do not use it. No Age of Empires, Civilization, film or TV audio was extracted. Processing is reproducible with scripts/prepare-battle-audio.py and the documented source files.
+
 Voices are currently recorded English responses in both UI languages. Creatures use performed fantasy vocals; dragons do not have a real-world field-recording equivalent. Ships layer recorded water and timber creaks; airships layer recorded wind, cloth and rigging creaks.
 
 * Movement update: Kenney RPG Audio `footstep00.ogg` and `footstep02.ogg` (CC0), renamed `step1.ogg` and `step2.ogg`. Joseph Sardin / BigSoundBank, Horse Walking on a Path #1854 (actual horse recording), CC0, `hooves.mp3`: https://bigsoundbank.com/horse-walking-on-a-path-s1854.html . Horse and wind recordings are cropped to three-second mono buffers at runtime.

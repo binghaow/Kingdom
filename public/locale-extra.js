@@ -1,4 +1,8 @@
 ((root)=>{Object.assign(root.KingdomLocaleData,Object.fromEntries(`
+背景音乐与音效可独立调节。战斗提示使用真实号角和战役重演战吼：多人进攻时鸣号，新交战时呼喊，持续战斗不重复入场号声。采集和交战声跟随当前画面，警报单独提示。|Adjust music and effects separately. Recorded horns announce group attacks and re-enactment battle cries mark fresh contact. Continuous fighting does not repeat the entrance horn. Work and combat sounds follow your view; danger has its own alert.
+试听冲锋号角|Test Charge Horn
+试听交战战吼|Test Battle Cries
+试听遇袭警报|Test Under-Attack Alarm
 治疗|Healing
 着陆卸载|Land & Unload
 安全陆地上空|Above safe land
