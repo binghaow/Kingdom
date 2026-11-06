@@ -15,3 +15,4 @@ For changes to HUD, responsive layout, touch input, selection, camera, sprites o
 
 - Product destination: a polished iPhone/iPad game for friends, progressing through actual device use, TestFlight and App Store distribution. Browser publication is not proof of a native build or store readiness.
 - Reuse suitable existing art for resource cargo. Missing or unsuitable assets must be left absent and listed as gaps; do not ship improvised geometric cargo or invent replacement assets. Generate new assets only when explicitly requested. Resources sit inside the real basket and track its animation frame; do not add floating square markers to villagers.
+- Building artwork must not gain floating rectangular team-color blocks. Use integrated existing flags/material colors and health/selection UI; retain stable rally markers.
