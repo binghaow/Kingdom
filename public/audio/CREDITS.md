@@ -20,3 +20,9 @@ Voices are currently recorded English responses in both UI languages. Creatures 
 ## Guardian performance update (v21)
 
 Darsycho — Monster snarls (CC0), dragon-vocal.ogg = monster-snarls_0.ogg and dragon-attack.ogg = monster-snarl-attack.ogg, https://opengameart.org/content/monster-snarls . StarNinjas — 16 Monster Growls (CC0), performed mouth recordings: demon-vocal.ogg = monster.1.ogg; demon-attack.ogg = monster.10.ogg, https://opengameart.org/content/16-monster-growls . Joseph Sardin / BigSoundBank — Blowtorch and heating #0931 (CC0), boss-flame.mp3, https://bigsoundbank.com/blowtorch-and-heating-s0931.html . Source files retained unchanged; runtime excerpts, pitch reduction, low-pass filtering and physical Foley layering distinguish selection, buildup, flame and melee. No synthetic oscillators or extracted film sounds.
+
+## Wildlife recordings (v23)
+
+Bear: U.S. Fish & Wildlife Service; distributed by AntumDeluge, Bear Growls, CC0. bear.ogg = bear_01.ogg and bear-attack.ogg = bear_02.ogg, unchanged source files. https://opengameart.org/content/bear-growls .
+
+Jackal: Shajiarikkad, Jackal.ogg (24 May 2012), own field recording of a jackal howl, Creative Commons Attribution-ShareAlike 3.0 Unported. https://commons.wikimedia.org/wiki/File:Jackal.ogg . License: https://creativecommons.org/licenses/by-sa/3.0/ . jackal.ogg is redistributed unchanged; runtime playback selects short excerpts. These excerpts and any audio adaptations remain CC BY-SA 3.0. No endorsement is implied.
