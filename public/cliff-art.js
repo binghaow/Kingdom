@@ -1,0 +1,4 @@
+/* Four generated rock faces; natural aspect ratios, no distorted vertical wall texture. */
+(()=>{'use strict';const A=window.KingdomArt,tiles=[],img=new Image();A.ready=Promise.all([A.ready,new Promise((resolve,reject)=>{img.onload=()=>{for(let i=0;i<4;i++){const w=img.width/2,h=img.height/2,c=Object.assign(document.createElement('canvas'),{width:w,height:h}),g=c.getContext('2d');g.drawImage(img,i%2*w,Math.floor(i/2)*h,w,h,0,0,w,h);tiles.push(c)}resolve(true)};img.onerror=()=>reject(Error('Cliff atlas failed'));img.src='assets/cliffs-v4.png'})]);
+A.drawCliff=(c,p,index)=>{const tile=tiles[index%4];if(!tile)return;c.save();c.fillStyle='#514e3e50';c.beginPath();c.ellipse(p.x,p.y+10,p.rx+7,p.ry*.8,0,0,7);c.fill();const w=p.rx*2.3,h=w*tile.height/tile.width,layers=Math.max(1,Math.ceil(p.ry/(p.rx*.65)));for(let j=0;j<layers;j++){const Y=p.y-p.ry+(j+.5)*p.ry*2/layers;c.drawImage(tiles[(index+j)%4],p.x-w/2+(j%2?8:-4),Y+h*.35,w,h)};c.restore()};
+})();

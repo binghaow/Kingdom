@@ -199,5 +199,12 @@ V 时代飞艇工场先研发航空工程，再生产侦察热气球、运输飞
 编组|Assign group
 双按定位|Double-tap to focus
 正在狩猎 · 动物倒下后采集食物|Hunting · collect food after the animal falls
+请先探索整段城墙的施工位置|Explore the entire wall footprint first
+城墙不能超出陆地边界|Walls must remain inside the land boundary
+城墙不能建在水中|Walls cannot be built in water
+此处有悬崖或岩壁|A cliff or rock face blocks this site
+施工位置有树木或矿石|Trees or mineral deposits block this site
+试听动物、人物与城防声音|Preview animal, unit and fortification sounds
+六张地图再次扩展，边长比上一版增加约 35%|All six maps are expanded again, with sides about 35% longer
 确认|Confirm
 `.trim().split('\n').map(l=>{const i=l.indexOf('|');return[l.slice(0,i),l.slice(i+1)]})));if(typeof module!=='undefined')module.exports=root.KingdomLocaleData})(typeof window==='undefined'?globalThis:window);
