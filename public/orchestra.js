@@ -33,9 +33,10 @@ if(musicEnabled&&!document.hidden&&!muted){strings(chord[0],at,14,.095,-.25);str
 // Original short national motifs, 2–4 seconds. Never stacked on rapid reselection.
 const motifs={britain:[62,67,69,74],france:[65,69,67,72],china:[62,64,69,71],japan:[62,63,67,69],ottoman:[62,63,66,69],russia:[50,57,60,62],prussia:[55,62,67,62],spain:[57,60,64,62],netherlands:[60,64,67,69],usa:[62,67,71,69]};
 function nationMotif(id,at){const notes=motifs[id]||motifs.britain;notes.forEach((n,i)=>{if(['china','spain','netherlands'].includes(id))pluck(n,at+i*.48,1.6,.20,fxBus);else flute(n,at+i*.47,1.2,.14,fxBus)});tone(hz(notes[0]-12),hz(notes[0]-12),3.5,.055,0,'sine',at,fxBus,.3)}
+function animalCall(kind,at,pan){const cow=kind==='cow',o=context.createOscillator(),filter=context.createBiquadFilter(),dur=cow?1.05:.8,f=cow?85:235;o.type='sawtooth';o.frequency.setValueAtTime(f,at);for(let i=1;i<=12;i++)o.frequency.setValueAtTime(cow?f*(1+.17*Math.sin(i/12*Math.PI*1.2)):f*(1+.075*Math.sin(i*2.2)),at+i*dur/13);filter.type='lowpass';filter.frequency.value=cow?510:1350;filter.Q.value=cow?3:2;filter.connect(fxBus);envelope(o,at,dur,cow?.18:.12,pan,filter,.07);const ended=o.onended;o.onended=()=>{ended?.();filter.disconnect()}}
 function selection(kind,at,pan){if(kind.startsWith('nation-'))return nationMotif(kind.slice(7),at);
-if(kind==='select-cow'){tone(145,82,.65,.19,pan,'triangle',at);tone(210,120,.55,.045,pan,'sine',at+.12)}
-else if(kind==='select-sheep'){for(let i=0;i<3;i++)tone(330-i*18,235-i*14,.17,.12,pan,'triangle',at+i*.13)}
+if(kind==='select-cow')animalCall('cow',at,pan);
+else if(kind==='select-sheep')animalCall('sheep',at,pan);
 else if(kind==='select-kcdragon'){noise(.85,.25,pan,620,'lowpass',at);tone(75,38,.9,.25,pan,'sawtooth',at);tone(135,62,.7,.08,pan,'sine',at+.12)}
 else if(kind==='select-kcdemon'){tone(95,42,1.1,.2,pan,'triangle',at);tone(142,55,.95,.11,pan,'sine',at+.07);noise(.85,.13,pan,420,'lowpass',at)}
 else if(kind==='select-tangdou'||kind==='select-tuantuan'){const f=kind.endsWith('tangdou')?440:330;tone(f,f*1.5,.25,.12,pan,'sine',at);tone(f*1.5,f*1.25,.34,.09,pan,'sine',at+.17)}
@@ -51,7 +52,7 @@ else if(kind==='select-trader'){pluck(62,at,.5,.14,fxBus);pluck(67,at+.08,.5,.12
 else if(kind==='select-mineral')stone(at,pan);
 else if(kind==='select-resource')noise(.2,.08,pan,600,'lowpass',at);
 else{tone(kind==='select-hero'?196:165,220,.16,.10,pan,'triangle',at);tone(220,196,.2,.07,pan,'sine',at+.1)}}
-A.sound=(kind,pan=0,gain=1)=>{if(!context||muted||context.state!=='running')return;const at=context.currentTime,group=kind.startsWith('nation-')?'nation':kind.startsWith('select-')?'selection':kind,interval=group==='nation'?3.8:group==='selection'?.22:['hammer','chop','mine','harvest'].includes(kind)?.3:kind.startsWith('hit-')?.22:.09;if(at-(recent[group]??-10)<interval)return;recent[group]=at;eventGain=Math.max(0,Math.min(1,gain));if(['hammer','melee','musket','cannon','warning','raidWarning','dragonFire'].includes(kind)){duckUntil=at+2.3;levels()}
+A.sound=(kind,pan=0,gain=1)=>{if(!context||muted||context.state!=='running')return;const at=context.currentTime,group=kind.startsWith('nation-')?'nation':kind.startsWith('select-')?'selection':kind,interval=kind==='battleHorn'?7:group==='nation'?3.8:group==='selection'?.22:['hammer','chop','mine','harvest'].includes(kind)?.3:kind.startsWith('hit-')?.22:.09;if(at-(recent[group]??-10)<interval)return;recent[group]=at;eventGain=Math.max(0,Math.min(1,gain));if(['hammer','melee','musket','cannon','warning','raidWarning','dragonFire'].includes(kind)){duckUntil=at+2.3;levels()}
 if(kind.startsWith('select-')||kind.startsWith('nation-'))selection(kind,at,pan);else if(kind==='petStrike'){tone(330,165,.15,.2,pan,'triangle',at);noise(.23,.13,pan,850,'lowpass',at);tone(660,440,.3,.075,pan,'sine',at+.03)}else if(kind==='petOff'){tone(440,220,.5,.09,pan,'sine',at)}else if(kind.startsWith('hit-')){const material=kind.slice(4);if(material==='structure'){stone(at,pan);noise(.25,.06,pan,400,'lowpass',at+.04)}else if(material==='monster'){tone(105,55,.23,.14,pan,'triangle',at);noise(.18,.1,pan,550,'lowpass',at)}else if(material==='vehicle'){hammer(at,pan);tone(390,210,.18,.055,pan,'sine',at)}else{noise(.11,.12,pan,720,'lowpass',at);tone(material==='pet'?260:150,material==='pet'?180:85,.14,.1,pan,'sine',at)}}else if(kind==='warning'||kind==='raidWarning'){tone(220,220,.9,.14,pan,'triangle',at);tone(294,294,1,.09,pan,'sine',at+.18)}else if(kind==='dragonFire'){noise(1.1,.44,pan,1050,'lowpass',at);tone(70,37,.8,.28,pan,'sine',at)}else if(kind==='bossClaw'){metal(at,pan,1.1);tone(100,45,.22,.2,pan,'triangle',at)}else if(kind==='magic'){bell(660,at,.065);tone(330,660,1.2,.08,pan,'sine',at)}else if(kind==='melee')metal(at,pan);
 else if(kind==='musket'){noise(.12,.55,pan,3700,'lowpass',at);tone(170,48,.23,.26,pan,'triangle',at);noise(.32,.12,pan,1100,'lowpass',at+.04)}
 else if(kind==='cannon'||kind==='collapse'){noise(.65,.6,pan,900,'lowpass',at);tone(84,25,.8,.47,pan,'sine',at);noise(.15,.18,pan,1400,'lowpass',at);noise(.8,.12,pan,480,'lowpass',at+.12)}
@@ -68,6 +69,8 @@ else if(kind==='heal'){bell(880,at,.06);bell(1100,at+.12,.04)}
 else if(kind==='death'){noise(.25,.18,pan,600,'lowpass',at);tone(130,60,.2,.13,pan,'triangle',at)}
 else if(kind==='orderAttack'){metal(at,pan,.26);tone(180,130,.09,.08,pan,'triangle',at)}
 else if(kind==='orderGather'){pluck(62,at,.22,.25,fxBus);pluck(69,at+.07,.3,.2,fxBus)}
+else if(kind==='battleHorn'){for(const [i,f]of [146.8,196,220,293.7].entries()){tone(f,f, .45,.09,pan,'sawtooth',at+i*.27,fxBus,.045);tone(f*2,f*2,.43,.025,pan,'sine',at+i*.27,fxBus,.04)}}
+else if(kind==='butcher'){noise(.13,.10,pan,420,'lowpass',at);tone(125,65,.16,.09,pan,'triangle',at)}
 else if(kind==='invalid')tone(160,110,.13,.09,pan,'triangle',at);
 else{noise(.045,.08,pan,700,'bandpass',at);tone(300,240,.07,.04,pan,'sine',at)}
 };

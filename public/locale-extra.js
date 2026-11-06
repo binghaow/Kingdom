@@ -178,5 +178,26 @@ V 时代飞艇工场先研发航空工程，再生产侦察热气球、运输飞
 城防模式：拖线铺墙，连续点放；再次点击图标退出|Fortifications: drag to lay a wall or tap repeatedly. Tap the icon again to exit.
 已安排|Scheduled
 段城防|fortification segments
+设置集结点|Set Rally Point
+重置集结点|Reset Rally Point
+点地图指定出兵去向|Choose where new units gather
+新兵在建筑前方集结|New units gather in front
+点击地面设置集结点|Click ground to set the rally point
+集结点已设置|Rally point set
+已恢复默认集结点|Default rally point restored
+请选择己方生产建筑|Select your own production building
+集结点地形不适合该建筑的单位|This terrain is unsuitable for these units
+部队编队|Control Groups
+编入|Assign
+编队|Group
+狩猎|Hunting
+个单位|units
+集结与编队：|Rally Points & Control Groups:
+选生产建筑，右键地面或点击“设置集结点”可指定新兵去向；重置后在建筑前方出兵。Ctrl＋1–6 编队，数字键选择，双按定位；手机点“编入”再点组号。编队可混编。|Select a production building, then right-click the ground or choose Set Rally Point. Reset restores its front exit. Ctrl+1–6 assigns mixed or single-type groups; number keys select, double-tap focuses. On mobile, tap Assign, then a group number.
+先选部队，点击编入，再点组号|Select units, tap Assign, then a group number
+编队为空：选择部队后 Ctrl + 数字，手机点击“编入”|Empty group: select units and press Ctrl + number, or tap Assign on mobile
+编组|Assign group
+双按定位|Double-tap to focus
+正在狩猎 · 动物倒下后采集食物|Hunting · collect food after the animal falls
 确认|Confirm
 `.trim().split('\n').map(l=>{const i=l.indexOf('|');return[l.slice(0,i),l.slice(i+1)]})));if(typeof module!=='undefined')module.exports=root.KingdomLocaleData})(typeof window==='undefined'?globalThis:window);

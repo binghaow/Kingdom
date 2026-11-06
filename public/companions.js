@@ -1,5 +1,5 @@
 /* Local campaign companions and deterministic teammate communication. No network transport is active. */
-((root)=>{'use strict';const K=typeof module!=='undefined'&&module.exports?require('./fortification.js'):root.KingdomSim,Base=K.Sim,D=K.defs,dist=K.distance;
+((root)=>{'use strict';const K=typeof module!=='undefined'&&module.exports?require('./tactics.js'):root.KingdomSim,Base=K.Sim,D=K.defs,dist=K.distance;
 Object.assign(D,{
  tangdou:{name:'糖豆',icon:'♥',companion:true,domain:'air',hp:14000,r:20,speed:145,damage:900,range:230,cooldown:1.05,pop:1,baseArmor:35,antiAir:true,role:'musketeer',description:'可爱的单机彩蛋伙伴：星星魔法、强力攻击，可挑战 KC 守卫'},
  tuantuan:{name:'团团',icon:'♥',companion:true,domain:'air',hp:18000,r:23,speed:130,damage:760,range:175,cooldown:1.2,pop:1,baseArmor:45,antiAir:true,role:'musketeer',description:'可爱的单机彩蛋伙伴：守护星光、自我恢复，可挑战 KC 守卫'}

@@ -10,6 +10,7 @@ class Client extends Base{
  tick(dt){this.visualTime=Math.min(.65,this.visualTime+dt);this.s.time=this.serverTime+this.visualTime;for(const u of this.s.units){u.x+=(u._nx-u.x)*Math.min(1,dt*12);u.y+=(u._ny-u.y)*Math.min(1,dt*12);u.flash=Math.max(0,(u.flash||0)-dt);u.attackPulse=Math.max(0,(u.attackPulse||0)-dt)}for(const f of this.s.effects)f.life-=dt;this.s.effects=this.s.effects.filter(f=>f.life>0);this._localEffects=this._localEffects.filter(f=>f.life>0)}
  fx(type,data,life=.6){const f={type,...data,life,max:life,local:true};this._localEffects.push(f);this.s.effects.push(f)}
  order(units,order){if(!units.length)return;this.issue('order',{ids:units.map(u=>u.id),order})}
+ setRally(b,p){return this.issue('rally',{id:b.id,point:p})?'':'正在重新连接，请稍候'}
  train(b,kind){const e=this.unitError(b,kind);if(e)return e;return this.issue('train',{id:b.id,kind})?'':'正在重新连接，请稍候'}
  research(b,key){const e=this.researchError(b,key);if(e)return e;return this.issue('research',{id:b.id,key})?'':'正在重新连接，请稍候'}
  constructLine(kind,a,b,workers){const plan=K.wallPlan(kind,a,b);return this.issue('wallLine',{kind,a,b,ids:workers.map(u=>u.id)})?{count:plan.length,pending:true}:{count:0,error:'正在重新连接，请稍候'}}
