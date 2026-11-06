@@ -1,0 +1,42 @@
+/* Short isolated practice scenarios. Saved campaigns and online rooms are never overwritten. */
+(()=>{'use strict';const K=window.KingdomSim,N=window.NavalUI,D=K.defs,$=id=>document.getElementById(id);let api,backup=null,active=null,done={};try{done=JSON.parse(localStorage.getItem('kingdom-lessons-v1'))||{}}catch{}
+const lessons=[
+['远征的目标','建立经济，训练军队，击败敌方阵营的所有城镇中心。KC 要塞是可选远征目标，夺宝不会直接获胜。','intro'],
+['选择农民','点击金色提示圈里的村民。下方会显示生命、攻击、防御和他的职责。','select'],
+['移动与脱战','选中村民，点击他右侧的空地。移动命令会停止追击，战斗时也能撤退。','move'],
+['采集资源','选中村民，再点击提示圈里的树木。看到挥斧与木屑后，等待木材增加 3。','gather'],
+['建造房屋','选中村民，在底部选择房屋，再点击营地空地放置。房屋增加人口上限。','build'],
+['城镇中心','点击城镇中心，再点“训练村民”。军队需要人口，经济需要更多采集者。','train-worker'],
+['步兵营','点击步兵营，训练一名步兵。近战步兵负责前线，戟兵专门克制骑兵。','barracks'],
+['射击场','点击射击场，训练一名弓箭手。图标右上角 ⓘ 可以查看详细数值和职责。','range'],
+['马厩','点击马厩，训练一名轻骑斥候。骑兵速度高，适合绕后攻击脆弱远程单位。','stable'],
+['兵种克制','用两名戟兵攻击敌方骑兵。观察生命变化和反骑兵伤害加成。','counter'],
+['科技研发','点击铁匠铺，研发一次武器升级。选中军队可看到实际攻击力提高。','research'],
+['运输与登陆','点击运输船，选择“装载附近陆军”；载员出现后选择“靠岸卸载”。也可让选中的陆军点击运输工具登载。','transport'],
+['国家英雄','选中本国英雄，施放“潮汐号令”。技能打击附近敌人，消耗魔力并进入冷却。','hero'],
+['糖豆秘法书','练习英雄已装备秘法书。选择英雄，施放霜环、天火或水龙卷，观察独立冷却。','book'],
+['工事与攻城','点击投石机，攻击敌方箭塔。投石机需要足够距离，适合摧毁建筑，怕近身敌军。','siege'],
+['最高时代航空','选择轰炸机，点击敌方箭塔。飞机飞抵目标头顶投弹，弹尽后自动返航补给。','air'],
+['战役胜利','选中军队，摧毁敌人的最后一座城镇中心。结算将对比经济、军队和人口。','victory']];
+const dialog=document.createElement('dialog');dialog.id='tutorial-dialog';dialog.innerHTML='<div class="diplomacy-head"><h2>远征学堂</h2><button id="close-tutorial" aria-label="关闭教学目录">×</button></div><p>17 个短练习，每次只学一件事，约一分钟以内。独立练习场不影响你的存档。可以跳过、退出，随时回来继续。</p><div class="tutorial-catalog"></div>';document.body.append(dialog);const panel=document.createElement('aside');panel.id='tutorial-panel';panel.hidden=true;document.body.append(panel);
+function catalog(){const grid=dialog.querySelector('.tutorial-catalog');grid.replaceChildren();lessons.forEach((l,i)=>{const b=document.createElement('button');b.className=done[i]?'passed':'';b.innerHTML='<b>'+String(i+1).padStart(2,'0')+' · '+l[0]+'</b><small>'+(done[i]?'已完成 · 可再练习':'点击进入独立练习')+'</small>';b.onclick=()=>begin(i);grid.append(b)})}
+function open(){if(api?.getSim().networkClient){api.toast('教学使用独立练习场，请先退出联机战局');return}if(active)exit(false);api?.pause(true);catalog();dialog.showModal()}
+$('close-tutorial').onclick=()=>dialog.close();const entry=document.createElement('button');entry.id='open-tutorial';entry.className='secondary';entry.textContent='新手教学 · 17 个短练习';$('start').before(entry);entry.onclick=open;const menu=entry.cloneNode(true);menu.id='pause-tutorial';document.querySelector('.settings-grid').append(menu);menu.onclick=open;
+class Practice extends K.Sim{ai(){}raids(){}scout(){}profile(team=1){return{...super.profile(team),damage:1,economy:0,cap:0,wave:0}}tick(dt){for(const b of this.s.buildings){for(const q of b.queue)q.left=Math.min(q.left,2);if(!b.complete)b.progress+=dt*.15}return super.tick(dt)}}
+function begin(i){if(!api)return;if(active){api.replaceSimulation(backup);active=null;backup=null}if(dialog.open)dialog.close();$('end-dialog').close();const sim=new Practice('sandbox',null,{nations:['britain','france'],groups:[1,2],fog:false,mapId:lessons[i][2]==='transport'?'coast_s':'lake_s',seed:177}),s=sim.state,home=s.buildings.find(b=>b.team===0&&b.kind==='town'),p={x:home.x+180,y:home.y+160};s.tutorial=true;s.ages[0]=5;Object.assign(s.resources[0],{food:3000,wood:3000,gold:3000,stone:3000});s.units=[];s.buildings=s.buildings.filter(b=>b.kind==='town'||b.kind==='kclair');s.nodes=s.nodes.filter(n=>K.distance(n,p)>500);s.breaths=[];s.lair.cleared=true;const worker=sim.add('villager',0,p.x,p.y),type=lessons[i][2],state={index:i,type,sim,worker:worker.id,initialWood:s.resources[0].wood,initialCount:1,startTime:s.time,target:worker.id};
+const building=kind=>{const b=sim.add(kind,0,home.x+250,home.y-120);state.target=b.id;return b},army=(kind,x=p.x,y=p.y)=>{const u=sim.add(kind,0,x,y);u.order={type:'hold'};state.target=u.id;return u},enemy=(kind,hp)=>{const e=sim.add(kind,1,p.x+245,p.y);e.order={type:'hold'};if(D[kind].building)e.cool=100000;if(hp){e.hp=hp;e.maxhp=Math.max(e.maxhp,hp)};state.enemy=e.id;return e};
+if(type==='gather'){sim.node('wood',p.x+90,p.y+20,300,'forest');state.target=s.nodes.at(-1).id}
+if(type==='train-worker')state.target=home.id;if(['barracks','range','stable'].includes(type))building(type);if(type==='research')building('blacksmith');
+if(type==='counter'){s.units=s.units.filter(u=>u!==worker);army('halberd');army('halberd',p.x,p.y+50);enemy('cavalry',130)}
+if(type==='transport'){let sea;for(let y=home.y;y<s.world.height&&!sea;y+=48)for(let x=home.x-400;x<home.x+500;x+=48)if(K.worldWater(s.world,x,y)){let land;for(let a=0;a<Math.PI*2;a+=.3){const q={x:x+Math.cos(a)*120,y:y+Math.sin(a)*120};if(!sim.blocked(q.x,q.y)){land=q;break}}if(land){sea={x,y,land};break}}if(sea){worker.x=sea.land.x;worker.y=sea.land.y;const ship=sim.add('transport',0,sea.x,sea.y);state.ship=ship.id;state.target=ship.id}}
+if(type==='hero'||type==='book'){s.units=[];const hero=army('hero_britain');state.hero=hero.id;hero.order={type:'hold'};hero.mana=100;for(let j=0;j<3;j++)enemy('infantry',3000).y+=j*32;if(type==='book'){s.loot[0]={chosen:'book',earnedAt:0};hero.unlockedSpells=['frost','ward','inferno','tornado']}}
+if(type==='siege'){s.units=[];const u=army('trebuchet');const e=enemy('tower',100);e.x=u.x+330;state.target=u.id}
+if(type==='air'){s.units=[];const b=building('aerodrome');b.x=p.x-100;b.y=p.y+130;s.tech[0].aeronautics=1;const u=army('bomber'),e=enemy('tower',90);e.x=p.x+260;state.target=u.id}
+if(type==='victory'){s.units=[];const u=army('cannon');s.buildings=s.buildings.filter(b=>b.team!==1);const e=enemy('town',120);e.x=u.x+250;state.target=u.id}
+active=state;backup=api.replaceSimulation(sim);const focus=sim.byId(state.target)||worker;api.focusPoint(focus);sim.fx('command',{x:focus.x,y:focus.y,mode:'gather',text:'练习目标'},20);panel.hidden=false;render();}
+function render(){if(!active)return;const l=lessons[active.index];panel.innerHTML='<small>远征学堂 · '+(active.index+1)+' / '+lessons.length+'</small><h3>'+l[0]+'</h3><p>'+l[1]+'</p><div id="lesson-progress">'+(active.passed?'<b class="passed">✓ 已完成这个练习</b>':'按指引在战场完成操作')+'</div><button id="lesson-focus">定位练习目标</button>'+(active.type==='intro'?'<button id="lesson-understood">了解目标，开始练习</button>':'')+(active.passed?'<button id="lesson-next">下一个练习 →</button>':'')+'<button id="lesson-exit">退出教学</button>';$('lesson-focus').onclick=()=>{const e=active.sim.byId(active.target)||active.sim.byId(active.worker);if(e)api.focusPoint(e)};if($('lesson-understood'))$('lesson-understood').onclick=pass;if($('lesson-next'))$('lesson-next').onclick=()=>active.index+1<lessons.length?begin(active.index+1):exit();$('lesson-exit').onclick=()=>exit()}
+function pass(){if(!active||active.passed)return;active.passed=true;done[active.index]=true;try{localStorage.setItem('kingdom-lessons-v1',JSON.stringify(done))}catch{}render()}
+function update(sim,selection){if(!active||sim!==active.sim||active.passed)return;const a=active,s=sim.state,u=sim.byId(a.worker),type=a.type;let ok=false;if(type==='select')ok=selection.includes(a.worker);if(type==='move')ok=u&&K.distance(u,sim.world.starts[0])>340;if(type==='gather')ok=s.resources[0].wood>a.initialWood+3;if(type==='build')ok=s.buildings.some(b=>b.team===0&&b.kind==='house'&&b.complete);if(type==='train-worker')ok=s.units.filter(u=>u.kind==='villager'&&u.team===0).length>1;if(['barracks','range','stable'].includes(type))ok=s.units.some(u=>u.team===0&&u.kind===({barracks:'infantry',range:'archer',stable:'hussar'}[type]));if(type==='counter'){const attacker=s.units.find(u=>u.team===0&&u.order?.type==='attack'),foe=sim.byId(a.enemy);if(attacker&&foe&&foe.order?.type!=='attack')sim.order([foe],{type:'attack',id:attacker.id})}if(type==='counter'||type==='siege')ok=!sim.byId(a.enemy)||sim.byId(a.enemy).hp<=0;if(type==='research')ok=(s.tech[0].weapons||0)>0;if(type==='transport'){if(u?.embarkedOn)a.loaded=true;ok=a.loaded&&!u?.embarkedOn}if(type==='hero')ok=(sim.byId(a.hero)?.skillReadyAt||0)>0;if(type==='book')ok=Object.keys(sim.byId(a.hero)?.spellCooldowns||{}).length>0;if(type==='air')ok=s.effects.some(f=>f.type==='bombBlast')||!sim.byId(a.enemy);if(type==='victory')ok=s.ended;if(ok)pass()}
+function exit(show=true){if(backup){$('end-dialog').close();api.replaceSimulation(backup)}active=backup=null;panel.hidden=true;if(show){catalog();dialog.showModal()}}
+window.TutorialUI={update,open,exit,lessons};const bind=N.bind;N.bind=value=>{api=value;bind(value)};
+})();

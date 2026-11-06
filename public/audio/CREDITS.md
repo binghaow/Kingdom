@@ -14,3 +14,5 @@ All sound effects in the active game use audio files, not oscillators or procedu
 CC0: https://creativecommons.org/publicdomain/zero/1.0/
 
 Voices are currently recorded English responses in both UI languages. Creatures use performed fantasy vocals; dragons do not have a real-world field-recording equivalent. Ships layer recorded water and timber creaks; airships layer recorded wind, cloth and rigging creaks.
+
+* Movement update: Kenney RPG Audio `footstep00.ogg` and `footstep02.ogg` (CC0), renamed `step1.ogg` and `step2.ogg`. Joseph Sardin / BigSoundBank, Horse Walking on a Path #1854 (actual horse recording), CC0, `hooves.mp3`: https://bigsoundbank.com/horse-walking-on-a-path-s1854.html . Horse and wind recordings are cropped to three-second mono buffers at runtime.

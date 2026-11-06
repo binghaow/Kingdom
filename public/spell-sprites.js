@@ -1,0 +1,5 @@
+/* Painted translucent VFX silhouettes with animated expansion, mist and live particles. */
+(()=>{'use strict';const A=window.KingdomArt,base=A.worldEffect,tiles=[],mapping={firestorm:0,inferno:0,chargefire:0,tornado:1,blizzard:2,lightning:3,sunward:4,blades:5,tide:6,barrage:7};
+A.worldEffect=(c,f,p)=>{if(!tiles.length||!['heroMagic','bombBlast'].includes(f.type))return base(c,f,p);const img=tiles[f.type==='bombBlast'?7:mapping[f.style]??0],r=f.radius||80,w=r*2.3*(.75+Math.sin(Math.min(1,p*1.7)*Math.PI/2)*.25),h=w;c.save();c.globalAlpha*=Math.min(1,p*9)*(1-p)*.95;c.drawImage(img,f.x-w/2,f.y+20-h,w,h);c.restore();c.save();c.globalAlpha*=.2;const result=base(c,f,p);c.restore();return result||true};
+const img=new Image();A.ready=Promise.all([A.ready,new Promise((resolve,reject)=>{img.onload=()=>{for(let i=0;i<8;i++){const w=img.width/4,h=img.height/2,c=Object.assign(document.createElement('canvas'),{width:w,height:h});c.getContext('2d').drawImage(img,i%4*w,Math.floor(i/4)*h,w,h,0,0,w,h);tiles.push(c)}resolve(true)};img.onerror=()=>reject(Error('Spell artwork failed'));img.src='assets/magic-v5.png'})]);
+})();
