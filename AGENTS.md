@@ -12,3 +12,6 @@ For changes to HUD, responsive layout, touch input, selection, camera, sprites o
 - Combat audio should use real performed horn calls and human battle cries, with distinct charge/contact/alarm cues. Do not reuse the old wake-up bugle or introduce synthetic approximations. Continuous fighting must not periodically replay an entrance horn; preview controls should remain usable without waiting for gameplay cooldowns.
 
 - Every new feature must run the Frontier UI audit in its affected states, including multi-selection, shortcut hit sizes and text containment on phone, iPad and desktop. Check both expanded/collapsed HUD and both languages; update docs with actual evidence.
+
+- Product destination: a polished iPhone/iPad game for friends, progressing through actual device use, TestFlight and App Store distribution. Browser publication is not proof of a native build or store readiness.
+- Reuse suitable existing art for resource cargo. Missing or unsuitable assets must be left absent and listed as gaps; do not ship improvised geometric cargo or invent replacement assets. Generate new assets only when explicitly requested. Resources sit inside the real basket and track its animation frame; do not add floating square markers to villagers.

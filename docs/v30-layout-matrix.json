@@ -1,0 +1,442 @@
+[
+  {
+    "selection": "远征军 · 3 人",
+    "collapsed": true,
+    "findings": [],
+    "language": "zh-CN",
+    "scope": "game",
+    "viewport": {
+      "height": 852,
+      "width": 394
+    }
+  },
+  {
+    "selection": "远征军 · 3 人",
+    "collapsed": false,
+    "findings": [],
+    "language": "zh-CN",
+    "scope": "game",
+    "viewport": {
+      "height": 852,
+      "width": 394
+    }
+  },
+  {
+    "selection": "村民",
+    "collapsed": false,
+    "findings": [],
+    "language": "zh-CN",
+    "scope": "game",
+    "viewport": {
+      "height": 852,
+      "width": 394
+    }
+  },
+  {
+    "selection": "村民",
+    "collapsed": true,
+    "findings": [],
+    "language": "zh-CN",
+    "scope": "game",
+    "viewport": {
+      "height": 852,
+      "width": 394
+    }
+  },
+  {
+    "selection": "远征军 · 3 人",
+    "collapsed": true,
+    "findings": [],
+    "language": "zh-CN",
+    "scope": "game",
+    "viewport": {
+      "height": 394,
+      "width": 852
+    }
+  },
+  {
+    "selection": "远征军 · 3 人",
+    "collapsed": false,
+    "findings": [],
+    "language": "zh-CN",
+    "scope": "game",
+    "viewport": {
+      "height": 394,
+      "width": 852
+    }
+  },
+  {
+    "selection": "村民",
+    "collapsed": true,
+    "findings": [],
+    "language": "zh-CN",
+    "scope": "game",
+    "viewport": {
+      "height": 394,
+      "width": 852
+    }
+  },
+  {
+    "selection": "村民",
+    "collapsed": false,
+    "findings": [],
+    "language": "zh-CN",
+    "scope": "game",
+    "viewport": {
+      "height": 394,
+      "width": 852
+    }
+  },
+  {
+    "selection": "远征军 · 3 人",
+    "collapsed": true,
+    "findings": [],
+    "language": "zh-CN",
+    "scope": "game",
+    "viewport": {
+      "height": 780,
+      "width": 360
+    }
+  },
+  {
+    "selection": "远征军 · 3 人",
+    "collapsed": false,
+    "findings": [],
+    "language": "zh-CN",
+    "scope": "game",
+    "viewport": {
+      "height": 780,
+      "width": 360
+    }
+  },
+  {
+    "selection": "村民",
+    "collapsed": false,
+    "findings": [],
+    "language": "zh-CN",
+    "scope": "game",
+    "viewport": {
+      "height": 780,
+      "width": 360
+    }
+  },
+  {
+    "selection": "村民",
+    "collapsed": true,
+    "findings": [],
+    "language": "zh-CN",
+    "scope": "game",
+    "viewport": {
+      "height": 780,
+      "width": 360
+    }
+  },
+  {
+    "selection": "远征军 · 3 人",
+    "collapsed": false,
+    "findings": [],
+    "language": "zh-CN",
+    "scope": "game",
+    "viewport": {
+      "height": 820,
+      "width": 1180
+    }
+  },
+  {
+    "selection": "远征军 · 3 人",
+    "collapsed": true,
+    "findings": [],
+    "language": "zh-CN",
+    "scope": "game",
+    "viewport": {
+      "height": 820,
+      "width": 1180
+    }
+  },
+  {
+    "selection": "村民",
+    "collapsed": false,
+    "findings": [],
+    "language": "zh-CN",
+    "scope": "game",
+    "viewport": {
+      "height": 820,
+      "width": 1180
+    }
+  },
+  {
+    "selection": "村民",
+    "collapsed": true,
+    "findings": [],
+    "language": "zh-CN",
+    "scope": "game",
+    "viewport": {
+      "height": 820,
+      "width": 1180
+    }
+  },
+  {
+    "selection": "远征军 · 3 人",
+    "collapsed": false,
+    "findings": [],
+    "language": "zh-CN",
+    "scope": "game",
+    "viewport": {
+      "height": 720,
+      "width": 1280
+    }
+  },
+  {
+    "selection": "远征军 · 3 人",
+    "collapsed": true,
+    "findings": [],
+    "language": "zh-CN",
+    "scope": "game",
+    "viewport": {
+      "height": 720,
+      "width": 1280
+    }
+  },
+  {
+    "selection": "村民",
+    "collapsed": false,
+    "findings": [],
+    "language": "zh-CN",
+    "scope": "game",
+    "viewport": {
+      "height": 720,
+      "width": 1280
+    }
+  },
+  {
+    "selection": "村民",
+    "collapsed": true,
+    "findings": [],
+    "language": "zh-CN",
+    "scope": "game",
+    "viewport": {
+      "height": 720,
+      "width": 1280
+    }
+  },
+  {
+    "selection": "Expedition · 3 troops",
+    "collapsed": true,
+    "findings": [],
+    "language": "en",
+    "scope": "game",
+    "viewport": {
+      "height": 852,
+      "width": 394
+    }
+  },
+  {
+    "selection": "Expedition · 3 troops",
+    "collapsed": false,
+    "findings": [],
+    "language": "en",
+    "scope": "game",
+    "viewport": {
+      "height": 852,
+      "width": 394
+    }
+  },
+  {
+    "selection": "Villager",
+    "collapsed": false,
+    "findings": [],
+    "language": "en",
+    "scope": "game",
+    "viewport": {
+      "height": 852,
+      "width": 394
+    }
+  },
+  {
+    "selection": "Villager",
+    "collapsed": true,
+    "findings": [],
+    "language": "en",
+    "scope": "game",
+    "viewport": {
+      "height": 852,
+      "width": 394
+    }
+  },
+  {
+    "selection": "Expedition · 3 troops",
+    "collapsed": true,
+    "findings": [],
+    "language": "en",
+    "scope": "game",
+    "viewport": {
+      "height": 394,
+      "width": 852
+    }
+  },
+  {
+    "selection": "Expedition · 3 troops",
+    "collapsed": false,
+    "findings": [],
+    "language": "en",
+    "scope": "game",
+    "viewport": {
+      "height": 394,
+      "width": 852
+    }
+  },
+  {
+    "selection": "Villager",
+    "collapsed": true,
+    "findings": [],
+    "language": "en",
+    "scope": "game",
+    "viewport": {
+      "height": 394,
+      "width": 852
+    }
+  },
+  {
+    "selection": "Villager",
+    "collapsed": false,
+    "findings": [],
+    "language": "en",
+    "scope": "game",
+    "viewport": {
+      "height": 394,
+      "width": 852
+    }
+  },
+  {
+    "selection": "Expedition · 3 troops",
+    "collapsed": true,
+    "findings": [],
+    "language": "en",
+    "scope": "game",
+    "viewport": {
+      "height": 780,
+      "width": 360
+    }
+  },
+  {
+    "selection": "Expedition · 3 troops",
+    "collapsed": false,
+    "findings": [],
+    "language": "en",
+    "scope": "game",
+    "viewport": {
+      "height": 780,
+      "width": 360
+    }
+  },
+  {
+    "selection": "Villager",
+    "collapsed": false,
+    "findings": [],
+    "language": "en",
+    "scope": "game",
+    "viewport": {
+      "height": 780,
+      "width": 360
+    }
+  },
+  {
+    "selection": "Villager",
+    "collapsed": true,
+    "findings": [],
+    "language": "en",
+    "scope": "game",
+    "viewport": {
+      "height": 780,
+      "width": 360
+    }
+  },
+  {
+    "selection": "Expedition · 3 troops",
+    "collapsed": false,
+    "findings": [],
+    "language": "en",
+    "scope": "game",
+    "viewport": {
+      "height": 820,
+      "width": 1180
+    }
+  },
+  {
+    "selection": "Expedition · 3 troops",
+    "collapsed": true,
+    "findings": [],
+    "language": "en",
+    "scope": "game",
+    "viewport": {
+      "height": 820,
+      "width": 1180
+    }
+  },
+  {
+    "selection": "Villager",
+    "collapsed": false,
+    "findings": [],
+    "language": "en",
+    "scope": "game",
+    "viewport": {
+      "height": 820,
+      "width": 1180
+    }
+  },
+  {
+    "selection": "Villager",
+    "collapsed": true,
+    "findings": [],
+    "language": "en",
+    "scope": "game",
+    "viewport": {
+      "height": 820,
+      "width": 1180
+    }
+  },
+  {
+    "selection": "Expedition · 3 troops",
+    "collapsed": false,
+    "findings": [],
+    "language": "en",
+    "scope": "game",
+    "viewport": {
+      "height": 720,
+      "width": 1280
+    }
+  },
+  {
+    "selection": "Expedition · 3 troops",
+    "collapsed": true,
+    "findings": [],
+    "language": "en",
+    "scope": "game",
+    "viewport": {
+      "height": 720,
+      "width": 1280
+    }
+  },
+  {
+    "selection": "Villager",
+    "collapsed": false,
+    "findings": [],
+    "language": "en",
+    "scope": "game",
+    "viewport": {
+      "height": 720,
+      "width": 1280
+    }
+  },
+  {
+    "selection": "Villager",
+    "collapsed": true,
+    "findings": [],
+    "language": "en",
+    "scope": "game",
+    "viewport": {
+      "height": 720,
+      "width": 1280
+    }
+  }
+]
