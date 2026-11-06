@@ -28,3 +28,8 @@ The project includes public/presentation-preview.html and presentation-preview.j
 ## Reporting
 
 Write what was actually tested: viewport, language, UI state, steps/result, screenshot path and remaining limitations. Mark unavailable physical-device/audio testing as unverified. Distinguish a diagnostic candidate from a confirmed bug. The DOM probe cannot inspect canvas art or prove behavior; use the same-scale scene and actual gameplay for those.
+
+## New-feature regression gate
+- In addition to affected workflows, inspect single selection, multi-worker selection, multi-army selection, mixed selection and fleet/empty-fleet state. Test all three primary shortcuts before/after collapse, viewport resize and language change. Measure width >=88px and height >=32px; prefer44px. No implicit-grid slivers, clipped labels or overlapping hit targets.
+- Tree occlusion: workers behind foreground foliage show a ghost outline; click the ghost to select, issue movement and preserve fog secrecy.
+- Single-player debug: chat debug/调试 toggles unlimited resources and one-second own construction/training/research; a network game and imported network save must refuse it.

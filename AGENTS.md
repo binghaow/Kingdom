@@ -10,3 +10,5 @@ For changes to HUD, responsive layout, touch input, selection, camera, sprites o
 - Villagers visibly carry logs or a back basket of stone/gold/food; the loaded posture and straps must connect the burden to the back. Preserve harvest/return/delivery semantics, smooth movement and correct facing.
 - A browser viewport check is not a physical iPhone/iPad test. Report validation limits honestly. Maintain the existing Site identity and sharing audience.
 - Combat audio should use real performed horn calls and human battle cries, with distinct charge/contact/alarm cues. Do not reuse the old wake-up bugle or introduce synthetic approximations. Continuous fighting must not periodically replay an entrance horn; preview controls should remain usable without waiting for gameplay cooldowns.
+
+- Every new feature must run the Frontier UI audit in its affected states, including multi-selection, shortcut hit sizes and text containment on phone, iPad and desktop. Check both expanded/collapsed HUD and both languages; update docs with actual evidence.

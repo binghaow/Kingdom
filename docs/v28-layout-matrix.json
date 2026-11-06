@@ -1,0 +1,442 @@
+[
+  {
+    "selection": "#select-army",
+    "collapsed": true,
+    "findings": [],
+    "language": "zh-CN",
+    "scope": "game",
+    "viewport": {
+      "height": 852,
+      "width": 394
+    }
+  },
+  {
+    "selection": "#select-army",
+    "collapsed": false,
+    "findings": [],
+    "language": "zh-CN",
+    "scope": "game",
+    "viewport": {
+      "height": 852,
+      "width": 394
+    }
+  },
+  {
+    "selection": "#select-workers",
+    "collapsed": false,
+    "findings": [],
+    "language": "zh-CN",
+    "scope": "game",
+    "viewport": {
+      "height": 852,
+      "width": 394
+    }
+  },
+  {
+    "selection": "#select-workers",
+    "collapsed": true,
+    "findings": [],
+    "language": "zh-CN",
+    "scope": "game",
+    "viewport": {
+      "height": 852,
+      "width": 394
+    }
+  },
+  {
+    "selection": "#select-army",
+    "collapsed": true,
+    "findings": [],
+    "language": "zh-CN",
+    "scope": "game",
+    "viewport": {
+      "height": 394,
+      "width": 852
+    }
+  },
+  {
+    "selection": "#select-army",
+    "collapsed": false,
+    "findings": [],
+    "language": "zh-CN",
+    "scope": "game",
+    "viewport": {
+      "height": 394,
+      "width": 852
+    }
+  },
+  {
+    "selection": "#select-workers",
+    "collapsed": true,
+    "findings": [],
+    "language": "zh-CN",
+    "scope": "game",
+    "viewport": {
+      "height": 394,
+      "width": 852
+    }
+  },
+  {
+    "selection": "#select-workers",
+    "collapsed": false,
+    "findings": [],
+    "language": "zh-CN",
+    "scope": "game",
+    "viewport": {
+      "height": 394,
+      "width": 852
+    }
+  },
+  {
+    "selection": "#select-army",
+    "collapsed": true,
+    "findings": [],
+    "language": "zh-CN",
+    "scope": "game",
+    "viewport": {
+      "height": 780,
+      "width": 360
+    }
+  },
+  {
+    "selection": "#select-army",
+    "collapsed": false,
+    "findings": [],
+    "language": "zh-CN",
+    "scope": "game",
+    "viewport": {
+      "height": 780,
+      "width": 360
+    }
+  },
+  {
+    "selection": "#select-workers",
+    "collapsed": false,
+    "findings": [],
+    "language": "zh-CN",
+    "scope": "game",
+    "viewport": {
+      "height": 780,
+      "width": 360
+    }
+  },
+  {
+    "selection": "#select-workers",
+    "collapsed": true,
+    "findings": [],
+    "language": "zh-CN",
+    "scope": "game",
+    "viewport": {
+      "height": 780,
+      "width": 360
+    }
+  },
+  {
+    "selection": "#select-army",
+    "collapsed": false,
+    "findings": [],
+    "language": "zh-CN",
+    "scope": "game",
+    "viewport": {
+      "height": 820,
+      "width": 1180
+    }
+  },
+  {
+    "selection": "#select-army",
+    "collapsed": true,
+    "findings": [],
+    "language": "zh-CN",
+    "scope": "game",
+    "viewport": {
+      "height": 820,
+      "width": 1180
+    }
+  },
+  {
+    "selection": "#select-workers",
+    "collapsed": false,
+    "findings": [],
+    "language": "zh-CN",
+    "scope": "game",
+    "viewport": {
+      "height": 820,
+      "width": 1180
+    }
+  },
+  {
+    "selection": "#select-workers",
+    "collapsed": true,
+    "findings": [],
+    "language": "zh-CN",
+    "scope": "game",
+    "viewport": {
+      "height": 820,
+      "width": 1180
+    }
+  },
+  {
+    "selection": "#select-army",
+    "collapsed": false,
+    "findings": [],
+    "language": "zh-CN",
+    "scope": "game",
+    "viewport": {
+      "height": 720,
+      "width": 1280
+    }
+  },
+  {
+    "selection": "#select-army",
+    "collapsed": true,
+    "findings": [],
+    "language": "zh-CN",
+    "scope": "game",
+    "viewport": {
+      "height": 720,
+      "width": 1280
+    }
+  },
+  {
+    "selection": "#select-workers",
+    "collapsed": false,
+    "findings": [],
+    "language": "zh-CN",
+    "scope": "game",
+    "viewport": {
+      "height": 720,
+      "width": 1280
+    }
+  },
+  {
+    "selection": "#select-workers",
+    "collapsed": true,
+    "findings": [],
+    "language": "zh-CN",
+    "scope": "game",
+    "viewport": {
+      "height": 720,
+      "width": 1280
+    }
+  },
+  {
+    "selection": "#select-army",
+    "collapsed": true,
+    "findings": [],
+    "language": "en",
+    "scope": "game",
+    "viewport": {
+      "height": 852,
+      "width": 394
+    }
+  },
+  {
+    "selection": "#select-army",
+    "collapsed": false,
+    "findings": [],
+    "language": "en",
+    "scope": "game",
+    "viewport": {
+      "height": 852,
+      "width": 394
+    }
+  },
+  {
+    "selection": "#select-workers",
+    "collapsed": false,
+    "findings": [],
+    "language": "en",
+    "scope": "game",
+    "viewport": {
+      "height": 852,
+      "width": 394
+    }
+  },
+  {
+    "selection": "#select-workers",
+    "collapsed": true,
+    "findings": [],
+    "language": "en",
+    "scope": "game",
+    "viewport": {
+      "height": 852,
+      "width": 394
+    }
+  },
+  {
+    "selection": "#select-army",
+    "collapsed": true,
+    "findings": [],
+    "language": "en",
+    "scope": "game",
+    "viewport": {
+      "height": 394,
+      "width": 852
+    }
+  },
+  {
+    "selection": "#select-army",
+    "collapsed": false,
+    "findings": [],
+    "language": "en",
+    "scope": "game",
+    "viewport": {
+      "height": 394,
+      "width": 852
+    }
+  },
+  {
+    "selection": "#select-workers",
+    "collapsed": true,
+    "findings": [],
+    "language": "en",
+    "scope": "game",
+    "viewport": {
+      "height": 394,
+      "width": 852
+    }
+  },
+  {
+    "selection": "#select-workers",
+    "collapsed": false,
+    "findings": [],
+    "language": "en",
+    "scope": "game",
+    "viewport": {
+      "height": 394,
+      "width": 852
+    }
+  },
+  {
+    "selection": "#select-army",
+    "collapsed": true,
+    "findings": [],
+    "language": "en",
+    "scope": "game",
+    "viewport": {
+      "height": 780,
+      "width": 360
+    }
+  },
+  {
+    "selection": "#select-army",
+    "collapsed": false,
+    "findings": [],
+    "language": "en",
+    "scope": "game",
+    "viewport": {
+      "height": 780,
+      "width": 360
+    }
+  },
+  {
+    "selection": "#select-workers",
+    "collapsed": false,
+    "findings": [],
+    "language": "en",
+    "scope": "game",
+    "viewport": {
+      "height": 780,
+      "width": 360
+    }
+  },
+  {
+    "selection": "#select-workers",
+    "collapsed": true,
+    "findings": [],
+    "language": "en",
+    "scope": "game",
+    "viewport": {
+      "height": 780,
+      "width": 360
+    }
+  },
+  {
+    "selection": "#select-army",
+    "collapsed": false,
+    "findings": [],
+    "language": "en",
+    "scope": "game",
+    "viewport": {
+      "height": 820,
+      "width": 1180
+    }
+  },
+  {
+    "selection": "#select-army",
+    "collapsed": true,
+    "findings": [],
+    "language": "en",
+    "scope": "game",
+    "viewport": {
+      "height": 820,
+      "width": 1180
+    }
+  },
+  {
+    "selection": "#select-workers",
+    "collapsed": false,
+    "findings": [],
+    "language": "en",
+    "scope": "game",
+    "viewport": {
+      "height": 820,
+      "width": 1180
+    }
+  },
+  {
+    "selection": "#select-workers",
+    "collapsed": true,
+    "findings": [],
+    "language": "en",
+    "scope": "game",
+    "viewport": {
+      "height": 820,
+      "width": 1180
+    }
+  },
+  {
+    "selection": "#select-army",
+    "collapsed": false,
+    "findings": [],
+    "language": "en",
+    "scope": "game",
+    "viewport": {
+      "height": 720,
+      "width": 1280
+    }
+  },
+  {
+    "selection": "#select-army",
+    "collapsed": true,
+    "findings": [],
+    "language": "en",
+    "scope": "game",
+    "viewport": {
+      "height": 720,
+      "width": 1280
+    }
+  },
+  {
+    "selection": "#select-workers",
+    "collapsed": false,
+    "findings": [],
+    "language": "en",
+    "scope": "game",
+    "viewport": {
+      "height": 720,
+      "width": 1280
+    }
+  },
+  {
+    "selection": "#select-workers",
+    "collapsed": true,
+    "findings": [],
+    "language": "en",
+    "scope": "game",
+    "viewport": {
+      "height": 720,
+      "width": 1280
+    }
+  }
+]

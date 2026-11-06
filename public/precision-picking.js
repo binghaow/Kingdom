@@ -8,3 +8,6 @@ A.traceEntity=(c,e)=>{const a=mask(e);c.save();c.globalAlpha*=.9;c.drawImage(a.e
 A.building=(c,b,t,selected,ghost)=>{const r=building(c,b,t,false,ghost);if(selected&&!ghost)A.traceEntity(c,b);return r};
 A.ready=A.ready.then(v=>{cache.clear();return v});
 })();
+
+/* Own workers remain readable through foreground foliage; fog filtering happens before this pass. */
+(()=>{const A=window.KingdomArt;A.drawOccluded=(c,list,t)=>{const trees=list.filter(v=>v.type==='node'&&v.e.kind==='wood');for(const {e:u,type}of list){if(type!=='unit'||u.team!==0||u.kind!=='villager')continue;const b=A.entityBounds(u),points=[.25,.5,.75].map(q=>({x:u.x+b.x+b.width*q,y:u.y+b.y+b.height*.45}));if(!trees.some(({e})=>e.y>u.y&&points.some(p=>A.hitEntity(e,p))))continue;c.save();c.globalAlpha=.48;c.filter='brightness(0) invert(1) drop-shadow(0 0 2px #b9edff)';A.unit(c,u,t,false);c.restore();c.save();c.globalAlpha=.9;A.traceEntity(c,u);c.restore()}}})();

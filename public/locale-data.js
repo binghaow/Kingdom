@@ -185,7 +185,7 @@
 在城镇中心推进时代|Advance ages at the Town Center
 本时代已达最高等级|Maximum level for the current age
 在营地附近空地放置|Place on clear ground near your settlement
-停止追击，直达目标|Stop pursuing and move directly to the destination
+停止追击，直达目标|Move directly
 点击游戏以激活音效|Touch the game to activate audio
 已选择附近同类单位|Nearby units of the same type selected
 展开或收起命令面板|Expand or collapse the command panel
@@ -198,7 +198,7 @@
 训练步兵与掷弹兵|Trains infantry and grenadiers
 自动射击附近敌军|Automatically fires at nearby enemies
 训练医师治疗友军|Trains medics to heal allies
-采集、耕作与施工|Gathering, farming and construction
+采集、耕作与施工|Gather / farm / build
 不能在河流上建造|Cannot build on a river
 你的王国暂时陷落|Your kingdom has fallen
 左右滑动查看更多|Swipe for more commands
@@ -248,7 +248,7 @@
 已达最高时代|Maximum age reached
 寻找深海鱼群|Find deep-water fish
 装载附近陆军|Load Nearby Troops
-攻击沿途敌人|Attack enemies along the route
+攻击沿途敌人|Fight en route
 停止当前任务|Stop the current task
 正前往采集点|Moving to gather
 科技强化全军|Research strengthens your army

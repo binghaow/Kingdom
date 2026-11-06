@@ -33,3 +33,10 @@ Darsycho — Monster snarls (CC0), dragon-vocal.ogg = monster-snarls_0.ogg and d
 Bear: U.S. Fish & Wildlife Service; distributed by AntumDeluge, Bear Growls, CC0. bear.ogg = bear_01.ogg and bear-attack.ogg = bear_02.ogg, unchanged source files. https://opengameart.org/content/bear-growls .
 
 Jackal: Shajiarikkad, Jackal.ogg (24 May 2012), own field recording of a jackal howl, Creative Commons Attribution-ShareAlike 3.0 Unported. https://commons.wikimedia.org/wiki/File:Jackal.ogg . License: https://creativecommons.org/licenses/by-sa/3.0/ . jackal.ogg is redistributed unchanged; runtime playback selects short excerpts. These excerpts and any audio adaptations remain CC BY-SA 3.0. No endorsement is implied.
+
+## Building selection recordings (v28)
+- DenisChardonnet / BigSoundBank, Neighing of a Horse #1 (0284), actual horse, CC0: https://bigsoundbank.com/neighing-of-a-horse-1-s0284.html . building-horse.wav, short mono excerpt.
+- Joseph SARDIN / BigSoundBank, Crowd of 50-60 People #1 (3515), indoor conversations after a choir performance, CC0: https://bigsoundbank.com/crowd-of-50-60-people-1-s3515.html . building-hall.wav, 1.8-second excerpt used as council/market ambience, not a historical reenactment.
+- Pablo BERGEL / BigSoundBank, Anvil #1 (3589), recorded blacksmith hammering an anvil, CC0: https://bigsoundbank.com/anvil-1-s3589.html . building-forge.wav, 1.5-second excerpt.
+- nemaavla / Freesound, Tibetan monks.wav (344683), a human vocal performance recorded at home, CC0: https://freesound.org/people/nemaavla/sounds/344683/ . Public HQ preview; building-chant.wav, 2.1-second excerpt, not an actual monastery recording.
+All four are mono PCM16 with normalization and endpoint fades only, original pitch/speed. Reproduce via scripts/prepare-building-audio.py. Existing CC0 physical Foley supplies the other building-specific recipes.
