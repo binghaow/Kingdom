@@ -1,0 +1,4 @@
+/* One urgent cue per attack episode; continuing damage refreshes bounded map markers. */
+(()=>{'use strict';const A=window.KingdomArt;
+window.WarUI={event(e,sim,toast){if(e.type==='underAttack'&&e.team===0){A.sound('underAttack',0,1);toast(e.text||'遭到攻击！请查看小地图')}},minimap(c,sim,w,h){const markers=(sim.state.combatMarkers?.[0]||[]).filter(m=>m.until>sim.state.time);if(!markers.length)return;const t=sim.state.time,p=.5+.5*Math.sin(t*Math.PI*3);c.save();c.fillStyle='rgba(255,57,38,'+(.025+p*.07)+')';c.fillRect(0,0,w,h);c.strokeStyle='rgba(255,93,54,'+(.4+p*.6)+')';c.lineWidth=2.5;c.strokeRect(1.5,1.5,w-3,h-3);for(const m of markers){const x=m.x/sim.world.width*w,y=m.y/sim.world.height*h,r=5+(t%1)*10;c.strokeStyle='#ffb263';c.lineWidth=2;c.beginPath();c.arc(x,y,r,0,Math.PI*2);c.stroke();c.fillStyle='#ff443a';c.beginPath();c.moveTo(x,y-7);c.lineTo(x+5,y+3);c.lineTo(x-5,y+3);c.closePath();c.fill()}c.restore()}};
+})();
