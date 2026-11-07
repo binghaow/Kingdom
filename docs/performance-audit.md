@@ -55,3 +55,13 @@ The Node simulation benchmarks above are measured. They exclude browser painting
 ## Validation and limits
 
 `node --check` passes for the diagnostics and main loop, `npm test` passes, and `npm run build` succeeds. Diagnostics are opt-in. No game behavior or balance changes were made in this audit. Browser/iPhone performance, GPU timings, and iOS heap were not measured in this workspace, so the five-item ranking is an evidence-backed diagnosis of likely causes, not a claim of on-device measurements.
+
+## 2026-11-07 targeted performance fix
+
+The iPhone 17 screenshot supplied in this session is a direct device measurement: at the 60-second HUD mark it showed 4 FPS, 253 ms frame p50 / 312 ms p95, update p50 234 ms, render p50 9 ms, UI last 1 ms, 81 units and 25 buildings. This isolates the immediate symptom to simulation/update CPU rather than Canvas drawing. It also matches only about one-third of the expected game-clock progression, so the simulation is falling behind real time and causing sustained CPU load and heat.
+
+Confirmed source defect: `Sim.walk()` treated an empty path as a reason to re-run A* on every 50 ms fixed tick. The existing 1.8-second retry timer was therefore ineffective for unreachable goals. Each A* allocates three arrays proportional to the map grid. Failed routes now retry after 1.8 simulated seconds; a changed target cell or fresh player order still triggers an immediate attempt. The failure cache is runtime-only, is cleared when orders change/units reach their target/die, and is not serialized.
+
+The opt-in `?perf=1` HUD now reports A* calls/failures/time, collision time and fog update calls/time alongside frame/update/render, UI, entities, heap and DPR. Collision timing uses a conditional timer only while the diagnostics HUD is enabled. This can confirm whether quadratic collision, route search or fog recomputation is the next dominant cost. Other listed hotspots remain hypotheses until compared on device.
+
+Validation: `node check-all.cjs` passed all listed simulation, multiplayer, campaign, rendering, audio, movement and art-check groups after the initial correction; `npm run build` succeeded. `check-siege.cjs` adds a regression proving repeated failed routes are throttled and that new orders/goal cells replan immediately. Browser viewport and physical iPhone thermal retesting have not been performed in this environment; the user must retest the new link on the iPhone.
