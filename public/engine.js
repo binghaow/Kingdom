@@ -82,7 +82,22 @@ class Sim{
  if(o?.type==='build'){if(!target||target.hp<=0||target.complete){u.order=null;continue}if(this.walk(u,target,D[target.kind].r+48,dt)){u.working=true;u.workResource='build';u.hammerTime=(u.hammerTime||0)+dt;if(u.hammerTime>.85){u.hammerTime=0;this.emit('sound',{kind:'hammer',x:u.x,y:u.y});this.fx('gather',{x:u.x,y:u.y-25,tx:target.x,ty:target.y,resource:'build',text:'⚒'},.7)}target.progress+=dt/D[target.kind].time;target.hp=Math.max(target.hp,target.maxhp*Math.min(1,target.progress));if(target.progress>=1){target.complete=true;target.hp=target.maxhp;u.order=null;this.emit('built',{team:u.team,kind:target.kind,x:target.x,y:target.y})}}continue}
  if(u.kind==='healer'){const ally=this.nearest(u,s.units.filter(v=>v.id!==u.id&&(this.allied?this.allied(v.team,u.team):v.team===u.team)&&v.hp>0&&v.hp<v.maxhp));if(ally&&distance(u,ally)<220){if(distance(u,ally)<=d.range){if(!u.cool){ally.hp=Math.min(ally.maxhp,ally.hp+d.heal);u.healActionAt=s.time;u.lookAngle=Math.atan2(ally.y-u.y,ally.x-u.x);u.cool=d.cooldown;this.fx('heal',{x:ally.x,y:ally.y-35,text:'+'+d.heal},1);this.emit('sound',{kind:'heal',x:u.x,y:u.y})}}else this.walk(u,ally,d.range-10,dt)}else if(o?.type==='advance'&&this.walk(u,o,38,dt))u.order=null;continue}
  if(o?.type==='attack'&&(!target||target.hp<=0)){u.order=null;target=null}
- let enemy=null;if(target&&o?.type==='attack'&&target.team!==u.team&&(!this.canTarget||this.canTarget(u,target)))enemy=target;else if(!o||o.type==='advance'){if(d.damage>0&&(u.disengageUntil||0)<s.time){enemy=this.nearest(u,all.filter(e=>e.team!==u.team&&e.hp>0&&(!this.canTarget||this.canTarget(u,e))));if(enemy&&distance(u,enemy)>260)enemy=null}}
+ let enemy=null;
+ if(target&&o?.type==='attack'&&target.team!==u.team&&(!this.canTarget||this.canTarget(u,target))){
+  enemy=target;
+ }else if((!o||o.type==='advance')&&d.damage>0&&(u.disengageUntil||0)<s.time){
+  let bestDistance=260;
+  for(const candidate of all){
+   if(candidate.team===u.team||candidate.hp<=0)continue;
+   if(Math.abs(u.x-candidate.x)>bestDistance||Math.abs(u.y-candidate.y)>bestDistance)continue;
+   const gap=distance(u,candidate);
+   // Keep the first eligible target at equal distance, including at the range boundary.
+   if(gap>bestDistance||(enemy&&gap===bestDistance))continue;
+   if(this.canTarget&&!this.canTarget(u,candidate))continue;
+   enemy=candidate;
+   bestDistance=gap;
+  }
+ }
  if(enemy){u.combatTarget=enemy.id;const reach=this.attackReach?this.attackReach(u,enemy):this.stat(u,'range')+(this.building(enemy)?D[enemy.kind].r:D[enemy.kind].r*.5);if(distance(u,enemy)<=reach&&distance(u,enemy)>=(d.minRange||0)&&(!this.meleeClear||this.meleeClear(u,enemy))){u.engagementBlocked=false;u.path=[];if(!u.cool)this.strike(u,enemy)}else this.walk(u,enemy,reach,dt)}else if(o?.type==='advance'){if(this.walk(u,o,38,dt))u.order=null}}
  // Separate nearby bodies without allowing a push through walls or water.
  for(let i=0;i<s.units.length;i++)for(let j=i+1;j<s.units.length;j++){const a=s.units[i],b=s.units[j];if(a.hp<=0||b.hp<=0||a.embarkedOn||b.embarkedOn)continue;const dx=b.x-a.x,dy=b.y-a.y,d=Math.hypot(dx,dy),min=(D[a.kind].r+D[b.kind].r)*.8;if(d<min&&d>.01){const p=(min-d)*.2,ax=a.x-dx/d*p,ay=a.y-dy/d*p,bx=b.x+dx/d*p,by=b.y+dy/d*p;if(!this.blocked(ax,ay,a)){a.x=ax;a.y=ay}if(!this.blocked(bx,by,b)){b.x=bx;b.y=by}}}

@@ -1,5 +1,13 @@
 # Frontier Kingdom — persistent UI and scale requirements
 
+## Incremental development
+
+- Before adding a feature, identify existing features, components, and assets that can serve it. Reuse them when they fit and preserve the behavior their current callers rely on.
+- When reuse is unsuitable, add the new capability through the smallest isolated extension that meets the request. Preserve existing gameplay, controls, interfaces, and save compatibility unless the user explicitly requests a change to them.
+- Keep changes confined to the requested feature. Use existing checks to verify the new behavior and any existing flows it touches. If the feature requires changing existing behavior beyond the authorized scope, explain the concrete impact and obtain approval before making that change.
+
+## UI and scale
+
 For changes to HUD, responsive layout, touch input, selection, camera, sprites or entity scale, apply the project skill [frontier-ui-audit](skills/frontier-ui-audit/SKILL.md). Read its checklist before implementing and record actual validation in docs/. These are the user's standing preferences, not facts to reconstruct from chat history.
 
 - Main battlefield remains central and spacious; keep bottom-command collapse/expand and the army / idle-worker / fleet shortcuts.
