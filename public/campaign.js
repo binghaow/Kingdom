@@ -3,8 +3,8 @@
 const retired={arsenal:'range',congress:'range',shipyard:'dock'};for(const key of Object.keys(retired))D[key].retired=true;
 D.barracks.trains.push('eliteguard');D.range.trains.push('continental');D.stable.trains.push('dragoon');D.town.trains.push('engineer');D.dock.trains.push('frigate','bombketch','carrier');D.range.description='远程陆军：弓手、火枪、散兵；美国可训练大陆军步枪兵';D.barracks.description='近战与反骑兵：步兵、戟兵、近卫戟兵与掷弹兵';D.stable.description='骑兵专用：轻骑斥候、骑兵与高阶龙骑兵';D.town.description='训练村民与施工工程师；推进时代，扩展人口与经济';D.dock.description='统一港口：渔船、运输船、护航舰；III 时代重舰，V 时代航空母舰';D.engineer.description='军械工程师：施工速度 +50%，自动修复附近友军建筑，不采集资源';K.nations.usa.building='range';T.hulls.building='dock';T.doctrine_usa.building='range';
 D.bomber={name:'双翼轰炸机',icon:'✈',domain:'air',hp:185,r:14,speed:225,wood:240,gold:320,time:45,age:5,damage:88,range:24,cooldown:1.3,pop:4,role:'bomber',description:'V 时代：飞到目标上空投下 2 枚炸弹，自动返航补弹；速度快、血量低，怕远程防空'};
-D.carrier={name:'航空母舰',icon:'⚓',domain:'sea',hp:1250,r:40,speed:62,wood:650,gold:700,stone:180,time:95,age:5,damage:0,range:0,pop:8,baseArmor:6,role:'carrier',trains:['airwing'],description:'V 时代航空旗舰：最多搭载 2 架舰载机，飞机投弹后返舰补给；舰体不能直接攻击'};
-D.airwing={...D.bomber,name:'舰载双翼机',hp:140,speed:245,wood:140,gold:180,time:28,pop:2,damage:68,description:'航母专属舰载机：2 枚轻型炸弹，自动返舰补给；母舰沉没后改返飞艇工场'};
+D.carrier={name:'航空母舰',icon:'⚓',domain:'sea',hp:1250,r:76,speed:34,wood:650,gold:700,stone:180,time:95,age:5,damage:0,range:0,pop:8,baseArmor:6,role:'carrier',trains:['airwing'],description:'V 时代巨型航空旗舰：全场最大舰体，航速较慢，最多搭载 2 架轻型舰载机；舰体不能直接攻击'};
+D.airwing={...D.bomber,name:'舰载双翼机',hp:115,speed:175,wood:110,gold:125,time:34,pop:1,damage:34,description:'航母专属轻型侦察轰炸机：仅 1 枚轻型炸弹，速度较慢且较脆弱；自动返舰补给，母舰沉没后改返飞艇工场'};
 Object.assign(D.gunship,{speed:94,damage:76,range:24,cooldown:2.4,role:'bomber',description:'V 时代重型轰炸飞艇：6 枚炸弹、载员 6 人口；必须飞抵头顶投弹，返工场补给，怕远程防空'});D.airtransport.speed=112;D.scoutballoon.speed=90;D.aerodrome.trains.push('bomber');D.aerodrome.description='最高时代航空基地：先研究航空工程，再生产侦察、运输与轰炸航空器；军机在此补弹';
 K.rewards.book.text='本国现有与未来英雄永久解锁霜环、守护结界、天火燎原与水龙卷；魔力上限 100，四个法术分别冷却';T.hulls.age=3;
 T.carrierflight={name:'舰载航空',icon:'✈',building:'dock',age:5,max:1,wood:450,gold:550,stone:180,time:85,description:'需先研究航空工程；解锁航空母舰与舰载机'};
@@ -21,7 +21,7 @@ class Campaign extends Base{
  pay(cost,team){const before=this.s.resources[team]&&{...this.s.resources[team]},out=super.pay(cost,team);if(before&&this.s.battleStats?.[team]){const r=this.s.battleStats[team];r.spentBy??={food:0,wood:0,gold:0,stone:0};for(const k of Object.keys(before)){const v=Math.max(0,before[k]-this.s.resources[team][k]);r.spent+=v;r.spentBy[k]=(r.spentBy[k]||0)+v}}return out}
  damage(e,amount,source){const hp=e.hp;super.damage(e,amount,source);if(hp>e.hp&&this.s.battleStats){if(source?.team>=0){this.s.battleStats[source.team].damage+=Math.min(hp,hp-e.hp);if(hp>0&&e.hp<=0&&!D[e.kind].building)this.s.battleStats[source.team].kills++}if(hp>0&&e.hp<=0&&e.team>=0&&!D[e.kind].building)this.s.battleStats[e.team].lost++}}
  add(kind,team,x,y,extra={}){const u=super.add(kind,team,x,y,extra);if(D[kind]?.hero){u.spellCooldowns??={};if(this.s.loot?.[team]?.chosen==='book')u.unlockedSpells=['frost','ward','inferno','tornado']}if(this.s.battleStats?.[team]&&!D[kind].building)this.s.battleStats[team].trained++;if(this.bomber(u))u.ammo=this.payload(u);return u}
- bomber(u){return ['gunship','bomber','airwing'].includes(u?.kind)}payload(u){return u.kind==='gunship'?6:2}
+ bomber(u){return ['gunship','bomber','airwing'].includes(u?.kind)}payload(u){return u.kind==='gunship'?6:u.kind==='airwing'?1:2}
  stat(e,key){const v=super.stat(e,key);return this.bomber(e)&&key==='range'?24:v}
  antiAir(u){if(this.bomber(u))return false;return super.antiAir(u)}
  canTarget(u,e){if(u.kind==='carrier')return !this.air(e)&&super.canTarget({...u,kind:'airwing'},e);if(this.bomber(u)&&this.air(e))return false;return super.canTarget(u,e)}
