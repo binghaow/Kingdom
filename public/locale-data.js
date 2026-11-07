@@ -79,8 +79,8 @@
 签订停战贸易需要 120 黄金|A trade truce requires 120 gold
 电脑慢发展、低伤害、小规模进攻|Slow AI growth, reduced damage and small attacks
 研究弹道、后勤、野战医疗与筑城|Researches ballistics, logistics, field medicine and fortifications
-派村民开采石料，提供可持续矿源|Assign villagers to quarry stone from a sustainable source
-法国特色建筑，训练皇家胸甲骑兵|French unique building: trains Royal Cuirassiers
+石料矿场：矿石提升架与矿车靠近采掘点布置；派村民前往可见矿脉开采，持续获得石料|Stone mining depot with an ore hoist and carts; send villagers to visible veins for a steady supply
+法国王室骑兵学府：训练高防御皇家胸甲骑兵；学院庭院以马术与队列操练闻名|French royal cavalry school: trains heavily armored Royal Cuirassiers in its riding yard
 射程远，擅长对付火枪兵，血量低|Long range and strong against musketeers, but low health
 中国专属：高射速，怕护甲与骑兵|Chinese unique unit: rapid fire, vulnerable to armor and cavalry
 专门轰击岸上建筑，需要舰队护航|Bombards shore buildings. Requires a naval escort
@@ -365,7 +365,7 @@ KC 火焰伤害|KC fire damage
 伐木营地|Lumber Camp
 岸防炮台|Coastal Battery
 连弩工坊|Repeater Workshop
-王家马术学院|Royal Riding Academy
+皇家马术学院|Royal Riding Academy
 皇家军械所|Royal Armory
 王家方阵学院|Royal Tercio Academy
 武家道场|Samurai Dojo

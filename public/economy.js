@@ -1,6 +1,6 @@
 /* Physical villager loads: resource banks change only at a real friendly depot. */
 ((root)=>{'use strict';const K=typeof module!=='undefined'&&module.exports?require('./terrain.js'):root.KingdomSim,Base=K.Sim,D=K.defs,T=K.tech,dist=K.distance;
-Object.assign(D,{mill:{name:'粮食磨坊',icon:'♣',building:true,hp:700,r:35,wood:100,time:18,age:1,description:'接收村民送回的食物、肉与农作物；研发背负量和搬运速度'},miningcamp:{name:'矿物收集场',icon:'◆',building:true,hp:750,r:34,wood:100,time:18,age:1,description:'接收村民送回的黄金与石料，缩短矿区搬运路线'}});
+Object.assign(D,{mill:{name:'粮食磨坊',icon:'♣',building:true,hp:700,r:35,wood:100,time:18,age:1,description:'村民把肉类、浆果与农作物运回此处；可研发背架和搬运道路，提升单次运载量与负重行速'},miningcamp:{name:'矿物收集场',icon:'◆',building:true,hp:750,r:34,wood:100,time:18,age:1,description:'矿工把黄金与石料运回此处；靠近矿脉修建可缩短往返路线'}});
 Object.assign(T,{carrying:{name:'背架与载具',icon:'▣',building:'mill',age:1,max:3,wood:80,gold:50,time:28,description:'村民每次背负量 +6；最多三级，不提高资源挖取速度'},hauling:{name:'搬运与道路',icon:'➤',building:'mill',age:1,max:2,food:80,wood:100,time:30,description:'村民携带资源时移动速度 +12%；最多两级'}});
 const accepts={town:['food','wood','gold','stone'],mill:['food'],lumbercamp:['wood'],miningcamp:['gold','stone'],quarry:['stone']};
 class Economy extends Base{
