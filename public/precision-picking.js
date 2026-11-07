@@ -7,7 +7,28 @@ A.hitEntity=(e,p,padding=0)=>{if(e.kind==='wood')padding=Math.max(padding,1);con
 A.traceEntity=(c,e)=>{const a=mask(e);c.save();c.globalAlpha*=.9;c.drawImage(a.edge,e.x-a.x,e.y-a.y);c.restore()};
 A.building=(c,b,t,selected,ghost)=>{const r=building(c,b,t,false,ghost);if(selected&&!ghost)A.traceEntity(c,b);return r};
 A.ready=A.ready.then(v=>{cache.clear();return v});
-})();
 
-/* Visible units remain readable through foreground buildings and resources; fog filtering happens before this pass. */
-(()=>{const A=window.KingdomArt;A.drawOccluded=(c,list,t,alpha=1)=>{const trees=list.filter(v=>v.type==='building'||v.type==='node'&&['wood','gold','stone'].includes(v.e.kind));for(const {e:source,type}of list){const u=A.renderUnit?.(source,alpha)||source;if(type!=='unit'||u.embarkedOn)continue;const b=A.entityBounds(u),points=[.25,.5,.75].map(q=>({x:u.x+b.x+b.width*q,y:u.y+b.y+b.height*.45}));if(!trees.some(({e})=>e.y>u.y&&points.some(p=>A.hitEntity(e,p))))continue;c.save();c.globalAlpha=.3;c.filter='brightness(0) invert(1) drop-shadow(0 0 2px #b9edff)';A.unit(c,u,t,false);c.restore();c.save();c.globalAlpha=.6;A.traceEntity(c,u);c.restore()}}})();
+// Fog filtering happens before this pass. Reject impossible overlaps before reading sprite pixels.
+A.drawOccluded=(c,list,t,alpha=1)=>{
+ const blockers=list.filter(({e,type})=>type==='building'||type==='node'&&['wood','gold','stone'].includes(e.kind))
+  .map(({e})=>{
+   const m=extent(e),halfWidth=m.width/2+20;
+   return {e,left:e.x-halfWidth,right:e.x+halfWidth,top:e.y-m.height-20,bottom:e.y+(D[e.kind]?.wall&&D[e.kind].vertical?65:22)};
+  });
+ if(!blockers.length)return;
+ for(const {e:source,type}of list){
+  if(type!=='unit'||source.embarkedOn)continue;
+  const u=A.renderUnit?.(source,alpha)||source,m=extent(u);
+  // All opaque pixels and sample points lie inside the mask canvas.
+  const halfWidth=Math.ceil(Math.ceil(m.width+40)/2);
+  const top=u.y-Math.ceil(m.height+100)+80;
+  const possible=blockers.filter(b=>b.e.y>u.y&&b.right>=u.x-halfWidth&&b.left<=u.x+halfWidth&&b.bottom>=top&&b.top<=u.y+80);
+  if(!possible.length)continue;
+  const b=A.entityBounds(u);
+  const points=[.25,.5,.75].map(q=>({x:u.x+b.x+b.width*q,y:u.y+b.y+b.height*.45}));
+  if(!possible.some(({e})=>points.some(p=>A.hitEntity(e,p))))continue;
+  c.save();c.globalAlpha=.3;c.filter='brightness(0) invert(1) drop-shadow(0 0 2px #b9edff)';A.unit(c,u,t,false);c.restore();
+  c.save();c.globalAlpha=.6;A.traceEntity(c,u);c.restore();
+ }
+};
+})();
