@@ -27,3 +27,14 @@ For changes to HUD, responsive layout, touch input, selection, camera, sprites o
 - Every mobile unit/species needs distinct front, back, right and left source views, including cargo and work variants where silhouette changes. Keep heading, sprite, pick mask, healthbar and guardian muzzle aligned. Run check-directions.cjs and direction-preview.html for new types; preserve established multi-frame side animations and do not silently claim full four-direction animation sets.
 
 - Attack-animation gate (V34): idle/direction wrappers must not replace active combat with standing sprites. Enumerate all mobile definitions and action variants in attack-manifest.json; run check-attack-actions.cjs and attack-preview.html using production script order. Verify four real preparation/release/follow/recovery frames in every direction, actual simulation strike/guardian/heal/launch cues, continuous recovery, complete long weapons/wings, transparent row AND column gutters, pixel picking and shared ground anchors. Noncombat units keep support roles; do not add attacks or alter balance just for animation.
+
+## Performance requirements
+
+- Preserve the current JavaScript/Canvas architecture unless repeatable device measurements show a platform limit. Profile first; do not migrate engines as a substitute for identifying a hot path.
+- Keep diagnostics opt-in. Normal play must not run per-frame/per-entity timing wrappers, allocate profiling samples, or display the performance HUD. Single-player `debug` may enable diagnostics; disabling it must remove the HUD and restore uninstrumented hot methods. `?perf=1` remains an explicit profiling override.
+- Navigation grids represent static terrain. Unit movement, collision separation, and temporary obstruction must not invalidate them; only terrain or static obstacle changes such as completed/destroyed buildings may do so.
+- Cache unreachable and temporarily blocked path goals with a simulation-time retry delay (currently 1.8 s). A fresh order or changed goal cell may retry immediately. Keep this transient cache out of saves and clear entries when units die or reach their goals.
+- Keep A* low-allocation: reuse map-sized scratch arrays and numeric heap storage, hoist neighbor offsets, use an admissible octile heuristic for 8-way movement, and avoid per-cell objects/arrays or front insertion during path reconstruction.
+- Prewarm land and sea navigation data before active simulation/resume so the first unit command does not pay the full grid build cost.
+- Profile update, render, pathfinding, collision, fog, minimap, visible/active entity counts, and both device/effective canvas DPR when diagnostics are enabled. Confirm findings on physical iPhone/iPad; desktop browser or Node measurements are not device evidence.
+- After performance changes, run `node check-all.cjs` and `npm run build`; record device measurements, scenario, and remaining unverified work in `docs/performance-audit.md`.

@@ -77,3 +77,9 @@ Fixes: preserve static navigation grids after unit movement collisions and low-b
 The next diagnostics HUD also separates battlefield and minimap draw time, reports visible entity count, grid calls/time, expanded A* cells, and both device and effective Canvas DPR. The previous screenshot's `DPR 3` was the device DPR; the game caps coarse-pointer Canvas DPR at 1.5. This distinction is now visible in the HUD.
 
 Validation: `node check-all.cjs` passes all project groups and `npm run build` succeeds after the follow-up. UI viewport browser checks and physical iPhone 17 retest of this new deployment remain outstanding. The 66 ms render measurement is not yet optimized; use the scene/minimap split on the next sample to choose that work.
+
+## 2026-11-07 iPhone 17 successful retest and diagnostics behavior
+
+The user's follow-up iPhone 17 screenshot reports 58.8 FPS, frame p50/p95 17/25 ms, update p50 0.0 ms, render p50 1.1 ms, UI 0.0 ms, A* 0 calls, grid 0, collision 0, fog 0, scene/minimap 1.0 ms each, and 88 active units plus 28 buildings (89 visible). Device/effective Canvas DPR is 3/1.5. This is the first supplied device evidence after the path-cache/A* changes and shows the formerly severe stall is absent in that 61-second sample. It is one observed scenario, not a guarantee for all maps or devices.
+
+The HUD now follows the existing single-player `debug` chat command. Enabling it creates the HUD and installs timing wrappers; disabling it removes the HUD and restores the original hot methods, so ordinary play avoids profiling wrappers and per-frame samples. The explicit `?perf=1` URL remains available for profiling without turning on the gameplay debug cheats. Multiplayer still cannot enable the single-player debug mode. Device-layout checks after this HUD behavior change were not run here; the HUD uses the existing compact, pointer-transparent panel geometry.
