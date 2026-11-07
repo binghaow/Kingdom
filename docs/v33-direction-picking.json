@@ -1,0 +1,78 @@
+[
+  {
+    "group": 0,
+    "text": "PASS 76 rows / 304 views · empty=0 aspect=0 duplicated views=0\nPASS villager front · pick 57/57\nPASS villager back · pick 56/56\nPASS villager right · pick 65/65\nPASS villager left · pick 64/64\nPASS engineer front · pick 58/58\nPASS engineer back · pick 57/57\nPASS engineer right · pick 37/37\nPASS engineer left · pick 40/40\nPASS healer front · pick 56/56\nPASS healer back · pick 58/58\nPASS healer right · pick 45/45\nPASS healer left · pick 44/44\nPASS trader front · pick 68/68\nPASS trader back · pick 69/69\nPASS trader right · pick 78/78\nPASS trader left · pick 70/70"
+  },
+  {
+    "group": 1,
+    "text": "PASS 76 rows / 304 views · empty=0 aspect=0 duplicated views=0\nPASS infantry front · pick 49/49\nPASS infantry back · pick 52/52\nPASS infantry right · pick 32/32\nPASS infantry left · pick 35/35\nPASS archer front · pick 53/53\nPASS archer back · pick 57/57\nPASS archer right · pick 46/46\nPASS archer left · pick 42/42\nPASS cavalry front · pick 76/76\nPASS cavalry back · pick 77/77\nPASS cavalry right · pick 114/114\nPASS cavalry left · pick 109/109\nPASS musketeer front · pick 51/51\nPASS musketeer back · pick 53/53\nPASS musketeer right · pick 39/39\nPASS musketeer left · pick 31/31"
+  },
+  {
+    "group": 2,
+    "text": "PASS 76 rows / 304 views · empty=0 aspect=0 duplicated views=0\nPASS grenadier front · pick 50/50\nPASS grenadier back · pick 47/47\nPASS grenadier right · pick 36/36\nPASS grenadier left · pick 38/38\nPASS halberd front · pick 46/46\nPASS halberd back · pick 47/47\nPASS halberd right · pick 31/31\nPASS halberd left · pick 33/33\nPASS skirmisher front · pick 55/55\nPASS skirmisher back · pick 58/58\nPASS skirmisher right · pick 37/37\nPASS skirmisher left · pick 40/40\nPASS hussar front · pick 79/79\nPASS hussar back · pick 79/79\nPASS hussar right · pick 117/117\nPASS hussar left · pick 123/123"
+  },
+  {
+    "group": 3,
+    "text": "PASS 76 rows / 304 views · empty=0 aspect=0 duplicated views=0\nPASS eliteguard front · pick 56/56\nPASS eliteguard back · pick 58/58\nPASS eliteguard right · pick 40/40\nPASS eliteguard left · pick 40/40\nPASS dragoon front · pick 77/77\nPASS dragoon back · pick 77/77\nPASS dragoon right · pick 120/120\nPASS dragoon left · pick 114/114\nPASS rifleguard front · pick 42/42\nPASS rifleguard back · pick 44/44\nPASS rifleguard right · pick 31/31\nPASS rifleguard left · pick 31/31\nPASS combatmedic front · pick 57/57\nPASS combatmedic back · pick 56/56\nPASS combatmedic right · pick 36/36\nPASS combatmedic left · pick 40/40"
+  },
+  {
+    "group": 4,
+    "text": "PASS 76 rows / 304 views · empty=0 aspect=0 duplicated views=0\nPASS longbow front · pick 53/53\nPASS longbow back · pick 53/53\nPASS longbow right · pick 44/44\nPASS longbow left · pick 46/46\nPASS cuirassier front · pick 85/85\nPASS cuirassier back · pick 79/79\nPASS cuirassier right · pick 115/115\nPASS cuirassier left · pick 120/120\nPASS repeater front · pick 51/51\nPASS repeater back · pick 57/57\nPASS repeater right · pick 36/36\nPASS repeater left · pick 38/38\nPASS samurai front · pick 55/55\nPASS samurai back · pick 55/55\nPASS samurai right · pick 40/40\nPASS samurai left · pick 38/38"
+  },
+  {
+    "group": 5,
+    "text": "PASS 76 rows / 304 views · empty=0 aspect=0 duplicated views=0\nPASS janissary front · pick 48/48\nPASS janissary back · pick 47/47\nPASS janissary right · pick 37/37\nPASS janissary left · pick 39/39\nPASS streltsy front · pick 56/56\nPASS streltsy back · pick 54/54\nPASS streltsy right · pick 45/45\nPASS streltsy left · pick 39/39\nPASS prussianguard front · pick 39/39\nPASS prussianguard back · pick 38/38\nPASS prussianguard right · pick 30/30\nPASS prussianguard left · pick 33/33\nPASS tercio front · pick 43/43\nPASS tercio back · pick 50/50\nPASS tercio right · pick 34/34\nPASS tercio left · pick 37/37"
+  },
+  {
+    "group": 6,
+    "text": "PASS 76 rows / 304 views · empty=0 aspect=0 duplicated views=0\nPASS nassau front · pick 53/53\nPASS nassau back · pick 58/58\nPASS nassau right · pick 44/44\nPASS nassau left · pick 42/42\nPASS continental front · pick 47/47\nPASS continental back · pick 52/52\nPASS continental right · pick 34/34\nPASS continental left · pick 40/40\nPASS runesentinel front · pick 69/69\nPASS runesentinel back · pick 75/75\nPASS runesentinel right · pick 54/54\nPASS runesentinel left · pick 60/60\nPASS emberthrower front · pick 269/270\nPASS emberthrower back · pick 266/267\nPASS emberthrower right · pick 283/284\nPASS emberthrower left · pick 277/278"
+  },
+  {
+    "group": 7,
+    "text": "PASS 76 rows / 304 views · empty=0 aspect=0 duplicated views=0\nPASS hero_britain front · pick 90/90\nPASS hero_britain back · pick 86/86\nPASS hero_britain right · pick 69/69\nPASS hero_britain left · pick 69/69\nPASS hero_france front · pick 108/108\nPASS hero_france back · pick 109/109\nPASS hero_france right · pick 154/154\nPASS hero_france left · pick 151/151\nPASS hero_china front · pick 79/79\nPASS hero_china back · pick 78/78\nPASS hero_china right · pick 56/56\nPASS hero_china left · pick 54/54\nPASS hero_japan front · pick 77/77\nPASS hero_japan back · pick 78/78\nPASS hero_japan right · pick 51/51\nPASS hero_japan left · pick 49/49"
+  },
+  {
+    "group": 8,
+    "text": "PASS 76 rows / 304 views · empty=0 aspect=0 duplicated views=0\nPASS hero_ottoman front · pick 66/66\nPASS hero_ottoman back · pick 68/68\nPASS hero_ottoman right · pick 55/55\nPASS hero_ottoman left · pick 56/56\nPASS hero_russia front · pick 79/79\nPASS hero_russia back · pick 79/79\nPASS hero_russia right · pick 59/59\nPASS hero_russia left · pick 57/57\nPASS hero_prussia front · pick 58/58\nPASS hero_prussia back · pick 62/62\nPASS hero_prussia right · pick 50/50\nPASS hero_prussia left · pick 51/51\nPASS hero_spain front · pick 67/67\nPASS hero_spain back · pick 75/75\nPASS hero_spain right · pick 49/49\nPASS hero_spain left · pick 48/48"
+  },
+  {
+    "group": 9,
+    "text": "PASS 76 rows / 304 views · empty=0 aspect=0 duplicated views=0\nPASS hero_netherlands front · pick 77/77\nPASS hero_netherlands back · pick 80/80\nPASS hero_netherlands right · pick 61/61\nPASS hero_netherlands left · pick 64/64\nPASS hero_usa front · pick 81/81\nPASS hero_usa back · pick 79/79\nPASS hero_usa right · pick 55/55\nPASS hero_usa left · pick 53/53\nPASS tangdou front · pick 293/293\nPASS tangdou back · pick 300/300\nPASS tangdou right · pick 258/258\nPASS tangdou left · pick 259/259\nPASS tuantuan front · pick 296/296\nPASS tuantuan back · pick 299/299\nPASS tuantuan right · pick 249/249\nPASS tuantuan left · pick 256/256"
+  },
+  {
+    "group": 10,
+    "text": "PASS 76 rows / 304 views · empty=0 aspect=0 duplicated views=0\nPASS cannon front · pick 221/221\nPASS cannon back · pick 232/232\nPASS cannon right · pick 274/274\nPASS cannon left · pick 289/290\nPASS mortar front · pick 362/362\nPASS mortar back · pick 368/368\nPASS mortar right · pick 413/413\nPASS mortar left · pick 407/407\nPASS howitzer front · pick 304/304\nPASS howitzer back · pick 300/300\nPASS howitzer right · pick 274/274\nPASS howitzer left · pick 289/290\nPASS fieldmortar front · pick 149/149\nPASS fieldmortar back · pick 149/150\nPASS fieldmortar right · pick 192/194\nPASS fieldmortar left · pick 193/195"
+  },
+  {
+    "group": 11,
+    "text": "PASS 76 rows / 304 views · empty=0 aspect=0 duplicated views=0\nPASS trebuchet front · pick 259/259\nPASS trebuchet back · pick 284/284\nPASS trebuchet right · pick 354/354\nPASS trebuchet left · pick 354/356\nPASS siegewagon front · pick 436/436\nPASS siegewagon back · pick 407/407\nPASS siegewagon right · pick 429/429\nPASS siegewagon left · pick 429/429\nPASS steamcrawler front · pick 224/225\nPASS steamcrawler back · pick 224/226\nPASS steamcrawler right · pick 299/300\nPASS steamcrawler left · pick 305/305\nPASS gunship front · pick 251/252\nPASS gunship back · pick 266/277\nPASS gunship right · pick 491/492\nPASS gunship left · pick 372/373"
+  },
+  {
+    "group": 12,
+    "text": "PASS 76 rows / 304 views · empty=0 aspect=0 duplicated views=0\nPASS fishingboat front · pick 116/116\nPASS fishingboat back · pick 123/123\nPASS fishingboat right · pick 114/114\nPASS fishingboat left · pick 103/103\nPASS sloop front · pick 219/221\nPASS sloop back · pick 223/223\nPASS sloop right · pick 342/345\nPASS sloop left · pick 327/327\nPASS frigate front · pick 406/407\nPASS frigate back · pick 415/415\nPASS frigate right · pick 586/587\nPASS frigate left · pick 578/578\nPASS bombketch front · pick 263/263\nPASS bombketch back · pick 273/273\nPASS bombketch right · pick 354/355\nPASS bombketch left · pick 311/311"
+  },
+  {
+    "group": 13,
+    "text": "PASS 76 rows / 304 views · empty=0 aspect=0 duplicated views=0\nPASS transport front · pick 282/282\nPASS transport back · pick 304/304\nPASS transport right · pick 230/230\nPASS transport left · pick 286/286\nPASS carrier front · pick 310/311\nPASS carrier back · pick 359/360\nPASS carrier right · pick 130/131\nPASS carrier left · pick 147/147\nPASS scoutballoon front · pick 397/398\nPASS scoutballoon back · pick 395/395\nPASS scoutballoon right · pick 385/386\nPASS scoutballoon left · pick 385/387\nPASS airtransport front · pick 286/287\nPASS airtransport back · pick 282/289\nPASS airtransport right · pick 230/236\nPASS airtransport left · pick 293/294"
+  },
+  {
+    "group": 14,
+    "text": "PASS 76 rows / 304 views · empty=0 aspect=0 duplicated views=0\nPASS bomber front · pick 202/202\nPASS bomber back · pick 152/152\nPASS bomber right · pick 211/211\nPASS bomber left · pick 211/211\nPASS airwing front · pick 90/90\nPASS airwing back · pick 79/79\nPASS airwing right · pick 131/131\nPASS airwing left · pick 133/133\nPASS kcdragon front · pick 1347/1347\nPASS kcdragon back · pick 1266/1266\nPASS kcdragon right · pick 1065/1065\nPASS kcdragon left · pick 1053/1053\nPASS kcdemon front · pick 786/786\nPASS kcdemon back · pick 782/782\nPASS kcdemon right · pick 790/790\nPASS kcdemon left · pick 795/795"
+  },
+  {
+    "group": 15,
+    "text": "PASS 76 rows / 304 views · empty=0 aspect=0 duplicated views=0\nPASS bear front · pick 189/189\nPASS bear back · pick 184/184\nPASS bear right · pick 211/211\nPASS bear left · pick 207/207\nPASS jackal front · pick 45/46\nPASS jackal back · pick 52/52\nPASS jackal right · pick 53/54\nPASS jackal left · pick 51/54\nPASS cow front · pick 44/44\nPASS cow back · pick 49/49\nPASS cow right · pick 37/37\nPASS cow left · pick 60/60\nPASS sheep front · pick 29/29\nPASS sheep back · pick 30/30\nPASS sheep right · pick 22/22\nPASS sheep left · pick 40/40"
+  },
+  {
+    "group": 16,
+    "text": "PASS 76 rows / 304 views · empty=0 aspect=0 duplicated views=0\nPASS deer front · pick 25/25\nPASS deer back · pick 28/28\nPASS deer right · pick 40/40\nPASS deer left · pick 42/42\nPASS fish front · pick 3/3\nPASS fish back · pick 3/3\nPASS fish right · pick 4/4\nPASS fish left · pick 3/3\nPASS cowCarcass front · pick 65/65\nPASS cowCarcass back · pick 48/48\nPASS cowCarcass right · pick 42/42\nPASS cowCarcass left · pick 49/49\nPASS sheepCarcass front · pick 31/31\nPASS sheepCarcass back · pick 28/28\nPASS sheepCarcass right · pick 30/30\nPASS sheepCarcass left · pick 28/28"
+  },
+  {
+    "group": 17,
+    "text": "PASS 76 rows / 304 views · empty=0 aspect=0 duplicated views=0\nPASS carryWood front · pick 69/69\nPASS carryWood back · pick 69/69\nPASS carryWood right · pick 52/52\nPASS carryWood left · pick 51/51\nPASS carryStone front · pick 70/70\nPASS carryStone back · pick 67/67\nPASS carryStone right · pick 49/49\nPASS carryStone left · pick 50/50\nPASS carryGold front · pick 68/68\nPASS carryGold back · pick 66/66\nPASS carryGold right · pick 49/49\nPASS carryGold left · pick 50/50\nPASS carryFood front · pick 72/72\nPASS carryFood back · pick 72/72\nPASS carryFood right · pick 49/49\nPASS carryFood left · pick 50/50"
+  },
+  {
+    "group": 18,
+    "text": "PASS 76 rows / 304 views · empty=0 aspect=0 duplicated views=0\nPASS workMine front · pick 67/67\nPASS workMine back · pick 70/70\nPASS workMine right · pick 47/47\nPASS workMine left · pick 49/49\nPASS workWood front · pick 66/66\nPASS workWood back · pick 61/61\nPASS workWood right · pick 45/45\nPASS workWood left · pick 39/39\nPASS workFood front · pick 94/94\nPASS workFood back · pick 104/104\nPASS workFood right · pick 32/32\nPASS workFood left · pick 44/44\nPASS workBuild front · pick 80/80\nPASS workBuild back · pick 74/74\nPASS workBuild right · pick 36/36\nPASS workBuild left · pick 39/39"
+  }
+]

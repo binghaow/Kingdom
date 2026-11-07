@@ -1,0 +1,220 @@
+{
+  "version": 33,
+  "columns": [
+    "front",
+    "back",
+    "right",
+    "left"
+  ],
+  "groups": [
+    {
+      "id": "civilians",
+      "keys": [
+        "villager",
+        "engineer",
+        "healer",
+        "trader"
+      ],
+      "source": "assets/directions-civilians-v33.png",
+      "reference": "assets/troops-idle-v3.png"
+    },
+    {
+      "id": "core",
+      "keys": [
+        "infantry",
+        "archer",
+        "cavalry",
+        "musketeer"
+      ],
+      "source": "assets/directions-core-v33.png",
+      "reference": "assets/troops-idle-v3.png"
+    },
+    {
+      "id": "line",
+      "keys": [
+        "grenadier",
+        "halberd",
+        "skirmisher",
+        "hussar"
+      ],
+      "source": "assets/directions-line-v33.png",
+      "reference": "assets/troops-idle-v3.png"
+    },
+    {
+      "id": "advanced",
+      "keys": [
+        "eliteguard",
+        "dragoon",
+        "rifleguard",
+        "combatmedic"
+      ],
+      "source": "assets/directions-advanced-v33.png",
+      "reference": "assets/troops-idle-v3.png"
+    },
+    {
+      "id": "nationalA",
+      "keys": [
+        "longbow",
+        "cuirassier",
+        "repeater",
+        "samurai"
+      ],
+      "source": "assets/directions-nationalA-v33.png",
+      "reference": "assets/national-idle-v3.png"
+    },
+    {
+      "id": "nationalB",
+      "keys": [
+        "janissary",
+        "streltsy",
+        "prussianguard",
+        "tercio"
+      ],
+      "source": "assets/directions-nationalB-v33.png",
+      "reference": "assets/national-idle-v3.png"
+    },
+    {
+      "id": "nationalC",
+      "keys": [
+        "nassau",
+        "continental",
+        "runesentinel",
+        "emberthrower"
+      ],
+      "source": "assets/directions-nationalC-v33.png",
+      "reference": "assets/national-idle-v3.png"
+    },
+    {
+      "id": "heroesA",
+      "keys": [
+        "hero_britain",
+        "hero_france",
+        "hero_china",
+        "hero_japan"
+      ],
+      "source": "assets/directions-heroesA-v33.png",
+      "reference": "assets/national-idle-v3.png"
+    },
+    {
+      "id": "heroesB",
+      "keys": [
+        "hero_ottoman",
+        "hero_russia",
+        "hero_prussia",
+        "hero_spain"
+      ],
+      "source": "assets/directions-heroesB-v33.png",
+      "reference": "assets/national-idle-v3.png"
+    },
+    {
+      "id": "heroesC",
+      "keys": [
+        "hero_netherlands",
+        "hero_usa",
+        "tangdou",
+        "tuantuan"
+      ],
+      "source": "assets/directions-heroesC-v33.png",
+      "reference": "assets/national-idle-v3.png"
+    },
+    {
+      "id": "artillery",
+      "keys": [
+        "cannon",
+        "mortar",
+        "howitzer",
+        "fieldmortar"
+      ],
+      "source": "assets/directions-artillery-v33.png",
+      "reference": "assets/siege-equipment-v29.png"
+    },
+    {
+      "id": "engineering",
+      "keys": [
+        "trebuchet",
+        "siegewagon",
+        "steamcrawler",
+        "gunship"
+      ],
+      "source": "assets/directions-engineering-v33.png",
+      "reference": "assets/siege-equipment-v29.png"
+    },
+    {
+      "id": "navalA",
+      "keys": [
+        "fishingboat",
+        "sloop",
+        "frigate",
+        "bombketch"
+      ],
+      "source": "assets/directions-navalA-v33.png",
+      "reference": "assets/ships-v3.png"
+    },
+    {
+      "id": "navalAir",
+      "keys": [
+        "transport",
+        "carrier",
+        "scoutballoon",
+        "airtransport"
+      ],
+      "source": "assets/directions-navalAir-v33.png",
+      "reference": "assets/clarity-v6.png"
+    },
+    {
+      "id": "special",
+      "keys": [
+        "bomber",
+        "airwing",
+        "kcdragon",
+        "kcdemon"
+      ],
+      "source": "assets/directions-special-v33.png",
+      "reference": "assets/guardian-actions-v29.png"
+    },
+    {
+      "id": "animals",
+      "keys": [
+        "bear",
+        "jackal",
+        "cow",
+        "sheep"
+      ],
+      "source": "assets/directions-animals-v33.png",
+      "reference": "assets/wildlife-v8.png"
+    },
+    {
+      "id": "wildnodes",
+      "keys": [
+        "deer",
+        "fish",
+        "cowCarcass",
+        "sheepCarcass"
+      ],
+      "source": "assets/directions-wildnodes-v33.png",
+      "reference": "assets/wildlife-v8.png"
+    },
+    {
+      "id": "cargo",
+      "keys": [
+        "carryWood",
+        "carryStone",
+        "carryGold",
+        "carryFood"
+      ],
+      "source": "assets/directions-cargo-v33.png",
+      "reference": "assets/villager-actions-v29.png"
+    },
+    {
+      "id": "workerwork",
+      "keys": [
+        "workMine",
+        "workWood",
+        "workFood",
+        "workBuild"
+      ],
+      "source": "assets/directions-workerwork-v33.png",
+      "reference": "assets/villager-actions-v29.png"
+    }
+  ]
+}
