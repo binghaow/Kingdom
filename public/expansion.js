@@ -65,10 +65,10 @@ canvas.addEventListener('pointermove',e=>{
 canvas.addEventListener('pointerup',e=>{
  clearTimeout(longTimer);touchPoints.delete(e.pointerId);if(pinch){if(!touchPoints.size)pinch=null;pointer=null;return}
  if(!pointer||pointer.id!==e.pointerId)return;const a=pointer;pointer=null;if(paused||s.ended||a.long)return;const p=point(a.cx,a.cy);
- if(a.drag&&D[buildMode]?.wall){const from=point(a.x,a.y);if(NUI.isMobile()){pendingWallLine={a:from,b:p};pendingPlacement=p;NUI.placed(true);toast('已预览位置，点击“确认建造”后施工')}else placeLine(from,p);return}
+ if(a.drag&&D[buildMode]?.wall){const from=point(a.x,a.y);pendingWallLine={a:from,b:p};pendingPlacement=p;NUI.placed(true,{clientX:e.clientX,clientY:e.clientY});toast('已预览位置，点击“确认建造”后施工');return}
  if(a.drag){if((a.type==='touch'&&NUI.mode==='box')||(a.type!=='touch'&&a.button===0)){const from=point(a.x,a.y);select(s.units.filter(u=>u.team===0&&!u.embarkedOn&&u.x>=Math.min(from.x,p.x)&&u.x<=Math.max(from.x,p.x)&&u.y>=Math.min(from.y,p.y)&&u.y<=Math.max(from.y,p.y)).map(u=>u.id))}return}
  if(a.type==='touch'&&NUI.mode==='pan')return;
- if(buildMode){if(NUI.isMobile()){pendingPlacement=p;NUI.placed(true);toast('已预览位置，点击“确认建造”后施工')}else place(p);return}
+ if(buildMode){pendingPlacement=p;NUI.placed(true,{clientX:e.clientX,clientY:e.clientY});toast('已预览位置，点击“确认建造”后施工');return}
  const target=objectAt(p);if(target&&D[target.kind]?.monster&&units().length)A?.selectionSound?.(target,sim);if(target?.amount>0&&['cow','sheep'].includes(target.subtype))A?.selectionSound?.(target,sim);if(a.button===2||orderMode){command(p,target);return}
  if(target?.type==='post'||target?.type==='relic'){if(target.type==='post'&&units().some(u=>u.kind==='trader'))command(p,target);else select([target.id]);return}if(target?.team===0||target&&D[target.kind]?.building&&sim.allied(0,target.team)){if(units().some(u=>sim.builder(u))&&D[target.kind].building&&(!target.complete||target.hp<target.maxhp||['farm','quarry'].includes(target.kind)))command(p,target);else select(e.shiftKey?[...new Set([...selection,target.id])]:[target.id]);return}
  if(units().length)command(p,target);else if(target&&(target.team!==undefined||target.amount>0)){targetId=sim.hostile(0,target.team)?target.id:null;select([target.id])}else select([])
