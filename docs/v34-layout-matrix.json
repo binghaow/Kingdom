@@ -1,0 +1,1490 @@
+[
+  {
+    "selection": "select-army",
+    "title": "远征军 · 3 人",
+    "probe": {
+      "collapsed": true,
+      "findings": [],
+      "language": "zh-CN",
+      "scope": "game",
+      "viewport": {
+        "height": 852,
+        "width": 394
+      }
+    },
+    "buttons": [
+      {
+        "h": 44,
+        "id": "select-army",
+        "w": 118.6624984741211
+      },
+      {
+        "h": 44,
+        "id": "select-fleet",
+        "w": 118.6624984741211
+      },
+      {
+        "h": 44,
+        "id": "select-workers",
+        "w": 118.6624984741211
+      }
+    ]
+  },
+  {
+    "selection": "select-army",
+    "title": "远征军 · 3 人",
+    "probe": {
+      "collapsed": false,
+      "findings": [],
+      "language": "zh-CN",
+      "scope": "game",
+      "viewport": {
+        "height": 852,
+        "width": 394
+      }
+    },
+    "buttons": [
+      {
+        "h": 38,
+        "id": "select-army",
+        "w": 122.20000457763672
+      },
+      {
+        "h": 38,
+        "id": "select-fleet",
+        "w": 122.20000457763672
+      },
+      {
+        "h": 38,
+        "id": "select-workers",
+        "w": 122.20000457763672
+      }
+    ]
+  },
+  {
+    "selection": "select-fleet",
+    "title": "海岸远征军",
+    "probe": {
+      "collapsed": false,
+      "findings": [],
+      "language": "zh-CN",
+      "scope": "game",
+      "viewport": {
+        "height": 852,
+        "width": 394
+      }
+    },
+    "buttons": [
+      {
+        "h": 38,
+        "id": "select-army",
+        "w": 122.20000457763672
+      },
+      {
+        "h": 38,
+        "id": "select-fleet",
+        "w": 122.20000457763672
+      },
+      {
+        "h": 38,
+        "id": "select-workers",
+        "w": 122.20000457763672
+      }
+    ]
+  },
+  {
+    "selection": "select-fleet",
+    "title": "海岸远征军",
+    "probe": {
+      "collapsed": true,
+      "findings": [],
+      "language": "zh-CN",
+      "scope": "game",
+      "viewport": {
+        "height": 852,
+        "width": 394
+      }
+    },
+    "buttons": [
+      {
+        "h": 44,
+        "id": "select-army",
+        "w": 118.6624984741211
+      },
+      {
+        "h": 44,
+        "id": "select-fleet",
+        "w": 118.6624984741211
+      },
+      {
+        "h": 44,
+        "id": "select-workers",
+        "w": 118.6624984741211
+      }
+    ]
+  },
+  {
+    "selection": "select-workers",
+    "title": "村民",
+    "probe": {
+      "collapsed": false,
+      "findings": [],
+      "language": "zh-CN",
+      "scope": "game",
+      "viewport": {
+        "height": 852,
+        "width": 394
+      }
+    },
+    "buttons": [
+      {
+        "h": 38,
+        "id": "select-army",
+        "w": 122.20000457763672
+      },
+      {
+        "h": 38,
+        "id": "select-fleet",
+        "w": 122.20000457763672
+      },
+      {
+        "h": 38,
+        "id": "select-workers",
+        "w": 122.20000457763672
+      }
+    ]
+  },
+  {
+    "selection": "select-workers",
+    "title": "村民",
+    "probe": {
+      "collapsed": true,
+      "findings": [],
+      "language": "zh-CN",
+      "scope": "game",
+      "viewport": {
+        "height": 852,
+        "width": 394
+      }
+    },
+    "buttons": [
+      {
+        "h": 44,
+        "id": "select-army",
+        "w": 118.6624984741211
+      },
+      {
+        "h": 44,
+        "id": "select-fleet",
+        "w": 118.6624984741211
+      },
+      {
+        "h": 44,
+        "id": "select-workers",
+        "w": 118.6624984741211
+      }
+    ]
+  },
+  {
+    "selection": "select-army",
+    "title": "远征军 · 3 人",
+    "probe": {
+      "collapsed": true,
+      "findings": [],
+      "language": "zh-CN",
+      "scope": "game",
+      "viewport": {
+        "height": 394,
+        "width": 852
+      }
+    },
+    "buttons": [
+      {
+        "h": 48.400001525878906,
+        "id": "select-army",
+        "w": 203.1999969482422
+      },
+      {
+        "h": 48.400001525878906,
+        "id": "select-fleet",
+        "w": 203.1999969482422
+      },
+      {
+        "h": 48.400001525878906,
+        "id": "select-workers",
+        "w": 203.1999969482422
+      }
+    ]
+  },
+  {
+    "selection": "select-army",
+    "title": "远征军 · 3 人",
+    "probe": {
+      "collapsed": false,
+      "findings": [],
+      "language": "zh-CN",
+      "scope": "game",
+      "viewport": {
+        "height": 394,
+        "width": 852
+      }
+    },
+    "buttons": [
+      {
+        "h": 33.462501525878906,
+        "id": "select-army",
+        "w": 100.20000457763672
+      },
+      {
+        "h": 33.462501525878906,
+        "id": "select-fleet",
+        "w": 100.20000457763672
+      },
+      {
+        "h": 33.462501525878906,
+        "id": "select-workers",
+        "w": 100.20000457763672
+      }
+    ]
+  },
+  {
+    "selection": "select-fleet",
+    "title": "海岸远征军",
+    "probe": {
+      "collapsed": true,
+      "findings": [],
+      "language": "zh-CN",
+      "scope": "game",
+      "viewport": {
+        "height": 394,
+        "width": 852
+      }
+    },
+    "buttons": [
+      {
+        "h": 48.400001525878906,
+        "id": "select-army",
+        "w": 203.1999969482422
+      },
+      {
+        "h": 48.400001525878906,
+        "id": "select-fleet",
+        "w": 203.1999969482422
+      },
+      {
+        "h": 48.400001525878906,
+        "id": "select-workers",
+        "w": 203.1999969482422
+      }
+    ]
+  },
+  {
+    "selection": "select-fleet",
+    "title": "海岸远征军",
+    "probe": {
+      "collapsed": false,
+      "findings": [],
+      "language": "zh-CN",
+      "scope": "game",
+      "viewport": {
+        "height": 394,
+        "width": 852
+      }
+    },
+    "buttons": [
+      {
+        "h": 33.462501525878906,
+        "id": "select-army",
+        "w": 100.20000457763672
+      },
+      {
+        "h": 33.462501525878906,
+        "id": "select-fleet",
+        "w": 100.20000457763672
+      },
+      {
+        "h": 33.462501525878906,
+        "id": "select-workers",
+        "w": 100.20000457763672
+      }
+    ]
+  },
+  {
+    "selection": "select-workers",
+    "title": "村民",
+    "probe": {
+      "collapsed": true,
+      "findings": [],
+      "language": "zh-CN",
+      "scope": "game",
+      "viewport": {
+        "height": 394,
+        "width": 852
+      }
+    },
+    "buttons": [
+      {
+        "h": 48.400001525878906,
+        "id": "select-army",
+        "w": 203.1999969482422
+      },
+      {
+        "h": 48.400001525878906,
+        "id": "select-fleet",
+        "w": 203.1999969482422
+      },
+      {
+        "h": 48.400001525878906,
+        "id": "select-workers",
+        "w": 203.1999969482422
+      }
+    ]
+  },
+  {
+    "selection": "select-workers",
+    "title": "村民",
+    "probe": {
+      "collapsed": false,
+      "findings": [],
+      "language": "zh-CN",
+      "scope": "game",
+      "viewport": {
+        "height": 394,
+        "width": 852
+      }
+    },
+    "buttons": [
+      {
+        "h": 33.462501525878906,
+        "id": "select-army",
+        "w": 100.20000457763672
+      },
+      {
+        "h": 33.462501525878906,
+        "id": "select-fleet",
+        "w": 100.20000457763672
+      },
+      {
+        "h": 33.462501525878906,
+        "id": "select-workers",
+        "w": 100.20000457763672
+      }
+    ]
+  },
+  {
+    "selection": "select-army",
+    "title": "远征军 · 3 人",
+    "probe": {
+      "collapsed": true,
+      "findings": [],
+      "language": "zh-CN",
+      "scope": "game",
+      "viewport": {
+        "height": 820,
+        "width": 1180
+      }
+    },
+    "buttons": [
+      {
+        "h": 58.400001525878906,
+        "id": "select-army",
+        "w": 106.0625
+      },
+      {
+        "h": 58.400001525878906,
+        "id": "select-fleet",
+        "w": 106.0625
+      },
+      {
+        "h": 58.400001525878906,
+        "id": "select-workers",
+        "w": 106.0625
+      }
+    ]
+  },
+  {
+    "selection": "select-army",
+    "title": "远征军 · 3 人",
+    "probe": {
+      "collapsed": false,
+      "findings": [],
+      "language": "zh-CN",
+      "scope": "game",
+      "viewport": {
+        "height": 820,
+        "width": 1180
+      }
+    },
+    "buttons": [
+      {
+        "h": 40.125,
+        "id": "select-army",
+        "w": 150.1999969482422
+      },
+      {
+        "h": 40.13750076293945,
+        "id": "select-fleet",
+        "w": 150.1999969482422
+      },
+      {
+        "h": 40.13750076293945,
+        "id": "select-workers",
+        "w": 150.1999969482422
+      }
+    ]
+  },
+  {
+    "selection": "select-fleet",
+    "title": "海岸远征军",
+    "probe": {
+      "collapsed": true,
+      "findings": [],
+      "language": "zh-CN",
+      "scope": "game",
+      "viewport": {
+        "height": 820,
+        "width": 1180
+      }
+    },
+    "buttons": [
+      {
+        "h": 58.400001525878906,
+        "id": "select-army",
+        "w": 106.0625
+      },
+      {
+        "h": 58.400001525878906,
+        "id": "select-fleet",
+        "w": 106.0625
+      },
+      {
+        "h": 58.400001525878906,
+        "id": "select-workers",
+        "w": 106.0625
+      }
+    ]
+  },
+  {
+    "selection": "select-fleet",
+    "title": "海岸远征军",
+    "probe": {
+      "collapsed": false,
+      "findings": [],
+      "language": "zh-CN",
+      "scope": "game",
+      "viewport": {
+        "height": 820,
+        "width": 1180
+      }
+    },
+    "buttons": [
+      {
+        "h": 40.125,
+        "id": "select-army",
+        "w": 150.1999969482422
+      },
+      {
+        "h": 40.13750076293945,
+        "id": "select-fleet",
+        "w": 150.1999969482422
+      },
+      {
+        "h": 40.13750076293945,
+        "id": "select-workers",
+        "w": 150.1999969482422
+      }
+    ]
+  },
+  {
+    "selection": "select-workers",
+    "title": "村民",
+    "probe": {
+      "collapsed": true,
+      "findings": [],
+      "language": "zh-CN",
+      "scope": "game",
+      "viewport": {
+        "height": 820,
+        "width": 1180
+      }
+    },
+    "buttons": [
+      {
+        "h": 58.400001525878906,
+        "id": "select-army",
+        "w": 106.0625
+      },
+      {
+        "h": 58.400001525878906,
+        "id": "select-fleet",
+        "w": 106.0625
+      },
+      {
+        "h": 58.400001525878906,
+        "id": "select-workers",
+        "w": 106.0625
+      }
+    ]
+  },
+  {
+    "selection": "select-workers",
+    "title": "村民",
+    "probe": {
+      "collapsed": false,
+      "findings": [],
+      "language": "zh-CN",
+      "scope": "game",
+      "viewport": {
+        "height": 820,
+        "width": 1180
+      }
+    },
+    "buttons": [
+      {
+        "h": 40.125,
+        "id": "select-army",
+        "w": 150.1999969482422
+      },
+      {
+        "h": 40.13750076293945,
+        "id": "select-fleet",
+        "w": 150.1999969482422
+      },
+      {
+        "h": 40.13750076293945,
+        "id": "select-workers",
+        "w": 150.1999969482422
+      }
+    ]
+  },
+  {
+    "selection": "select-army",
+    "title": "远征军 · 3 人",
+    "probe": {
+      "collapsed": true,
+      "findings": [],
+      "language": "zh-CN",
+      "scope": "game",
+      "viewport": {
+        "height": 720,
+        "width": 1280
+      }
+    },
+    "buttons": [
+      {
+        "h": 58.400001525878906,
+        "id": "select-army",
+        "w": 106.0625
+      },
+      {
+        "h": 58.400001525878906,
+        "id": "select-fleet",
+        "w": 106.0625
+      },
+      {
+        "h": 58.400001525878906,
+        "id": "select-workers",
+        "w": 106.0625
+      }
+    ]
+  },
+  {
+    "selection": "select-army",
+    "title": "远征军 · 3 人",
+    "probe": {
+      "collapsed": false,
+      "findings": [],
+      "language": "zh-CN",
+      "scope": "game",
+      "viewport": {
+        "height": 720,
+        "width": 1280
+      }
+    },
+    "buttons": [
+      {
+        "h": 40.125,
+        "id": "select-army",
+        "w": 150.1999969482422
+      },
+      {
+        "h": 40.13750076293945,
+        "id": "select-fleet",
+        "w": 150.1999969482422
+      },
+      {
+        "h": 40.13750076293945,
+        "id": "select-workers",
+        "w": 150.1999969482422
+      }
+    ]
+  },
+  {
+    "selection": "select-fleet",
+    "title": "海岸远征军",
+    "probe": {
+      "collapsed": true,
+      "findings": [],
+      "language": "zh-CN",
+      "scope": "game",
+      "viewport": {
+        "height": 720,
+        "width": 1280
+      }
+    },
+    "buttons": [
+      {
+        "h": 58.400001525878906,
+        "id": "select-army",
+        "w": 106.0625
+      },
+      {
+        "h": 58.400001525878906,
+        "id": "select-fleet",
+        "w": 106.0625
+      },
+      {
+        "h": 58.400001525878906,
+        "id": "select-workers",
+        "w": 106.0625
+      }
+    ]
+  },
+  {
+    "selection": "select-fleet",
+    "title": "海岸远征军",
+    "probe": {
+      "collapsed": false,
+      "findings": [],
+      "language": "zh-CN",
+      "scope": "game",
+      "viewport": {
+        "height": 720,
+        "width": 1280
+      }
+    },
+    "buttons": [
+      {
+        "h": 40.125,
+        "id": "select-army",
+        "w": 150.1999969482422
+      },
+      {
+        "h": 40.13750076293945,
+        "id": "select-fleet",
+        "w": 150.1999969482422
+      },
+      {
+        "h": 40.13750076293945,
+        "id": "select-workers",
+        "w": 150.1999969482422
+      }
+    ]
+  },
+  {
+    "selection": "select-workers",
+    "title": "村民",
+    "probe": {
+      "collapsed": true,
+      "findings": [],
+      "language": "zh-CN",
+      "scope": "game",
+      "viewport": {
+        "height": 720,
+        "width": 1280
+      }
+    },
+    "buttons": [
+      {
+        "h": 58.400001525878906,
+        "id": "select-army",
+        "w": 106.0625
+      },
+      {
+        "h": 58.400001525878906,
+        "id": "select-fleet",
+        "w": 106.0625
+      },
+      {
+        "h": 58.400001525878906,
+        "id": "select-workers",
+        "w": 106.0625
+      }
+    ]
+  },
+  {
+    "selection": "select-workers",
+    "title": "村民",
+    "probe": {
+      "collapsed": false,
+      "findings": [],
+      "language": "zh-CN",
+      "scope": "game",
+      "viewport": {
+        "height": 720,
+        "width": 1280
+      }
+    },
+    "buttons": [
+      {
+        "h": 40.125,
+        "id": "select-army",
+        "w": 150.1999969482422
+      },
+      {
+        "h": 40.13750076293945,
+        "id": "select-fleet",
+        "w": 150.1999969482422
+      },
+      {
+        "h": 40.13750076293945,
+        "id": "select-workers",
+        "w": 150.1999969482422
+      }
+    ]
+  },
+  {
+    "selection": "select-army",
+    "title": "Expedition · 3 troops",
+    "probe": {
+      "collapsed": true,
+      "findings": [],
+      "language": "en",
+      "scope": "game",
+      "viewport": {
+        "height": 852,
+        "width": 394
+      }
+    },
+    "buttons": [
+      {
+        "h": 44,
+        "id": "select-army",
+        "w": 118.6624984741211
+      },
+      {
+        "h": 44,
+        "id": "select-fleet",
+        "w": 118.6624984741211
+      },
+      {
+        "h": 44,
+        "id": "select-workers",
+        "w": 118.6624984741211
+      }
+    ]
+  },
+  {
+    "selection": "select-army",
+    "title": "Expedition · 3 troops",
+    "probe": {
+      "collapsed": false,
+      "findings": [],
+      "language": "en",
+      "scope": "game",
+      "viewport": {
+        "height": 852,
+        "width": 394
+      }
+    },
+    "buttons": [
+      {
+        "h": 38,
+        "id": "select-army",
+        "w": 122.20000457763672
+      },
+      {
+        "h": 38,
+        "id": "select-fleet",
+        "w": 122.20000457763672
+      },
+      {
+        "h": 38,
+        "id": "select-workers",
+        "w": 122.20000457763672
+      }
+    ]
+  },
+  {
+    "selection": "select-fleet",
+    "title": "Coastal Expedition",
+    "probe": {
+      "collapsed": false,
+      "findings": [],
+      "language": "en",
+      "scope": "game",
+      "viewport": {
+        "height": 852,
+        "width": 394
+      }
+    },
+    "buttons": [
+      {
+        "h": 38,
+        "id": "select-army",
+        "w": 122.20000457763672
+      },
+      {
+        "h": 38,
+        "id": "select-fleet",
+        "w": 122.20000457763672
+      },
+      {
+        "h": 38,
+        "id": "select-workers",
+        "w": 122.20000457763672
+      }
+    ]
+  },
+  {
+    "selection": "select-fleet",
+    "title": "Coastal Expedition",
+    "probe": {
+      "collapsed": true,
+      "findings": [],
+      "language": "en",
+      "scope": "game",
+      "viewport": {
+        "height": 852,
+        "width": 394
+      }
+    },
+    "buttons": [
+      {
+        "h": 44,
+        "id": "select-army",
+        "w": 118.6624984741211
+      },
+      {
+        "h": 44,
+        "id": "select-fleet",
+        "w": 118.6624984741211
+      },
+      {
+        "h": 44,
+        "id": "select-workers",
+        "w": 118.6624984741211
+      }
+    ]
+  },
+  {
+    "selection": "select-workers",
+    "title": "Villager",
+    "probe": {
+      "collapsed": false,
+      "findings": [],
+      "language": "en",
+      "scope": "game",
+      "viewport": {
+        "height": 852,
+        "width": 394
+      }
+    },
+    "buttons": [
+      {
+        "h": 38,
+        "id": "select-army",
+        "w": 122.20000457763672
+      },
+      {
+        "h": 38,
+        "id": "select-fleet",
+        "w": 122.20000457763672
+      },
+      {
+        "h": 38,
+        "id": "select-workers",
+        "w": 122.20000457763672
+      }
+    ]
+  },
+  {
+    "selection": "select-workers",
+    "title": "Villager",
+    "probe": {
+      "collapsed": true,
+      "findings": [],
+      "language": "en",
+      "scope": "game",
+      "viewport": {
+        "height": 852,
+        "width": 394
+      }
+    },
+    "buttons": [
+      {
+        "h": 44,
+        "id": "select-army",
+        "w": 118.6624984741211
+      },
+      {
+        "h": 44,
+        "id": "select-fleet",
+        "w": 118.6624984741211
+      },
+      {
+        "h": 44,
+        "id": "select-workers",
+        "w": 118.6624984741211
+      }
+    ]
+  },
+  {
+    "selection": "select-army",
+    "title": "Expedition · 3 troops",
+    "probe": {
+      "collapsed": true,
+      "findings": [],
+      "language": "en",
+      "scope": "game",
+      "viewport": {
+        "height": 394,
+        "width": 852
+      }
+    },
+    "buttons": [
+      {
+        "h": 48.400001525878906,
+        "id": "select-army",
+        "w": 203.1999969482422
+      },
+      {
+        "h": 48.400001525878906,
+        "id": "select-fleet",
+        "w": 203.1999969482422
+      },
+      {
+        "h": 48.400001525878906,
+        "id": "select-workers",
+        "w": 203.1999969482422
+      }
+    ]
+  },
+  {
+    "selection": "select-army",
+    "title": "Expedition · 3 troops",
+    "probe": {
+      "collapsed": false,
+      "findings": [],
+      "language": "en",
+      "scope": "game",
+      "viewport": {
+        "height": 394,
+        "width": 852
+      }
+    },
+    "buttons": [
+      {
+        "h": 33.462501525878906,
+        "id": "select-army",
+        "w": 100.20000457763672
+      },
+      {
+        "h": 33.462501525878906,
+        "id": "select-fleet",
+        "w": 100.20000457763672
+      },
+      {
+        "h": 33.462501525878906,
+        "id": "select-workers",
+        "w": 100.20000457763672
+      }
+    ]
+  },
+  {
+    "selection": "select-fleet",
+    "title": "Coastal Expedition",
+    "probe": {
+      "collapsed": true,
+      "findings": [],
+      "language": "en",
+      "scope": "game",
+      "viewport": {
+        "height": 394,
+        "width": 852
+      }
+    },
+    "buttons": [
+      {
+        "h": 48.400001525878906,
+        "id": "select-army",
+        "w": 203.1999969482422
+      },
+      {
+        "h": 48.400001525878906,
+        "id": "select-fleet",
+        "w": 203.1999969482422
+      },
+      {
+        "h": 48.400001525878906,
+        "id": "select-workers",
+        "w": 203.1999969482422
+      }
+    ]
+  },
+  {
+    "selection": "select-fleet",
+    "title": "Coastal Expedition",
+    "probe": {
+      "collapsed": false,
+      "findings": [],
+      "language": "en",
+      "scope": "game",
+      "viewport": {
+        "height": 394,
+        "width": 852
+      }
+    },
+    "buttons": [
+      {
+        "h": 33.462501525878906,
+        "id": "select-army",
+        "w": 100.20000457763672
+      },
+      {
+        "h": 33.462501525878906,
+        "id": "select-fleet",
+        "w": 100.20000457763672
+      },
+      {
+        "h": 33.462501525878906,
+        "id": "select-workers",
+        "w": 100.20000457763672
+      }
+    ]
+  },
+  {
+    "selection": "select-workers",
+    "title": "Villager",
+    "probe": {
+      "collapsed": true,
+      "findings": [],
+      "language": "en",
+      "scope": "game",
+      "viewport": {
+        "height": 394,
+        "width": 852
+      }
+    },
+    "buttons": [
+      {
+        "h": 48.400001525878906,
+        "id": "select-army",
+        "w": 203.1999969482422
+      },
+      {
+        "h": 48.400001525878906,
+        "id": "select-fleet",
+        "w": 203.1999969482422
+      },
+      {
+        "h": 48.400001525878906,
+        "id": "select-workers",
+        "w": 203.1999969482422
+      }
+    ]
+  },
+  {
+    "selection": "select-workers",
+    "title": "Villager",
+    "probe": {
+      "collapsed": false,
+      "findings": [],
+      "language": "en",
+      "scope": "game",
+      "viewport": {
+        "height": 394,
+        "width": 852
+      }
+    },
+    "buttons": [
+      {
+        "h": 33.462501525878906,
+        "id": "select-army",
+        "w": 100.20000457763672
+      },
+      {
+        "h": 33.462501525878906,
+        "id": "select-fleet",
+        "w": 100.20000457763672
+      },
+      {
+        "h": 33.462501525878906,
+        "id": "select-workers",
+        "w": 100.20000457763672
+      }
+    ]
+  },
+  {
+    "selection": "select-army",
+    "title": "Expedition · 3 troops",
+    "probe": {
+      "collapsed": true,
+      "findings": [],
+      "language": "en",
+      "scope": "game",
+      "viewport": {
+        "height": 820,
+        "width": 1180
+      }
+    },
+    "buttons": [
+      {
+        "h": 58.400001525878906,
+        "id": "select-army",
+        "w": 106.0625
+      },
+      {
+        "h": 58.400001525878906,
+        "id": "select-fleet",
+        "w": 106.0625
+      },
+      {
+        "h": 58.400001525878906,
+        "id": "select-workers",
+        "w": 106.0625
+      }
+    ]
+  },
+  {
+    "selection": "select-army",
+    "title": "Expedition · 3 troops",
+    "probe": {
+      "collapsed": false,
+      "findings": [],
+      "language": "en",
+      "scope": "game",
+      "viewport": {
+        "height": 820,
+        "width": 1180
+      }
+    },
+    "buttons": [
+      {
+        "h": 40.125,
+        "id": "select-army",
+        "w": 150.1999969482422
+      },
+      {
+        "h": 40.13750076293945,
+        "id": "select-fleet",
+        "w": 150.1999969482422
+      },
+      {
+        "h": 40.13750076293945,
+        "id": "select-workers",
+        "w": 150.1999969482422
+      }
+    ]
+  },
+  {
+    "selection": "select-fleet",
+    "title": "Coastal Expedition",
+    "probe": {
+      "collapsed": true,
+      "findings": [],
+      "language": "en",
+      "scope": "game",
+      "viewport": {
+        "height": 820,
+        "width": 1180
+      }
+    },
+    "buttons": [
+      {
+        "h": 58.400001525878906,
+        "id": "select-army",
+        "w": 106.0625
+      },
+      {
+        "h": 58.400001525878906,
+        "id": "select-fleet",
+        "w": 106.0625
+      },
+      {
+        "h": 58.400001525878906,
+        "id": "select-workers",
+        "w": 106.0625
+      }
+    ]
+  },
+  {
+    "selection": "select-fleet",
+    "title": "Coastal Expedition",
+    "probe": {
+      "collapsed": false,
+      "findings": [],
+      "language": "en",
+      "scope": "game",
+      "viewport": {
+        "height": 820,
+        "width": 1180
+      }
+    },
+    "buttons": [
+      {
+        "h": 40.125,
+        "id": "select-army",
+        "w": 150.1999969482422
+      },
+      {
+        "h": 40.13750076293945,
+        "id": "select-fleet",
+        "w": 150.1999969482422
+      },
+      {
+        "h": 40.13750076293945,
+        "id": "select-workers",
+        "w": 150.1999969482422
+      }
+    ]
+  },
+  {
+    "selection": "select-workers",
+    "title": "Villager",
+    "probe": {
+      "collapsed": true,
+      "findings": [],
+      "language": "en",
+      "scope": "game",
+      "viewport": {
+        "height": 820,
+        "width": 1180
+      }
+    },
+    "buttons": [
+      {
+        "h": 58.400001525878906,
+        "id": "select-army",
+        "w": 106.0625
+      },
+      {
+        "h": 58.400001525878906,
+        "id": "select-fleet",
+        "w": 106.0625
+      },
+      {
+        "h": 58.400001525878906,
+        "id": "select-workers",
+        "w": 106.0625
+      }
+    ]
+  },
+  {
+    "selection": "select-workers",
+    "title": "Villager",
+    "probe": {
+      "collapsed": false,
+      "findings": [],
+      "language": "en",
+      "scope": "game",
+      "viewport": {
+        "height": 820,
+        "width": 1180
+      }
+    },
+    "buttons": [
+      {
+        "h": 40.125,
+        "id": "select-army",
+        "w": 150.1999969482422
+      },
+      {
+        "h": 40.13750076293945,
+        "id": "select-fleet",
+        "w": 150.1999969482422
+      },
+      {
+        "h": 40.13750076293945,
+        "id": "select-workers",
+        "w": 150.1999969482422
+      }
+    ]
+  },
+  {
+    "selection": "select-army",
+    "title": "Expedition · 3 troops",
+    "probe": {
+      "collapsed": true,
+      "findings": [],
+      "language": "en",
+      "scope": "game",
+      "viewport": {
+        "height": 720,
+        "width": 1280
+      }
+    },
+    "buttons": [
+      {
+        "h": 58.400001525878906,
+        "id": "select-army",
+        "w": 106.0625
+      },
+      {
+        "h": 58.400001525878906,
+        "id": "select-fleet",
+        "w": 106.0625
+      },
+      {
+        "h": 58.400001525878906,
+        "id": "select-workers",
+        "w": 106.0625
+      }
+    ]
+  },
+  {
+    "selection": "select-army",
+    "title": "Expedition · 3 troops",
+    "probe": {
+      "collapsed": false,
+      "findings": [],
+      "language": "en",
+      "scope": "game",
+      "viewport": {
+        "height": 720,
+        "width": 1280
+      }
+    },
+    "buttons": [
+      {
+        "h": 40.125,
+        "id": "select-army",
+        "w": 150.1999969482422
+      },
+      {
+        "h": 40.13750076293945,
+        "id": "select-fleet",
+        "w": 150.1999969482422
+      },
+      {
+        "h": 40.13750076293945,
+        "id": "select-workers",
+        "w": 150.1999969482422
+      }
+    ]
+  },
+  {
+    "selection": "select-fleet",
+    "title": "Coastal Expedition",
+    "probe": {
+      "collapsed": true,
+      "findings": [],
+      "language": "en",
+      "scope": "game",
+      "viewport": {
+        "height": 720,
+        "width": 1280
+      }
+    },
+    "buttons": [
+      {
+        "h": 58.400001525878906,
+        "id": "select-army",
+        "w": 106.0625
+      },
+      {
+        "h": 58.400001525878906,
+        "id": "select-fleet",
+        "w": 106.0625
+      },
+      {
+        "h": 58.400001525878906,
+        "id": "select-workers",
+        "w": 106.0625
+      }
+    ]
+  },
+  {
+    "selection": "select-fleet",
+    "title": "Coastal Expedition",
+    "probe": {
+      "collapsed": false,
+      "findings": [],
+      "language": "en",
+      "scope": "game",
+      "viewport": {
+        "height": 720,
+        "width": 1280
+      }
+    },
+    "buttons": [
+      {
+        "h": 40.125,
+        "id": "select-army",
+        "w": 150.1999969482422
+      },
+      {
+        "h": 40.13750076293945,
+        "id": "select-fleet",
+        "w": 150.1999969482422
+      },
+      {
+        "h": 40.13750076293945,
+        "id": "select-workers",
+        "w": 150.1999969482422
+      }
+    ]
+  },
+  {
+    "selection": "select-workers",
+    "title": "Villager",
+    "probe": {
+      "collapsed": true,
+      "findings": [],
+      "language": "en",
+      "scope": "game",
+      "viewport": {
+        "height": 720,
+        "width": 1280
+      }
+    },
+    "buttons": [
+      {
+        "h": 58.400001525878906,
+        "id": "select-army",
+        "w": 106.0625
+      },
+      {
+        "h": 58.400001525878906,
+        "id": "select-fleet",
+        "w": 106.0625
+      },
+      {
+        "h": 58.400001525878906,
+        "id": "select-workers",
+        "w": 106.0625
+      }
+    ]
+  },
+  {
+    "selection": "select-workers",
+    "title": "Villager",
+    "probe": {
+      "collapsed": false,
+      "findings": [],
+      "language": "en",
+      "scope": "game",
+      "viewport": {
+        "height": 720,
+        "width": 1280
+      }
+    },
+    "buttons": [
+      {
+        "h": 40.125,
+        "id": "select-army",
+        "w": 150.1999969482422
+      },
+      {
+        "h": 40.13750076293945,
+        "id": "select-fleet",
+        "w": 150.1999969482422
+      },
+      {
+        "h": 40.13750076293945,
+        "id": "select-workers",
+        "w": 150.1999969482422
+      }
+    ]
+  }
+]

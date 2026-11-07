@@ -1,0 +1,274 @@
+[
+  {
+    "id": "villager",
+    "report": "PASS villager front · 4 distinct frames · changed 93%\nPASS front frame0 pick 65/65\nPASS front frame1 pick 57/57\nPASS front frame2 pick 46/46\nPASS front frame3 pick 68/68\nPASS villager back · 4 distinct frames · changed 84%\nPASS back frame0 pick 58/58\nPASS back frame1 pick 52/52\nPASS back frame2 pick 41/41\nPASS back frame3 pick 57/57\nPASS villager right · 4 distinct frames · changed 94%\nPASS right frame0 pick 64/64\nPASS right frame1 pick 54/54\nPASS right frame2 pick 49/49\nPASS right frame3 pick 61/61\nPASS villager left · 4 distinct frames · changed 82%\nPASS left frame0 pick 69/69\nPASS left frame1 pick 68/68\nPASS left frame2 pick 63/63\nPASS left frame3 pick 64/64"
+  },
+  {
+    "id": "infantry",
+    "report": "PASS infantry front · 4 distinct frames · changed 77%\nPASS front frame0 pick 46/46\nPASS front frame1 pick 45/45\nPASS front frame2 pick 43/43\nPASS front frame3 pick 45/45\nPASS infantry back · 4 distinct frames · changed 87%\nPASS back frame0 pick 38/38\nPASS back frame1 pick 34/34\nPASS back frame2 pick 40/40\nPASS back frame3 pick 45/45\nPASS infantry right · 4 distinct frames · changed 89%\nPASS right frame0 pick 39/39\nPASS right frame1 pick 40/40\nPASS right frame2 pick 39/39\nPASS right frame3 pick 38/38\nPASS infantry left · 4 distinct frames · changed 85%\nPASS left frame0 pick 36/36\nPASS left frame1 pick 41/41\nPASS left frame2 pick 46/46\nPASS left frame3 pick 36/36"
+  },
+  {
+    "id": "archer",
+    "report": "PASS archer front · 4 distinct frames · changed 92%\nPASS front frame0 pick 55/55\nPASS front frame1 pick 59/59\nPASS front frame2 pick 68/68\nPASS front frame3 pick 64/64\nPASS archer back · 4 distinct frames · changed 90%\nPASS back frame0 pick 53/53\nPASS back frame1 pick 64/64\nPASS back frame2 pick 66/66\nPASS back frame3 pick 64/64\nPASS archer right · 4 distinct frames · changed 92%\nPASS right frame0 pick 49/49\nPASS right frame1 pick 53/53\nPASS right frame2 pick 56/56\nPASS right frame3 pick 64/64\nPASS archer left · 4 distinct frames · changed 90%\nPASS left frame0 pick 45/45\nPASS left frame1 pick 50/50\nPASS left frame2 pick 54/54\nPASS left frame3 pick 56/56"
+  },
+  {
+    "id": "cavalry",
+    "report": "PASS cavalry front · 4 distinct frames · changed 85%\nPASS front frame0 pick 84/84\nPASS front frame1 pick 89/89\nPASS front frame2 pick 76/76\nPASS front frame3 pick 86/86\nPASS cavalry back · 4 distinct frames · changed 81%\nPASS back frame0 pick 85/85\nPASS back frame1 pick 80/80\nPASS back frame2 pick 89/89\nPASS back frame3 pick 86/86\nPASS cavalry right · 4 distinct frames · changed 86%\nPASS right frame0 pick 108/108\nPASS right frame1 pick 109/109\nPASS right frame2 pick 105/105\nPASS right frame3 pick 104/104\nPASS cavalry left · 4 distinct frames · changed 85%\nPASS left frame0 pick 111/111\nPASS left frame1 pick 118/118\nPASS left frame2 pick 115/115\nPASS left frame3 pick 116/116"
+  },
+  {
+    "id": "musketeer",
+    "report": "PASS musketeer front · 4 distinct frames · changed 94%\nPASS front frame0 pick 56/56\nPASS front frame1 pick 51/51\nPASS front frame2 pick 54/54\nPASS front frame3 pick 53/53\nPASS musketeer back · 4 distinct frames · changed 84%\nPASS back frame0 pick 52/52\nPASS back frame1 pick 50/50\nPASS back frame2 pick 51/51\nPASS back frame3 pick 50/50\nPASS musketeer right · 4 distinct frames · changed 95%\nPASS right frame0 pick 42/42\nPASS right frame1 pick 51/51\nPASS right frame2 pick 44/44\nPASS right frame3 pick 36/36\nPASS musketeer left · 4 distinct frames · changed 88%\nPASS left frame0 pick 38/38\nPASS left frame1 pick 53/53\nPASS left frame2 pick 44/44\nPASS left frame3 pick 35/35"
+  },
+  {
+    "id": "cannon",
+    "report": "PASS cannon front · 4 distinct frames · changed 94%\nPASS front frame0 pick 253/253\nPASS front frame1 pick 259/259\nPASS front frame2 pick 257/257\nPASS front frame3 pick 261/261\nPASS cannon back · 4 distinct frames · changed 93%\nPASS back frame0 pick 269/269\nPASS back frame1 pick 281/281\nPASS back frame2 pick 252/252\nPASS back frame3 pick 256/256\nPASS cannon right · 4 distinct frames · changed 91%\nPASS right frame0 pick 253/253\nPASS right frame1 pick 256/256\nPASS right frame2 pick 248/248\nPASS right frame3 pick 253/253\nPASS cannon left · 4 distinct frames · changed 87%\nPASS left frame0 pick 271/271\nPASS left frame1 pick 274/274\nPASS left frame2 pick 250/250\nPASS left frame3 pick 250/250"
+  },
+  {
+    "id": "healer",
+    "report": "PASS healer front · 4 distinct frames · changed 87%\nPASS front frame0 pick 52/52\nPASS front frame1 pick 58/58\nPASS front frame2 pick 62/62\nPASS front frame3 pick 59/59\nPASS healer back · 4 distinct frames · changed 79%\nPASS back frame0 pick 50/50\nPASS back frame1 pick 61/61\nPASS back frame2 pick 61/61\nPASS back frame3 pick 58/58\nPASS healer right · 4 distinct frames · changed 90%\nPASS right frame0 pick 49/49\nPASS right frame1 pick 46/46\nPASS right frame2 pick 49/49\nPASS right frame3 pick 49/49\nPASS healer left · 4 distinct frames · changed 92%\nPASS left frame0 pick 48/48\nPASS left frame1 pick 51/51\nPASS left frame2 pick 60/60\nPASS left frame3 pick 50/50"
+  },
+  {
+    "id": "halberd",
+    "report": "PASS halberd front · 4 distinct frames · changed 92%\nPASS front frame0 pick 34/34\nPASS front frame1 pick 34/34\nPASS front frame2 pick 23/23\nPASS front frame3 pick 30/30\nPASS halberd back · 4 distinct frames · changed 91%\nPASS back frame0 pick 38/38\nPASS back frame1 pick 36/36\nPASS back frame2 pick 23/23\nPASS back frame3 pick 37/37\nPASS halberd right · 4 distinct frames · changed 95%\nPASS right frame0 pick 38/38\nPASS right frame1 pick 33/33\nPASS right frame2 pick 23/23\nPASS right frame3 pick 29/29\nPASS halberd left · 4 distinct frames · changed 91%\nPASS left frame0 pick 31/31\nPASS left frame1 pick 32/32\nPASS left frame2 pick 29/29\nPASS left frame3 pick 29/29"
+  },
+  {
+    "id": "skirmisher",
+    "report": "PASS skirmisher front · 4 distinct frames · changed 62%\nPASS front frame0 pick 59/59\nPASS front frame1 pick 64/64\nPASS front frame2 pick 67/67\nPASS front frame3 pick 61/61\nPASS skirmisher back · 4 distinct frames · changed 57%\nPASS back frame0 pick 59/59\nPASS back frame1 pick 57/57\nPASS back frame2 pick 55/55\nPASS back frame3 pick 56/56\nPASS skirmisher right · 4 distinct frames · changed 72%\nPASS right frame0 pick 44/44\nPASS right frame1 pick 56/56\nPASS right frame2 pick 56/56\nPASS right frame3 pick 57/57\nPASS skirmisher left · 4 distinct frames · changed 73%\nPASS left frame0 pick 43/43\nPASS left frame1 pick 54/54\nPASS left frame2 pick 53/53\nPASS left frame3 pick 53/53"
+  },
+  {
+    "id": "hussar",
+    "report": "PASS hussar front · 4 distinct frames · changed 75%\nPASS front frame0 pick 95/95\nPASS front frame1 pick 93/93\nPASS front frame2 pick 87/87\nPASS front frame3 pick 92/92\nPASS hussar back · 4 distinct frames · changed 69%\nPASS back frame0 pick 92/92\nPASS back frame1 pick 91/91\nPASS back frame2 pick 83/83\nPASS back frame3 pick 92/92\nPASS hussar right · 4 distinct frames · changed 53%\nPASS right frame0 pick 118/118\nPASS right frame1 pick 126/126\nPASS right frame2 pick 127/127\nPASS right frame3 pick 118/118\nPASS hussar left · 4 distinct frames · changed 51%\nPASS left frame0 pick 122/122\nPASS left frame1 pick 122/122\nPASS left frame2 pick 114/114\nPASS left frame3 pick 122/122"
+  },
+  {
+    "id": "mortar",
+    "report": "PASS mortar front · 4 distinct frames · changed 85%\nPASS front frame0 pick 389/389\nPASS front frame1 pick 397/397\nPASS front frame2 pick 387/387\nPASS front frame3 pick 382/382\nPASS mortar back · 4 distinct frames · changed 82%\nPASS back frame0 pick 423/423\nPASS back frame1 pick 397/397\nPASS back frame2 pick 377/377\nPASS back frame3 pick 414/414\nPASS mortar right · 4 distinct frames · changed 83%\nPASS right frame0 pick 393/393\nPASS right frame1 pick 393/393\nPASS right frame2 pick 372/372\nPASS right frame3 pick 390/390\nPASS mortar left · 4 distinct frames · changed 78%\nPASS left frame0 pick 396/396\nPASS left frame1 pick 404/404\nPASS left frame2 pick 376/376\nPASS left frame3 pick 397/397"
+  },
+  {
+    "id": "longbow",
+    "report": "PASS longbow front · 4 distinct frames · changed 91%\nPASS front frame0 pick 50/50\nPASS front frame1 pick 52/52\nPASS front frame2 pick 56/56\nPASS front frame3 pick 53/53\nPASS longbow back · 4 distinct frames · changed 84%\nPASS back frame0 pick 49/49\nPASS back frame1 pick 49/49\nPASS back frame2 pick 55/55\nPASS back frame3 pick 49/49\nPASS longbow right · 4 distinct frames · changed 92%\nPASS right frame0 pick 48/48\nPASS right frame1 pick 51/51\nPASS right frame2 pick 53/53\nPASS right frame3 pick 47/47\nPASS longbow left · 4 distinct frames · changed 78%\nPASS left frame0 pick 50/50\nPASS left frame1 pick 47/47\nPASS left frame2 pick 46/46\nPASS left frame3 pick 45/45"
+  },
+  {
+    "id": "cuirassier",
+    "report": "PASS cuirassier front · 4 distinct frames · changed 91%\nPASS front frame0 pick 90/90\nPASS front frame1 pick 89/89\nPASS front frame2 pick 84/84\nPASS front frame3 pick 90/90\nPASS cuirassier back · 4 distinct frames · changed 90%\nPASS back frame0 pick 91/91\nPASS back frame1 pick 86/86\nPASS back frame2 pick 85/85\nPASS back frame3 pick 89/89\nPASS cuirassier right · 4 distinct frames · changed 87%\nPASS right frame0 pick 127/127\nPASS right frame1 pick 115/115\nPASS right frame2 pick 126/126\nPASS right frame3 pick 111/111\nPASS cuirassier left · 4 distinct frames · changed 84%\nPASS left frame0 pick 122/122\nPASS left frame1 pick 128/128\nPASS left frame2 pick 131/131\nPASS left frame3 pick 117/117"
+  },
+  {
+    "id": "repeater",
+    "report": "PASS repeater front · 4 distinct frames · changed 82%\nPASS front frame0 pick 57/57\nPASS front frame1 pick 54/54\nPASS front frame2 pick 57/57\nPASS front frame3 pick 59/59\nPASS repeater back · 4 distinct frames · changed 75%\nPASS back frame0 pick 50/50\nPASS back frame1 pick 54/54\nPASS back frame2 pick 52/52\nPASS back frame3 pick 51/51\nPASS repeater right · 4 distinct frames · changed 90%\nPASS right frame0 pick 53/53\nPASS right frame1 pick 55/55\nPASS right frame2 pick 51/51\nPASS right frame3 pick 57/57\nPASS repeater left · 4 distinct frames · changed 78%\nPASS left frame0 pick 46/46\nPASS left frame1 pick 51/51\nPASS left frame2 pick 54/54\nPASS left frame3 pick 50/50"
+  },
+  {
+    "id": "fishingboat",
+    "report": "PASS fishingboat front · 4 distinct frames · changed 74%\nPASS front frame0 pick 162/162\nPASS front frame1 pick 139/139\nPASS front frame2 pick 143/143\nPASS front frame3 pick 142/142\nPASS fishingboat back · 4 distinct frames · changed 74%\nPASS back frame0 pick 174/174\nPASS back frame1 pick 165/165\nPASS back frame2 pick 174/174\nPASS back frame3 pick 162/162\nPASS fishingboat right · 4 distinct frames · changed 80%\nPASS right frame0 pick 145/145\nPASS right frame1 pick 121/121\nPASS right frame2 pick 131/131\nPASS right frame3 pick 131/131\nPASS fishingboat left · 4 distinct frames · changed 81%\nPASS left frame0 pick 147/147\nPASS left frame1 pick 123/123\nPASS left frame2 pick 148/148\nPASS left frame3 pick 139/139"
+  },
+  {
+    "id": "sloop",
+    "report": "PASS sloop front · 4 distinct frames · changed 85%\nPASS front frame0 pick 269/269\nPASS front frame1 pick 277/277\nPASS front frame2 pick 287/287\nPASS front frame3 pick 273/273\nPASS sloop back · 4 distinct frames · changed 86%\nPASS back frame0 pick 261/261\nPASS back frame1 pick 272/272\nPASS back frame2 pick 279/279\nPASS back frame3 pick 262/262\nPASS sloop right · 4 distinct frames · changed 81%\nPASS right frame0 pick 311/311\nPASS right frame1 pick 315/315\nPASS right frame2 pick 317/317\nPASS right frame3 pick 311/311\nPASS sloop left · 4 distinct frames · changed 78%\nPASS left frame0 pick 314/314\nPASS left frame1 pick 314/314\nPASS left frame2 pick 316/316\nPASS left frame3 pick 313/313"
+  },
+  {
+    "id": "frigate",
+    "report": "PASS frigate front · 4 distinct frames · changed 79%\nPASS front frame0 pick 488/488\nPASS front frame1 pick 493/493\nPASS front frame2 pick 529/529\nPASS front frame3 pick 488/488\nPASS frigate back · 4 distinct frames · changed 79%\nPASS back frame0 pick 484/484\nPASS back frame1 pick 490/490\nPASS back frame2 pick 536/536\nPASS back frame3 pick 487/487\nPASS frigate right · 4 distinct frames · changed 79%\nPASS right frame0 pick 656/656\nPASS right frame1 pick 655/655\nPASS right frame2 pick 647/647\nPASS right frame3 pick 657/657\nPASS frigate left · 4 distinct frames · changed 76%\nPASS left frame0 pick 653/653\nPASS left frame1 pick 653/653\nPASS left frame2 pick 650/650\nPASS left frame3 pick 649/649"
+  },
+  {
+    "id": "bombketch",
+    "report": "PASS bombketch front · 4 distinct frames · changed 87%\nPASS front frame0 pick 341/341\nPASS front frame1 pick 346/346\nPASS front frame2 pick 342/342\nPASS front frame3 pick 340/340\nPASS bombketch back · 4 distinct frames · changed 85%\nPASS back frame0 pick 340/340\nPASS back frame1 pick 345/345\nPASS back frame2 pick 352/352\nPASS back frame3 pick 340/340\nPASS bombketch right · 4 distinct frames · changed 84%\nPASS right frame0 pick 348/348\nPASS right frame1 pick 360/360\nPASS right frame2 pick 359/359\nPASS right frame3 pick 351/351\nPASS bombketch left · 4 distinct frames · changed 75%\nPASS left frame0 pick 341/341\nPASS left frame1 pick 340/340\nPASS left frame2 pick 351/351\nPASS left frame3 pick 344/344"
+  },
+  {
+    "id": "transport",
+    "report": "PASS transport front · 4 distinct frames · changed 86%\nPASS front frame0 pick 289/289\nPASS front frame1 pick 302/302\nPASS front frame2 pick 311/311\nPASS front frame3 pick 303/303\nPASS transport back · 4 distinct frames · changed 85%\nPASS back frame0 pick 301/301\nPASS back frame1 pick 310/310\nPASS back frame2 pick 327/327\nPASS back frame3 pick 311/311\nPASS transport right · 4 distinct frames · changed 83%\nPASS right frame0 pick 290/290\nPASS right frame1 pick 290/290\nPASS right frame2 pick 286/286\nPASS right frame3 pick 291/291\nPASS transport left · 4 distinct frames · changed 83%\nPASS left frame0 pick 323/323\nPASS left frame1 pick 323/323\nPASS left frame2 pick 327/327\nPASS left frame3 pick 324/324"
+  },
+  {
+    "id": "trader",
+    "report": "PASS trader front · 4 distinct frames · changed 91%\nPASS front frame0 pick 73/73\nPASS front frame1 pick 80/80\nPASS front frame2 pick 73/73\nPASS front frame3 pick 76/76\nPASS trader back · 4 distinct frames · changed 82%\nPASS back frame0 pick 74/74\nPASS back frame1 pick 77/77\nPASS back frame2 pick 77/77\nPASS back frame3 pick 73/73\nPASS trader right · 4 distinct frames · changed 90%\nPASS right frame0 pick 85/85\nPASS right frame1 pick 82/82\nPASS right frame2 pick 91/91\nPASS right frame3 pick 82/82\nPASS trader left · 4 distinct frames · changed 86%\nPASS left frame0 pick 79/79\nPASS left frame1 pick 78/78\nPASS left frame2 pick 90/90\nPASS left frame3 pick 81/81"
+  },
+  {
+    "id": "samurai",
+    "report": "PASS samurai front · 4 distinct frames · changed 84%\nPASS front frame0 pick 42/42\nPASS front frame1 pick 50/50\nPASS front frame2 pick 45/45\nPASS front frame3 pick 42/42\nPASS samurai back · 4 distinct frames · changed 80%\nPASS back frame0 pick 49/49\nPASS back frame1 pick 48/48\nPASS back frame2 pick 48/48\nPASS back frame3 pick 47/47\nPASS samurai right · 4 distinct frames · changed 85%\nPASS right frame0 pick 48/48\nPASS right frame1 pick 45/45\nPASS right frame2 pick 46/46\nPASS right frame3 pick 41/41\nPASS samurai left · 4 distinct frames · changed 87%\nPASS left frame0 pick 49/49\nPASS left frame1 pick 45/45\nPASS left frame2 pick 48/48\nPASS left frame3 pick 42/42"
+  },
+  {
+    "id": "janissary",
+    "report": "PASS janissary front · 4 distinct frames · changed 93%\nPASS front frame0 pick 52/52\nPASS front frame1 pick 46/46\nPASS front frame2 pick 49/49\nPASS front frame3 pick 49/49\nPASS janissary back · 4 distinct frames · changed 90%\nPASS back frame0 pick 47/47\nPASS back frame1 pick 48/48\nPASS back frame2 pick 46/46\nPASS back frame3 pick 48/48\nPASS janissary right · 4 distinct frames · changed 91%\nPASS right frame0 pick 46/46\nPASS right frame1 pick 45/45\nPASS right frame2 pick 45/45\nPASS right frame3 pick 43/43\nPASS janissary left · 4 distinct frames · changed 88%\nPASS left frame0 pick 35/35\nPASS left frame1 pick 44/44\nPASS left frame2 pick 43/43\nPASS left frame3 pick 38/38"
+  },
+  {
+    "id": "streltsy",
+    "report": "PASS streltsy front · 4 distinct frames · changed 93%\nPASS front frame0 pick 51/51\nPASS front frame1 pick 57/57\nPASS front frame2 pick 55/55\nPASS front frame3 pick 54/54\nPASS streltsy back · 4 distinct frames · changed 90%\nPASS back frame0 pick 52/52\nPASS back frame1 pick 51/51\nPASS back frame2 pick 53/53\nPASS back frame3 pick 54/54\nPASS streltsy right · 4 distinct frames · changed 95%\nPASS right frame0 pick 49/49\nPASS right frame1 pick 47/47\nPASS right frame2 pick 49/49\nPASS right frame3 pick 50/50\nPASS streltsy left · 4 distinct frames · changed 91%\nPASS left frame0 pick 41/41\nPASS left frame1 pick 46/46\nPASS left frame2 pick 46/46\nPASS left frame3 pick 49/49"
+  },
+  {
+    "id": "prussianguard",
+    "report": "PASS prussianguard front · 4 distinct frames · changed 94%\nPASS front frame0 pick 42/42\nPASS front frame1 pick 41/41\nPASS front frame2 pick 45/45\nPASS front frame3 pick 44/44\nPASS prussianguard back · 4 distinct frames · changed 91%\nPASS back frame0 pick 38/38\nPASS back frame1 pick 40/40\nPASS back frame2 pick 43/43\nPASS back frame3 pick 38/38\nPASS prussianguard right · 4 distinct frames · changed 94%\nPASS right frame0 pick 40/40\nPASS right frame1 pick 45/45\nPASS right frame2 pick 46/46\nPASS right frame3 pick 38/38\nPASS prussianguard left · 4 distinct frames · changed 83%\nPASS left frame0 pick 36/36\nPASS left frame1 pick 41/41\nPASS left frame2 pick 48/48\nPASS left frame3 pick 42/42"
+  },
+  {
+    "id": "tercio",
+    "report": "PASS tercio front · 4 distinct frames · changed 95%\nPASS front frame0 pick 49/49\nPASS front frame1 pick 47/47\nPASS front frame2 pick 40/40\nPASS front frame3 pick 44/44\nPASS tercio back · 4 distinct frames · changed 94%\nPASS back frame0 pick 44/44\nPASS back frame1 pick 46/46\nPASS back frame2 pick 38/38\nPASS back frame3 pick 44/44\nPASS tercio right · 4 distinct frames · changed 99%\nPASS right frame0 pick 39/39\nPASS right frame1 pick 43/43\nPASS right frame2 pick 47/47\nPASS right frame3 pick 37/37\nPASS tercio left · 4 distinct frames · changed 91%\nPASS left frame0 pick 36/36\nPASS left frame1 pick 38/38\nPASS left frame2 pick 48/48\nPASS left frame3 pick 35/35"
+  },
+  {
+    "id": "nassau",
+    "report": "PASS nassau front · 4 distinct frames · changed 91%\nPASS front frame0 pick 61/61\nPASS front frame1 pick 54/54\nPASS front frame2 pick 48/48\nPASS front frame3 pick 50/50\nPASS nassau back · 4 distinct frames · changed 89%\nPASS back frame0 pick 54/54\nPASS back frame1 pick 54/54\nPASS back frame2 pick 52/52\nPASS back frame3 pick 53/53\nPASS nassau right · 4 distinct frames · changed 93%\nPASS right frame0 pick 46/46\nPASS right frame1 pick 54/54\nPASS right frame2 pick 48/48\nPASS right frame3 pick 44/44\nPASS nassau left · 4 distinct frames · changed 86%\nPASS left frame0 pick 45/45\nPASS left frame1 pick 47/47\nPASS left frame2 pick 47/47\nPASS left frame3 pick 46/46"
+  },
+  {
+    "id": "continental",
+    "report": "PASS continental front · 4 distinct frames · changed 94%\nPASS front frame0 pick 48/48\nPASS front frame1 pick 49/49\nPASS front frame2 pick 53/53\nPASS front frame3 pick 45/45\nPASS continental back · 4 distinct frames · changed 85%\nPASS back frame0 pick 51/51\nPASS back frame1 pick 47/47\nPASS back frame2 pick 49/49\nPASS back frame3 pick 46/46\nPASS continental right · 4 distinct frames · changed 97%\nPASS right frame0 pick 40/40\nPASS right frame1 pick 42/42\nPASS right frame2 pick 40/40\nPASS right frame3 pick 33/33\nPASS continental left · 4 distinct frames · changed 83%\nPASS left frame0 pick 43/43\nPASS left frame1 pick 43/43\nPASS left frame2 pick 44/44\nPASS left frame3 pick 36/36"
+  },
+  {
+    "id": "eliteguard",
+    "report": "PASS eliteguard front · 4 distinct frames · changed 93%\nPASS front frame0 pick 60/60\nPASS front frame1 pick 52/52\nPASS front frame2 pick 50/50\nPASS front frame3 pick 55/55\nPASS eliteguard back · 4 distinct frames · changed 89%\nPASS back frame0 pick 59/59\nPASS back frame1 pick 58/58\nPASS back frame2 pick 61/61\nPASS back frame3 pick 55/55\nPASS eliteguard right · 4 distinct frames · changed 92%\nPASS right frame0 pick 49/49\nPASS right frame1 pick 50/50\nPASS right frame2 pick 50/50\nPASS right frame3 pick 48/48\nPASS eliteguard left · 4 distinct frames · changed 87%\nPASS left frame0 pick 54/54\nPASS left frame1 pick 44/44\nPASS left frame2 pick 52/52\nPASS left frame3 pick 48/48"
+  },
+  {
+    "id": "dragoon",
+    "report": "PASS dragoon front · 4 distinct frames · changed 91%\nPASS front frame0 pick 84/84\nPASS front frame1 pick 85/85\nPASS front frame2 pick 83/83\nPASS front frame3 pick 83/83\nPASS dragoon back · 4 distinct frames · changed 79%\nPASS back frame0 pick 82/82\nPASS back frame1 pick 77/77\nPASS back frame2 pick 79/79\nPASS back frame3 pick 77/77\nPASS dragoon right · 4 distinct frames · changed 90%\nPASS right frame0 pick 115/115\nPASS right frame1 pick 120/120\nPASS right frame2 pick 120/120\nPASS right frame3 pick 119/119\nPASS dragoon left · 4 distinct frames · changed 88%\nPASS left frame0 pick 114/114\nPASS left frame1 pick 124/124\nPASS left frame2 pick 129/129\nPASS left frame3 pick 120/120"
+  },
+  {
+    "id": "engineer",
+    "report": "PASS engineer front · 4 distinct frames · changed 86%\nPASS front frame0 pick 64/64\nPASS front frame1 pick 51/51\nPASS front frame2 pick 51/51\nPASS front frame3 pick 61/61\nPASS engineer back · 4 distinct frames · changed 84%\nPASS back frame0 pick 63/63\nPASS back frame1 pick 57/57\nPASS back frame2 pick 53/53\nPASS back frame3 pick 66/66\nPASS engineer right · 4 distinct frames · changed 88%\nPASS right frame0 pick 53/53\nPASS right frame1 pick 60/60\nPASS right frame2 pick 45/45\nPASS right frame3 pick 44/44\nPASS engineer left · 4 distinct frames · changed 79%\nPASS left frame0 pick 49/49\nPASS left frame1 pick 52/52\nPASS left frame2 pick 52/52\nPASS left frame3 pick 46/46"
+  },
+  {
+    "id": "howitzer",
+    "report": "PASS howitzer front · 4 distinct frames · changed 87%\nPASS front frame0 pick 283/283\nPASS front frame1 pick 294/294\nPASS front frame2 pick 296/296\nPASS front frame3 pick 294/294\nPASS howitzer back · 4 distinct frames · changed 87%\nPASS back frame0 pick 311/311\nPASS back frame1 pick 312/312\nPASS back frame2 pick 298/298\nPASS back frame3 pick 309/309\nPASS howitzer right · 4 distinct frames · changed 82%\nPASS right frame0 pick 325/325\nPASS right frame1 pick 322/322\nPASS right frame2 pick 296/296\nPASS right frame3 pick 318/318\nPASS howitzer left · 4 distinct frames · changed 79%\nPASS left frame0 pick 337/337\nPASS left frame1 pick 331/331\nPASS left frame2 pick 302/302\nPASS left frame3 pick 339/339"
+  },
+  {
+    "id": "hero_britain",
+    "report": "PASS hero_britain front · 4 distinct frames · changed 87%\nPASS front frame0 pick 93/93\nPASS front frame1 pick 99/99\nPASS front frame2 pick 100/100\nPASS front frame3 pick 96/96\nPASS hero_britain back · 4 distinct frames · changed 85%\nPASS back frame0 pick 91/91\nPASS back frame1 pick 100/100\nPASS back frame2 pick 93/93\nPASS back frame3 pick 90/90\nPASS hero_britain right · 4 distinct frames · changed 92%\nPASS right frame0 pick 84/84\nPASS right frame1 pick 95/95\nPASS right frame2 pick 94/94\nPASS right frame3 pick 79/79\nPASS hero_britain left · 4 distinct frames · changed 88%\nPASS left frame0 pick 80/80\nPASS left frame1 pick 92/92\nPASS left frame2 pick 90/90\nPASS left frame3 pick 76/76"
+  },
+  {
+    "id": "hero_france",
+    "report": "PASS hero_france front · 4 distinct frames · changed 76%\nPASS front frame0 pick 123/123\nPASS front frame1 pick 124/124\nPASS front frame2 pick 121/121\nPASS front frame3 pick 119/119\nPASS hero_france back · 4 distinct frames · changed 84%\nPASS back frame0 pick 118/118\nPASS back frame1 pick 115/115\nPASS back frame2 pick 118/118\nPASS back frame3 pick 117/117\nPASS hero_france right · 4 distinct frames · changed 84%\nPASS right frame0 pick 153/153\nPASS right frame1 pick 150/150\nPASS right frame2 pick 147/147\nPASS right frame3 pick 148/148\nPASS hero_france left · 4 distinct frames · changed 79%\nPASS left frame0 pick 161/161\nPASS left frame1 pick 161/161\nPASS left frame2 pick 152/152\nPASS left frame3 pick 159/159"
+  },
+  {
+    "id": "hero_china",
+    "report": "PASS hero_china front · 4 distinct frames · changed 77%\nPASS front frame0 pick 75/75\nPASS front frame1 pick 73/73\nPASS front frame2 pick 76/76\nPASS front frame3 pick 73/73\nPASS hero_china back · 4 distinct frames · changed 69%\nPASS back frame0 pick 71/71\nPASS back frame1 pick 72/72\nPASS back frame2 pick 72/72\nPASS back frame3 pick 69/69\nPASS hero_china right · 4 distinct frames · changed 82%\nPASS right frame0 pick 69/69\nPASS right frame1 pick 70/70\nPASS right frame2 pick 68/68\nPASS right frame3 pick 68/68\nPASS hero_china left · 4 distinct frames · changed 81%\nPASS left frame0 pick 65/65\nPASS left frame1 pick 62/62\nPASS left frame2 pick 67/67\nPASS left frame3 pick 68/68"
+  },
+  {
+    "id": "hero_japan",
+    "report": "PASS hero_japan front · 4 distinct frames · changed 91%\nPASS front frame0 pick 74/74\nPASS front frame1 pick 80/80\nPASS front frame2 pick 68/68\nPASS front frame3 pick 73/73\nPASS hero_japan back · 4 distinct frames · changed 86%\nPASS back frame0 pick 70/70\nPASS back frame1 pick 74/74\nPASS back frame2 pick 67/67\nPASS back frame3 pick 72/72\nPASS hero_japan right · 4 distinct frames · changed 88%\nPASS right frame0 pick 62/62\nPASS right frame1 pick 73/73\nPASS right frame2 pick 67/67\nPASS right frame3 pick 57/57\nPASS hero_japan left · 4 distinct frames · changed 89%\nPASS left frame0 pick 67/67\nPASS left frame1 pick 81/81\nPASS left frame2 pick 87/87\nPASS left frame3 pick 71/71"
+  },
+  {
+    "id": "hero_ottoman",
+    "report": "PASS hero_ottoman front · 4 distinct frames · changed 84%\nPASS front frame0 pick 71/71\nPASS front frame1 pick 73/73\nPASS front frame2 pick 73/73\nPASS front frame3 pick 69/69\nPASS hero_ottoman back · 4 distinct frames · changed 82%\nPASS back frame0 pick 69/69\nPASS back frame1 pick 59/59\nPASS back frame2 pick 63/63\nPASS back frame3 pick 61/61\nPASS hero_ottoman right · 4 distinct frames · changed 89%\nPASS right frame0 pick 71/71\nPASS right frame1 pick 72/72\nPASS right frame2 pick 66/66\nPASS right frame3 pick 65/65\nPASS hero_ottoman left · 4 distinct frames · changed 86%\nPASS left frame0 pick 62/62\nPASS left frame1 pick 67/67\nPASS left frame2 pick 65/65\nPASS left frame3 pick 64/64"
+  },
+  {
+    "id": "hero_russia",
+    "report": "PASS hero_russia front · 4 distinct frames · changed 82%\nPASS front frame0 pick 86/86\nPASS front frame1 pick 82/82\nPASS front frame2 pick 87/87\nPASS front frame3 pick 91/91\nPASS hero_russia back · 4 distinct frames · changed 71%\nPASS back frame0 pick 84/84\nPASS back frame1 pick 85/85\nPASS back frame2 pick 80/80\nPASS back frame3 pick 86/86\nPASS hero_russia right · 4 distinct frames · changed 90%\nPASS right frame0 pick 77/77\nPASS right frame1 pick 87/87\nPASS right frame2 pick 87/87\nPASS right frame3 pick 80/80\nPASS hero_russia left · 4 distinct frames · changed 85%\nPASS left frame0 pick 73/73\nPASS left frame1 pick 81/81\nPASS left frame2 pick 85/85\nPASS left frame3 pick 78/78"
+  },
+  {
+    "id": "hero_prussia",
+    "report": "PASS hero_prussia front · 4 distinct frames · changed 93%\nPASS front frame0 pick 60/60\nPASS front frame1 pick 60/60\nPASS front frame2 pick 64/64\nPASS front frame3 pick 62/62\nPASS hero_prussia back · 4 distinct frames · changed 90%\nPASS back frame0 pick 62/62\nPASS back frame1 pick 59/59\nPASS back frame2 pick 62/62\nPASS back frame3 pick 62/62\nPASS hero_prussia right · 4 distinct frames · changed 86%\nPASS right frame0 pick 59/59\nPASS right frame1 pick 62/62\nPASS right frame2 pick 62/62\nPASS right frame3 pick 55/55\nPASS hero_prussia left · 4 distinct frames · changed 85%\nPASS left frame0 pick 56/56\nPASS left frame1 pick 60/60\nPASS left frame2 pick 63/63\nPASS left frame3 pick 54/54"
+  },
+  {
+    "id": "hero_spain",
+    "report": "PASS hero_spain front · 4 distinct frames · changed 92%\nPASS front frame0 pick 79/79\nPASS front frame1 pick 70/70\nPASS front frame2 pick 74/74\nPASS front frame3 pick 77/77\nPASS hero_spain back · 4 distinct frames · changed 90%\nPASS back frame0 pick 76/76\nPASS back frame1 pick 74/74\nPASS back frame2 pick 72/72\nPASS back frame3 pick 76/76\nPASS hero_spain right · 4 distinct frames · changed 95%\nPASS right frame0 pick 73/73\nPASS right frame1 pick 73/73\nPASS right frame2 pick 73/73\nPASS right frame3 pick 69/69\nPASS hero_spain left · 4 distinct frames · changed 90%\nPASS left frame0 pick 63/63\nPASS left frame1 pick 74/74\nPASS left frame2 pick 73/73\nPASS left frame3 pick 62/62"
+  },
+  {
+    "id": "hero_netherlands",
+    "report": "PASS hero_netherlands front · 4 distinct frames · changed 93%\nPASS front frame0 pick 80/80\nPASS front frame1 pick 80/80\nPASS front frame2 pick 80/80\nPASS front frame3 pick 86/86\nPASS hero_netherlands back · 4 distinct frames · changed 91%\nPASS back frame0 pick 82/82\nPASS back frame1 pick 81/81\nPASS back frame2 pick 79/79\nPASS back frame3 pick 77/77\nPASS hero_netherlands right · 4 distinct frames · changed 95%\nPASS right frame0 pick 64/64\nPASS right frame1 pick 67/67\nPASS right frame2 pick 66/66\nPASS right frame3 pick 66/66\nPASS hero_netherlands left · 4 distinct frames · changed 92%\nPASS left frame0 pick 59/59\nPASS left frame1 pick 60/60\nPASS left frame2 pick 64/64\nPASS left frame3 pick 65/65"
+  },
+  {
+    "id": "hero_usa",
+    "report": "PASS hero_usa front · 4 distinct frames · changed 94%\nPASS front frame0 pick 88/88\nPASS front frame1 pick 79/79\nPASS front frame2 pick 79/79\nPASS front frame3 pick 82/82\nPASS hero_usa back · 4 distinct frames · changed 85%\nPASS back frame0 pick 79/79\nPASS back frame1 pick 87/87\nPASS back frame2 pick 73/73\nPASS back frame3 pick 84/84\nPASS hero_usa right · 4 distinct frames · changed 94%\nPASS right frame0 pick 64/64\nPASS right frame1 pick 70/70\nPASS right frame2 pick 66/66\nPASS right frame3 pick 62/62\nPASS hero_usa left · 4 distinct frames · changed 89%\nPASS left frame0 pick 61/61\nPASS left frame1 pick 65/65\nPASS left frame2 pick 63/63\nPASS left frame3 pick 56/56"
+  },
+  {
+    "id": "kcdragon",
+    "report": "PASS kcdragon front · 4 distinct frames · changed 82%\nPASS front frame0 pick 1240/1240\nPASS front frame1 pick 1281/1281\nPASS front frame2 pick 1287/1287\nPASS front frame3 pick 1253/1253\nPASS kcdragon back · 4 distinct frames · changed 73%\nPASS back frame0 pick 1286/1286\nPASS back frame1 pick 1337/1337\nPASS back frame2 pick 1345/1345\nPASS back frame3 pick 1352/1352\nPASS kcdragon right · 4 distinct frames · changed 83%\nPASS right frame0 pick 1243/1243\nPASS right frame1 pick 1309/1309\nPASS right frame2 pick 1297/1297\nPASS right frame3 pick 1340/1340\nPASS kcdragon left · 4 distinct frames · changed 77%\nPASS left frame0 pick 1341/1341\nPASS left frame1 pick 1333/1333\nPASS left frame2 pick 1254/1254\nPASS left frame3 pick 1372/1372"
+  },
+  {
+    "id": "kcdemon",
+    "report": "PASS kcdemon front · 4 distinct frames · changed 88%\nPASS front frame0 pick 918/918\nPASS front frame1 pick 833/833\nPASS front frame2 pick 674/674\nPASS front frame3 pick 799/799\nPASS kcdemon back · 4 distinct frames · changed 85%\nPASS back frame0 pick 895/895\nPASS back frame1 pick 800/800\nPASS back frame2 pick 639/639\nPASS back frame3 pick 886/886\nPASS kcdemon right · 4 distinct frames · changed 91%\nPASS right frame0 pick 643/643\nPASS right frame1 pick 763/763\nPASS right frame2 pick 651/651\nPASS right frame3 pick 644/644\nPASS kcdemon left · 4 distinct frames · changed 91%\nPASS left frame0 pick 657/657\nPASS left frame1 pick 733/733\nPASS left frame2 pick 780/780\nPASS left frame3 pick 694/694"
+  },
+  {
+    "id": "steamcrawler",
+    "report": "PASS steamcrawler front · 4 distinct frames · changed 68%\nPASS front frame0 pick 255/255\nPASS front frame1 pick 265/265\nPASS front frame2 pick 251/251\nPASS front frame3 pick 237/237\nPASS steamcrawler back · 4 distinct frames · changed 70%\nPASS back frame0 pick 258/258\nPASS back frame1 pick 266/266\nPASS back frame2 pick 251/251\nPASS back frame3 pick 242/242\nPASS steamcrawler right · 4 distinct frames · changed 73%\nPASS right frame0 pick 271/271\nPASS right frame1 pick 275/275\nPASS right frame2 pick 255/255\nPASS right frame3 pick 270/270\nPASS steamcrawler left · 4 distinct frames · changed 72%\nPASS left frame0 pick 287/287\nPASS left frame1 pick 274/274\nPASS left frame2 pick 279/279\nPASS left frame3 pick 276/276"
+  },
+  {
+    "id": "fieldmortar",
+    "report": "PASS fieldmortar front · 4 distinct frames · changed 77%\nPASS front frame0 pick 190/190\nPASS front frame1 pick 177/177\nPASS front frame2 pick 177/177\nPASS front frame3 pick 180/180\nPASS fieldmortar back · 4 distinct frames · changed 78%\nPASS back frame0 pick 175/175\nPASS back frame1 pick 176/176\nPASS back frame2 pick 165/165\nPASS back frame3 pick 178/178\nPASS fieldmortar right · 4 distinct frames · changed 71%\nPASS right frame0 pick 202/202\nPASS right frame1 pick 206/206\nPASS right frame2 pick 192/192\nPASS right frame3 pick 194/194\nPASS fieldmortar left · 4 distinct frames · changed 63%\nPASS left frame0 pick 202/202\nPASS left frame1 pick 209/209\nPASS left frame2 pick 199/199\nPASS left frame3 pick 205/205"
+  },
+  {
+    "id": "rifleguard",
+    "report": "PASS rifleguard front · 4 distinct frames · changed 89%\nPASS front frame0 pick 45/45\nPASS front frame1 pick 38/38\nPASS front frame2 pick 40/40\nPASS front frame3 pick 42/42\nPASS rifleguard back · 4 distinct frames · changed 75%\nPASS back frame0 pick 45/45\nPASS back frame1 pick 40/40\nPASS back frame2 pick 40/40\nPASS back frame3 pick 42/42\nPASS rifleguard right · 4 distinct frames · changed 90%\nPASS right frame0 pick 35/35\nPASS right frame1 pick 39/39\nPASS right frame2 pick 40/40\nPASS right frame3 pick 36/36\nPASS rifleguard left · 4 distinct frames · changed 86%\nPASS left frame0 pick 33/33\nPASS left frame1 pick 35/35\nPASS left frame2 pick 40/40\nPASS left frame3 pick 38/38"
+  },
+  {
+    "id": "combatmedic",
+    "report": "PASS combatmedic front · 4 distinct frames · changed 71%\nPASS front frame0 pick 60/60\nPASS front frame1 pick 60/60\nPASS front frame2 pick 56/56\nPASS front frame3 pick 55/55\nPASS combatmedic back · 4 distinct frames · changed 68%\nPASS back frame0 pick 60/60\nPASS back frame1 pick 60/60\nPASS back frame2 pick 60/60\nPASS back frame3 pick 63/63\nPASS combatmedic right · 4 distinct frames · changed 71%\nPASS right frame0 pick 50/50\nPASS right frame1 pick 57/57\nPASS right frame2 pick 57/57\nPASS right frame3 pick 50/50\nPASS combatmedic left · 4 distinct frames · changed 58%\nPASS left frame0 pick 53/53\nPASS left frame1 pick 60/60\nPASS left frame2 pick 63/63\nPASS left frame3 pick 48/48"
+  },
+  {
+    "id": "siegewagon",
+    "report": "PASS siegewagon front · 4 distinct frames · changed 80%\nPASS front frame0 pick 438/438\nPASS front frame1 pick 438/438\nPASS front frame2 pick 438/438\nPASS front frame3 pick 440/440\nPASS siegewagon back · 4 distinct frames · changed 80%\nPASS back frame0 pick 421/421\nPASS back frame1 pick 421/421\nPASS back frame2 pick 422/422\nPASS back frame3 pick 426/426\nPASS siegewagon right · 4 distinct frames · changed 80%\nPASS right frame0 pick 444/444\nPASS right frame1 pick 465/465\nPASS right frame2 pick 461/461\nPASS right frame3 pick 446/446\nPASS siegewagon left · 4 distinct frames · changed 78%\nPASS left frame0 pick 470/470\nPASS left frame1 pick 478/478\nPASS left frame2 pick 486/486\nPASS left frame3 pick 470/470"
+  },
+  {
+    "id": "scoutballoon",
+    "report": "PASS scoutballoon front · 4 distinct frames · changed 44%\nPASS front frame0 pick 376/376\nPASS front frame1 pick 373/373\nPASS front frame2 pick 375/375\nPASS front frame3 pick 376/376\nPASS scoutballoon back · 4 distinct frames · changed 9%\nPASS back frame0 pick 366/366\nPASS back frame1 pick 368/368\nPASS back frame2 pick 368/368\nPASS back frame3 pick 362/362\nPASS scoutballoon right · 4 distinct frames · changed 13%\nPASS right frame0 pick 344/344\nPASS right frame1 pick 346/346\nPASS right frame2 pick 351/351\nPASS right frame3 pick 340/340\nPASS scoutballoon left · 4 distinct frames · changed 10%\nPASS left frame0 pick 346/346\nPASS left frame1 pick 357/357\nPASS left frame2 pick 352/352\nPASS left frame3 pick 349/349"
+  },
+  {
+    "id": "airtransport",
+    "report": "PASS airtransport front · 4 distinct frames · changed 20%\nPASS front frame0 pick 307/307\nPASS front frame1 pick 311/311\nPASS front frame2 pick 322/322\nPASS front frame3 pick 305/305\nPASS airtransport back · 4 distinct frames · changed 20%\nPASS back frame0 pick 289/289\nPASS back frame1 pick 293/293\nPASS back frame2 pick 302/302\nPASS back frame3 pick 288/288\nPASS airtransport right · 4 distinct frames · changed 14%\nPASS right frame0 pick 321/321\nPASS right frame1 pick 328/328\nPASS right frame2 pick 338/338\nPASS right frame3 pick 319/319\nPASS airtransport left · 4 distinct frames · changed 15%\nPASS left frame0 pick 321/321\nPASS left frame1 pick 327/327\nPASS left frame2 pick 347/347\nPASS left frame3 pick 326/326"
+  },
+  {
+    "id": "gunship",
+    "report": "PASS gunship front · 4 distinct frames · changed 73%\nPASS front frame0 pick 274/274\nPASS front frame1 pick 276/276\nPASS front frame2 pick 274/274\nPASS front frame3 pick 276/276\nPASS gunship back · 4 distinct frames · changed 70%\nPASS back frame0 pick 266/266\nPASS back frame1 pick 266/266\nPASS back frame2 pick 269/269\nPASS back frame3 pick 267/267\nPASS gunship right · 4 distinct frames · changed 55%\nPASS right frame0 pick 333/333\nPASS right frame1 pick 330/330\nPASS right frame2 pick 329/329\nPASS right frame3 pick 330/330\nPASS gunship left · 4 distinct frames · changed 53%\nPASS left frame0 pick 339/339\nPASS left frame1 pick 328/328\nPASS left frame2 pick 335/335\nPASS left frame3 pick 336/336"
+  },
+  {
+    "id": "runesentinel",
+    "report": "PASS runesentinel front · 4 distinct frames · changed 71%\nPASS front frame0 pick 72/72\nPASS front frame1 pick 83/83\nPASS front frame2 pick 86/86\nPASS front frame3 pick 75/75\nPASS runesentinel back · 4 distinct frames · changed 67%\nPASS back frame0 pick 73/73\nPASS back frame1 pick 81/81\nPASS back frame2 pick 81/81\nPASS back frame3 pick 74/74\nPASS runesentinel right · 4 distinct frames · changed 86%\nPASS right frame0 pick 67/67\nPASS right frame1 pick 86/86\nPASS right frame2 pick 81/81\nPASS right frame3 pick 72/72\nPASS runesentinel left · 4 distinct frames · changed 80%\nPASS left frame0 pick 68/68\nPASS left frame1 pick 79/79\nPASS left frame2 pick 82/82\nPASS left frame3 pick 64/64"
+  },
+  {
+    "id": "emberthrower",
+    "report": "PASS emberthrower front · 4 distinct frames · changed 35%\nPASS front frame0 pick 277/277\nPASS front frame1 pick 279/279\nPASS front frame2 pick 284/284\nPASS front frame3 pick 281/281\nPASS emberthrower back · 4 distinct frames · changed 32%\nPASS back frame0 pick 267/267\nPASS back frame1 pick 276/276\nPASS back frame2 pick 289/289\nPASS back frame3 pick 268/268\nPASS emberthrower right · 4 distinct frames · changed 36%\nPASS right frame0 pick 315/315\nPASS right frame1 pick 317/317\nPASS right frame2 pick 314/314\nPASS right frame3 pick 306/306\nPASS emberthrower left · 4 distinct frames · changed 34%\nPASS left frame0 pick 311/311\nPASS left frame1 pick 304/304\nPASS left frame2 pick 304/304\nPASS left frame3 pick 301/301"
+  },
+  {
+    "id": "tangdou",
+    "report": "PASS tangdou front · 4 distinct frames · changed 78%\nPASS front frame0 pick 295/300\nPASS front frame1 pick 274/279\nPASS front frame2 pick 288/293\nPASS front frame3 pick 294/299\nPASS tangdou back · 4 distinct frames · changed 59%\nPASS back frame0 pick 306/310\nPASS back frame1 pick 294/298\nPASS back frame2 pick 306/310\nPASS back frame3 pick 306/310\nPASS tangdou right · 4 distinct frames · changed 75%\nPASS right frame0 pick 284/289\nPASS right frame1 pick 276/281\nPASS right frame2 pick 282/287\nPASS right frame3 pick 277/282\nPASS tangdou left · 4 distinct frames · changed 72%\nPASS left frame0 pick 278/283\nPASS left frame1 pick 289/294\nPASS left frame2 pick 300/305\nPASS left frame3 pick 303/308"
+  },
+  {
+    "id": "tuantuan",
+    "report": "PASS tuantuan front · 4 distinct frames · changed 65%\nPASS front frame0 pick 312/317\nPASS front frame1 pick 308/312\nPASS front frame2 pick 313/317\nPASS front frame3 pick 314/319\nPASS tuantuan back · 4 distinct frames · changed 47%\nPASS back frame0 pick 300/300\nPASS back frame1 pick 310/310\nPASS back frame2 pick 303/303\nPASS back frame3 pick 297/297\nPASS tuantuan right · 4 distinct frames · changed 71%\nPASS right frame0 pick 278/283\nPASS right frame1 pick 286/291\nPASS right frame2 pick 292/296\nPASS right frame3 pick 278/283\nPASS tuantuan left · 4 distinct frames · changed 78%\nPASS left frame0 pick 296/301\nPASS left frame1 pick 304/308\nPASS left frame2 pick 302/306\nPASS left frame3 pick 297/302"
+  },
+  {
+    "id": "bomber",
+    "report": "PASS bomber front · 4 distinct frames · changed 76%\nPASS front frame0 pick 191/191\nPASS front frame1 pick 190/190\nPASS front frame2 pick 213/213\nPASS front frame3 pick 193/193\nPASS bomber back · 4 distinct frames · changed 74%\nPASS back frame0 pick 161/161\nPASS back frame1 pick 150/150\nPASS back frame2 pick 148/148\nPASS back frame3 pick 163/163\nPASS bomber right · 4 distinct frames · changed 60%\nPASS right frame0 pick 197/197\nPASS right frame1 pick 193/193\nPASS right frame2 pick 190/190\nPASS right frame3 pick 192/192\nPASS bomber left · 4 distinct frames · changed 69%\nPASS left frame0 pick 189/189\nPASS left frame1 pick 191/191\nPASS left frame2 pick 186/186\nPASS left frame3 pick 190/190"
+  },
+  {
+    "id": "carrier",
+    "report": "PASS carrier front · 4 distinct frames · changed 78%\nPASS front frame0 pick 344/344\nPASS front frame1 pick 350/350\nPASS front frame2 pick 349/349\nPASS front frame3 pick 347/347\nPASS carrier back · 4 distinct frames · changed 74%\nPASS back frame0 pick 346/346\nPASS back frame1 pick 351/351\nPASS back frame2 pick 349/349\nPASS back frame3 pick 350/350\nPASS carrier right · 4 distinct frames · changed 51%\nPASS right frame0 pick 186/186\nPASS right frame1 pick 185/185\nPASS right frame2 pick 185/185\nPASS right frame3 pick 186/186\nPASS carrier left · 4 distinct frames · changed 48%\nPASS left frame0 pick 204/204\nPASS left frame1 pick 206/206\nPASS left frame2 pick 204/204\nPASS left frame3 pick 201/201"
+  },
+  {
+    "id": "airwing",
+    "report": "PASS airwing front · 4 distinct frames · changed 89%\nPASS front frame0 pick 123/123\nPASS front frame1 pick 126/126\nPASS front frame2 pick 101/101\nPASS front frame3 pick 126/126\nPASS airwing back · 4 distinct frames · changed 85%\nPASS back frame0 pick 103/103\nPASS back frame1 pick 97/97\nPASS back frame2 pick 98/98\nPASS back frame3 pick 101/101\nPASS airwing right · 4 distinct frames · changed 67%\nPASS right frame0 pick 132/132\nPASS right frame1 pick 129/129\nPASS right frame2 pick 139/139\nPASS right frame3 pick 127/127\nPASS airwing left · 4 distinct frames · changed 71%\nPASS left frame0 pick 124/124\nPASS left frame1 pick 125/125\nPASS left frame2 pick 140/140\nPASS left frame3 pick 124/124"
+  },
+  {
+    "id": "bear",
+    "report": "PASS bear front · 4 distinct frames · changed 68%\nPASS front frame0 pick 178/178\nPASS front frame1 pick 184/184\nPASS front frame2 pick 184/184\nPASS front frame3 pick 181/181\nPASS bear back · 4 distinct frames · changed 58%\nPASS back frame0 pick 159/159\nPASS back frame1 pick 175/175\nPASS back frame2 pick 172/172\nPASS back frame3 pick 167/167\nPASS bear right · 4 distinct frames · changed 73%\nPASS right frame0 pick 156/156\nPASS right frame1 pick 154/154\nPASS right frame2 pick 176/176\nPASS right frame3 pick 163/163\nPASS bear left · 4 distinct frames · changed 70%\nPASS left frame0 pick 187/187\nPASS left frame1 pick 176/176\nPASS left frame2 pick 186/186\nPASS left frame3 pick 193/193"
+  },
+  {
+    "id": "kcdragon_breath",
+    "report": "PASS kcdragon_breath front · 4 distinct frames · changed 79%\nPASS front frame0 pick 1319/1319\nPASS front frame1 pick 1374/1374\nPASS front frame2 pick 1389/1389\nPASS front frame3 pick 1343/1343\nPASS kcdragon_breath back · 4 distinct frames · changed 74%\nPASS back frame0 pick 1332/1332\nPASS back frame1 pick 1436/1436\nPASS back frame2 pick 1449/1449\nPASS back frame3 pick 1403/1403\nPASS kcdragon_breath right · 4 distinct frames · changed 81%\nPASS right frame0 pick 1286/1286\nPASS right frame1 pick 1354/1354\nPASS right frame2 pick 1390/1390\nPASS right frame3 pick 1302/1302\nPASS kcdragon_breath left · 4 distinct frames · changed 76%\nPASS left frame0 pick 1333/1333\nPASS left frame1 pick 1331/1331\nPASS left frame2 pick 1409/1409\nPASS left frame3 pick 1315/1315"
+  },
+  {
+    "id": "villager_mine",
+    "report": "PASS villager_mine front · 4 distinct frames · changed 84%\nPASS front frame0 pick 77/77\nPASS front frame1 pick 66/66\nPASS front frame2 pick 59/59\nPASS front frame3 pick 74/74\nPASS villager_mine back · 4 distinct frames · changed 81%\nPASS back frame0 pick 67/67\nPASS back frame1 pick 58/58\nPASS back frame2 pick 49/49\nPASS back frame3 pick 73/73\nPASS villager_mine right · 4 distinct frames · changed 89%\nPASS right frame0 pick 63/63\nPASS right frame1 pick 66/66\nPASS right frame2 pick 58/58\nPASS right frame3 pick 60/60\nPASS villager_mine left · 4 distinct frames · changed 86%\nPASS left frame0 pick 69/69\nPASS left frame1 pick 71/71\nPASS left frame2 pick 59/59\nPASS left frame3 pick 71/71"
+  },
+  {
+    "id": "villager_wood",
+    "report": "PASS villager_wood front · 4 distinct frames · changed 91%\nPASS front frame0 pick 74/74\nPASS front frame1 pick 60/60\nPASS front frame2 pick 52/52\nPASS front frame3 pick 72/72\nPASS villager_wood back · 4 distinct frames · changed 79%\nPASS back frame0 pick 72/72\nPASS back frame1 pick 64/64\nPASS back frame2 pick 57/57\nPASS back frame3 pick 74/74\nPASS villager_wood right · 4 distinct frames · changed 92%\nPASS right frame0 pick 72/72\nPASS right frame1 pick 74/74\nPASS right frame2 pick 62/62\nPASS right frame3 pick 70/70\nPASS villager_wood left · 4 distinct frames · changed 83%\nPASS left frame0 pick 68/68\nPASS left frame1 pick 74/74\nPASS left frame2 pick 62/62\nPASS left frame3 pick 69/69"
+  },
+  {
+    "id": "villager_food",
+    "report": "PASS villager_food front · 4 distinct frames · changed 83%\nPASS front frame0 pick 88/88\nPASS front frame1 pick 73/73\nPASS front frame2 pick 77/77\nPASS front frame3 pick 91/91\nPASS villager_food back · 4 distinct frames · changed 67%\nPASS back frame0 pick 96/96\nPASS back frame1 pick 85/85\nPASS back frame2 pick 90/90\nPASS back frame3 pick 103/103\nPASS villager_food right · 4 distinct frames · changed 85%\nPASS right frame0 pick 88/88\nPASS right frame1 pick 81/81\nPASS right frame2 pick 73/73\nPASS right frame3 pick 88/88\nPASS villager_food left · 4 distinct frames · changed 77%\nPASS left frame0 pick 93/93\nPASS left frame1 pick 84/84\nPASS left frame2 pick 81/81\nPASS left frame3 pick 90/90"
+  },
+  {
+    "id": "villager_build",
+    "report": "PASS villager_build front · 4 distinct frames · changed 90%\nPASS front frame0 pick 78/78\nPASS front frame1 pick 66/66\nPASS front frame2 pick 60/60\nPASS front frame3 pick 75/75\nPASS villager_build back · 4 distinct frames · changed 73%\nPASS back frame0 pick 75/75\nPASS back frame1 pick 63/63\nPASS back frame2 pick 59/59\nPASS back frame3 pick 76/76\nPASS villager_build right · 4 distinct frames · changed 93%\nPASS right frame0 pick 64/64\nPASS right frame1 pick 68/68\nPASS right frame2 pick 64/64\nPASS right frame3 pick 68/68\nPASS villager_build left · 4 distinct frames · changed 82%\nPASS left frame0 pick 63/63\nPASS left frame1 pick 69/69\nPASS left frame2 pick 76/76\nPASS left frame3 pick 65/65"
+  },
+  {
+    "id": "grenadier",
+    "report": "PASS grenadier front · 4 distinct frames · changed 68%\nPASS front frame0 pick 55/55\nPASS front frame1 pick 53/53\nPASS front frame2 pick 50/50\nPASS front frame3 pick 51/51\nPASS grenadier back · 4 distinct frames · changed 50%\nPASS back frame0 pick 50/50\nPASS back frame1 pick 49/49\nPASS back frame2 pick 48/48\nPASS back frame3 pick 47/47\nPASS grenadier right · 4 distinct frames · changed 77%\nPASS right frame0 pick 39/39\nPASS right frame1 pick 45/45\nPASS right frame2 pick 39/39\nPASS right frame3 pick 37/37\nPASS grenadier left · 4 distinct frames · changed 53%\nPASS left frame0 pick 39/39\nPASS left frame1 pick 43/43\nPASS left frame2 pick 48/48\nPASS left frame3 pick 40/40"
+  },
+  {
+    "id": "trebuchet",
+    "report": "PASS trebuchet front · 4 distinct frames · changed 61%\nPASS front frame0 pick 273/273\nPASS front frame1 pick 278/278\nPASS front frame2 pick 303/303\nPASS front frame3 pick 311/311\nPASS trebuchet back · 4 distinct frames · changed 59%\nPASS back frame0 pick 258/258\nPASS back frame1 pick 278/278\nPASS back frame2 pick 281/281\nPASS back frame3 pick 277/277\nPASS trebuchet right · 4 distinct frames · changed 90%\nPASS right frame0 pick 284/284\nPASS right frame1 pick 283/283\nPASS right frame2 pick 283/283\nPASS right frame3 pick 298/298\nPASS trebuchet left · 4 distinct frames · changed 73%\nPASS left frame0 pick 314/314\nPASS left frame1 pick 302/302\nPASS left frame2 pick 289/289\nPASS left frame3 pick 307/307"
+  },
+  {
+    "id": "jackal",
+    "report": "PASS jackal front · 4 distinct frames · changed 89%\nPASS front frame0 pick 55/55\nPASS front frame1 pick 50/50\nPASS front frame2 pick 56/56\nPASS front frame3 pick 48/48\nPASS jackal back · 4 distinct frames · changed 81%\nPASS back frame0 pick 44/44\nPASS back frame1 pick 48/48\nPASS back frame2 pick 50/50\nPASS back frame3 pick 47/47\nPASS jackal right · 4 distinct frames · changed 87%\nPASS right frame0 pick 50/50\nPASS right frame1 pick 51/51\nPASS right frame2 pick 53/53\nPASS right frame3 pick 56/56\nPASS jackal left · 4 distinct frames · changed 85%\nPASS left frame0 pick 53/53\nPASS left frame1 pick 55/55\nPASS left frame2 pick 56/56\nPASS left frame3 pick 62/62"
+  },
+  {
+    "id": "kcdemon_breath",
+    "report": "PASS kcdemon_breath front · 4 distinct frames · changed 87%\nPASS front frame0 pick 883/883\nPASS front frame1 pick 863/863\nPASS front frame2 pick 890/890\nPASS front frame3 pick 916/916\nPASS kcdemon_breath back · 4 distinct frames · changed 81%\nPASS back frame0 pick 830/830\nPASS back frame1 pick 846/846\nPASS back frame2 pick 843/843\nPASS back frame3 pick 917/917\nPASS kcdemon_breath right · 4 distinct frames · changed 93%\nPASS right frame0 pick 661/661\nPASS right frame1 pick 757/757\nPASS right frame2 pick 763/763\nPASS right frame3 pick 686/686\nPASS kcdemon_breath left · 4 distinct frames · changed 90%\nPASS left frame0 pick 647/647\nPASS left frame1 pick 717/717\nPASS left frame2 pick 721/721\nPASS left frame3 pick 696/696"
+  }
+]

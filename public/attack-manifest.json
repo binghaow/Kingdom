@@ -1,0 +1,629 @@
+{
+  "version": 34,
+  "directions": [
+    "front",
+    "back",
+    "right",
+    "left"
+  ],
+  "frames": [
+    "prepare",
+    "release",
+    "follow",
+    "recover"
+  ],
+  "entries": [
+    {
+      "id": "villager",
+      "kind": "villager",
+      "combat": true,
+      "mode": "primary",
+      "source": "assets/attack-villager-v34.png",
+      "reference": "assets/directions-civilians-v33.png",
+      "referenceRow": 1
+    },
+    {
+      "id": "infantry",
+      "kind": "infantry",
+      "combat": true,
+      "mode": "primary",
+      "source": "assets/attack-infantry-v34.png",
+      "reference": "assets/directions-core-v33.png",
+      "referenceRow": 1
+    },
+    {
+      "id": "archer",
+      "kind": "archer",
+      "combat": true,
+      "mode": "primary",
+      "source": "assets/attack-archer-v34.png",
+      "reference": "assets/directions-core-v33.png",
+      "referenceRow": 2
+    },
+    {
+      "id": "cavalry",
+      "kind": "cavalry",
+      "combat": true,
+      "mode": "primary",
+      "source": "assets/attack-cavalry-v34.png",
+      "reference": "assets/directions-core-v33.png",
+      "referenceRow": 3
+    },
+    {
+      "id": "musketeer",
+      "kind": "musketeer",
+      "combat": true,
+      "mode": "primary",
+      "source": "assets/attack-musketeer-v34.png",
+      "reference": "assets/directions-core-v33.png",
+      "referenceRow": 4
+    },
+    {
+      "id": "grenadier",
+      "kind": "grenadier",
+      "combat": true,
+      "mode": "primary",
+      "source": "assets/attack-grenadier-v34.png",
+      "reference": "assets/directions-line-v33.png",
+      "referenceRow": 1
+    },
+    {
+      "id": "cannon",
+      "kind": "cannon",
+      "combat": true,
+      "mode": "primary",
+      "source": "assets/attack-cannon-v34.png",
+      "reference": "assets/directions-artillery-v33.png",
+      "referenceRow": 1
+    },
+    {
+      "id": "healer",
+      "kind": "healer",
+      "combat": false,
+      "mode": "primary",
+      "source": "assets/attack-healer-v34.png",
+      "reference": "assets/directions-civilians-v33.png",
+      "referenceRow": 3
+    },
+    {
+      "id": "halberd",
+      "kind": "halberd",
+      "combat": true,
+      "mode": "primary",
+      "source": "assets/attack-halberd-v34.png",
+      "reference": "assets/directions-line-v33.png",
+      "referenceRow": 2
+    },
+    {
+      "id": "skirmisher",
+      "kind": "skirmisher",
+      "combat": true,
+      "mode": "primary",
+      "source": "assets/attack-skirmisher-v34.png",
+      "reference": "assets/directions-line-v33.png",
+      "referenceRow": 3
+    },
+    {
+      "id": "hussar",
+      "kind": "hussar",
+      "combat": true,
+      "mode": "primary",
+      "source": "assets/attack-hussar-v34.png",
+      "reference": "assets/directions-line-v33.png",
+      "referenceRow": 4
+    },
+    {
+      "id": "mortar",
+      "kind": "mortar",
+      "combat": true,
+      "mode": "primary",
+      "source": "assets/attack-mortar-v34.png",
+      "reference": "assets/directions-artillery-v33.png",
+      "referenceRow": 2
+    },
+    {
+      "id": "longbow",
+      "kind": "longbow",
+      "combat": true,
+      "mode": "primary",
+      "source": "assets/attack-longbow-v34.png",
+      "reference": "assets/directions-nationalA-v33.png",
+      "referenceRow": 1
+    },
+    {
+      "id": "cuirassier",
+      "kind": "cuirassier",
+      "combat": true,
+      "mode": "primary",
+      "source": "assets/attack-cuirassier-v34.png",
+      "reference": "assets/directions-nationalA-v33.png",
+      "referenceRow": 2
+    },
+    {
+      "id": "repeater",
+      "kind": "repeater",
+      "combat": true,
+      "mode": "primary",
+      "source": "assets/attack-repeater-v34.png",
+      "reference": "assets/directions-nationalA-v33.png",
+      "referenceRow": 3
+    },
+    {
+      "id": "fishingboat",
+      "kind": "fishingboat",
+      "combat": false,
+      "mode": "primary",
+      "source": "assets/attack-fishingboat-v34.png",
+      "reference": "assets/directions-navalA-v33.png",
+      "referenceRow": 1
+    },
+    {
+      "id": "sloop",
+      "kind": "sloop",
+      "combat": true,
+      "mode": "primary",
+      "source": "assets/attack-sloop-v34.png",
+      "reference": "assets/directions-navalA-v33.png",
+      "referenceRow": 2
+    },
+    {
+      "id": "frigate",
+      "kind": "frigate",
+      "combat": true,
+      "mode": "primary",
+      "source": "assets/attack-frigate-v34.png",
+      "reference": "assets/directions-navalA-v33.png",
+      "referenceRow": 3
+    },
+    {
+      "id": "bombketch",
+      "kind": "bombketch",
+      "combat": true,
+      "mode": "primary",
+      "source": "assets/attack-bombketch-v34.png",
+      "reference": "assets/directions-navalA-v33.png",
+      "referenceRow": 4
+    },
+    {
+      "id": "transport",
+      "kind": "transport",
+      "combat": false,
+      "mode": "primary",
+      "source": "assets/attack-transport-v34.png",
+      "reference": "assets/directions-navalAir-v33.png",
+      "referenceRow": 1
+    },
+    {
+      "id": "trader",
+      "kind": "trader",
+      "combat": false,
+      "mode": "primary",
+      "source": "assets/attack-trader-v34.png",
+      "reference": "assets/directions-civilians-v33.png",
+      "referenceRow": 4
+    },
+    {
+      "id": "samurai",
+      "kind": "samurai",
+      "combat": true,
+      "mode": "primary",
+      "source": "assets/attack-samurai-v34.png",
+      "reference": "assets/directions-nationalA-v33.png",
+      "referenceRow": 4
+    },
+    {
+      "id": "janissary",
+      "kind": "janissary",
+      "combat": true,
+      "mode": "primary",
+      "source": "assets/attack-janissary-v34.png",
+      "reference": "assets/directions-nationalB-v33.png",
+      "referenceRow": 1
+    },
+    {
+      "id": "streltsy",
+      "kind": "streltsy",
+      "combat": true,
+      "mode": "primary",
+      "source": "assets/attack-streltsy-v34.png",
+      "reference": "assets/directions-nationalB-v33.png",
+      "referenceRow": 2
+    },
+    {
+      "id": "prussianguard",
+      "kind": "prussianguard",
+      "combat": true,
+      "mode": "primary",
+      "source": "assets/attack-prussianguard-v34.png",
+      "reference": "assets/directions-nationalB-v33.png",
+      "referenceRow": 3
+    },
+    {
+      "id": "tercio",
+      "kind": "tercio",
+      "combat": true,
+      "mode": "primary",
+      "source": "assets/attack-tercio-v34.png",
+      "reference": "assets/directions-nationalB-v33.png",
+      "referenceRow": 4
+    },
+    {
+      "id": "nassau",
+      "kind": "nassau",
+      "combat": true,
+      "mode": "primary",
+      "source": "assets/attack-nassau-v34.png",
+      "reference": "assets/directions-nationalC-v33.png",
+      "referenceRow": 1
+    },
+    {
+      "id": "continental",
+      "kind": "continental",
+      "combat": true,
+      "mode": "primary",
+      "source": "assets/attack-continental-v34.png",
+      "reference": "assets/directions-nationalC-v33.png",
+      "referenceRow": 2
+    },
+    {
+      "id": "eliteguard",
+      "kind": "eliteguard",
+      "combat": true,
+      "mode": "primary",
+      "source": "assets/attack-eliteguard-v34.png",
+      "reference": "assets/directions-advanced-v33.png",
+      "referenceRow": 1
+    },
+    {
+      "id": "dragoon",
+      "kind": "dragoon",
+      "combat": true,
+      "mode": "primary",
+      "source": "assets/attack-dragoon-v34.png",
+      "reference": "assets/directions-advanced-v33.png",
+      "referenceRow": 2
+    },
+    {
+      "id": "engineer",
+      "kind": "engineer",
+      "combat": false,
+      "mode": "primary",
+      "source": "assets/attack-engineer-v34.png",
+      "reference": "assets/directions-civilians-v33.png",
+      "referenceRow": 2
+    },
+    {
+      "id": "howitzer",
+      "kind": "howitzer",
+      "combat": true,
+      "mode": "primary",
+      "source": "assets/attack-howitzer-v34.png",
+      "reference": "assets/directions-artillery-v33.png",
+      "referenceRow": 3
+    },
+    {
+      "id": "hero_britain",
+      "kind": "hero_britain",
+      "combat": true,
+      "mode": "primary",
+      "source": "assets/attack-hero_britain-v34.png",
+      "reference": "assets/directions-heroesA-v33.png",
+      "referenceRow": 1
+    },
+    {
+      "id": "hero_france",
+      "kind": "hero_france",
+      "combat": true,
+      "mode": "primary",
+      "source": "assets/attack-hero_france-v34.png",
+      "reference": "assets/directions-heroesA-v33.png",
+      "referenceRow": 2
+    },
+    {
+      "id": "hero_china",
+      "kind": "hero_china",
+      "combat": true,
+      "mode": "primary",
+      "source": "assets/attack-hero_china-v34.png",
+      "reference": "assets/directions-heroesA-v33.png",
+      "referenceRow": 3
+    },
+    {
+      "id": "hero_japan",
+      "kind": "hero_japan",
+      "combat": true,
+      "mode": "primary",
+      "source": "assets/attack-hero_japan-v34.png",
+      "reference": "assets/directions-heroesA-v33.png",
+      "referenceRow": 4
+    },
+    {
+      "id": "hero_ottoman",
+      "kind": "hero_ottoman",
+      "combat": true,
+      "mode": "primary",
+      "source": "assets/attack-hero_ottoman-v34.png",
+      "reference": "assets/directions-heroesB-v33.png",
+      "referenceRow": 1
+    },
+    {
+      "id": "hero_russia",
+      "kind": "hero_russia",
+      "combat": true,
+      "mode": "primary",
+      "source": "assets/attack-hero_russia-v34.png",
+      "reference": "assets/directions-heroesB-v33.png",
+      "referenceRow": 2
+    },
+    {
+      "id": "hero_prussia",
+      "kind": "hero_prussia",
+      "combat": true,
+      "mode": "primary",
+      "source": "assets/attack-hero_prussia-v34.png",
+      "reference": "assets/directions-heroesB-v33.png",
+      "referenceRow": 3
+    },
+    {
+      "id": "hero_spain",
+      "kind": "hero_spain",
+      "combat": true,
+      "mode": "primary",
+      "source": "assets/attack-hero_spain-v34.png",
+      "reference": "assets/directions-heroesB-v33.png",
+      "referenceRow": 4
+    },
+    {
+      "id": "hero_netherlands",
+      "kind": "hero_netherlands",
+      "combat": true,
+      "mode": "primary",
+      "source": "assets/attack-hero_netherlands-v34.png",
+      "reference": "assets/directions-heroesC-v33.png",
+      "referenceRow": 1
+    },
+    {
+      "id": "hero_usa",
+      "kind": "hero_usa",
+      "combat": true,
+      "mode": "primary",
+      "source": "assets/attack-hero_usa-v34.png",
+      "reference": "assets/directions-heroesC-v33.png",
+      "referenceRow": 2
+    },
+    {
+      "id": "kcdragon",
+      "kind": "kcdragon",
+      "combat": true,
+      "mode": "primary",
+      "source": "assets/attack-kcdragon-v34.png",
+      "reference": "assets/directions-special-v33.png",
+      "referenceRow": 3
+    },
+    {
+      "id": "kcdemon",
+      "kind": "kcdemon",
+      "combat": true,
+      "mode": "primary",
+      "source": "assets/attack-kcdemon-v34.png",
+      "reference": "assets/directions-special-v33.png",
+      "referenceRow": 4
+    },
+    {
+      "id": "steamcrawler",
+      "kind": "steamcrawler",
+      "combat": true,
+      "mode": "primary",
+      "source": "assets/attack-steamcrawler-v34.png",
+      "reference": "assets/directions-engineering-v33.png",
+      "referenceRow": 3
+    },
+    {
+      "id": "fieldmortar",
+      "kind": "fieldmortar",
+      "combat": true,
+      "mode": "primary",
+      "source": "assets/attack-fieldmortar-v34.png",
+      "reference": "assets/directions-artillery-v33.png",
+      "referenceRow": 4
+    },
+    {
+      "id": "rifleguard",
+      "kind": "rifleguard",
+      "combat": true,
+      "mode": "primary",
+      "source": "assets/attack-rifleguard-v34.png",
+      "reference": "assets/directions-advanced-v33.png",
+      "referenceRow": 3
+    },
+    {
+      "id": "combatmedic",
+      "kind": "combatmedic",
+      "combat": false,
+      "mode": "primary",
+      "source": "assets/attack-combatmedic-v34.png",
+      "reference": "assets/directions-advanced-v33.png",
+      "referenceRow": 4
+    },
+    {
+      "id": "trebuchet",
+      "kind": "trebuchet",
+      "combat": true,
+      "mode": "primary",
+      "source": "assets/attack-trebuchet-v34.png",
+      "reference": "assets/directions-engineering-v33.png",
+      "referenceRow": 1
+    },
+    {
+      "id": "siegewagon",
+      "kind": "siegewagon",
+      "combat": true,
+      "mode": "primary",
+      "source": "assets/attack-siegewagon-v34.png",
+      "reference": "assets/directions-engineering-v33.png",
+      "referenceRow": 2
+    },
+    {
+      "id": "scoutballoon",
+      "kind": "scoutballoon",
+      "combat": false,
+      "mode": "primary",
+      "source": "assets/attack-scoutballoon-v34.png",
+      "reference": "assets/directions-navalAir-v33.png",
+      "referenceRow": 3
+    },
+    {
+      "id": "airtransport",
+      "kind": "airtransport",
+      "combat": false,
+      "mode": "primary",
+      "source": "assets/attack-airtransport-v34.png",
+      "reference": "assets/directions-navalAir-v33.png",
+      "referenceRow": 4
+    },
+    {
+      "id": "gunship",
+      "kind": "gunship",
+      "combat": true,
+      "mode": "primary",
+      "source": "assets/attack-gunship-v34.png",
+      "reference": "assets/directions-engineering-v33.png",
+      "referenceRow": 4
+    },
+    {
+      "id": "runesentinel",
+      "kind": "runesentinel",
+      "combat": true,
+      "mode": "primary",
+      "source": "assets/attack-runesentinel-v34.png",
+      "reference": "assets/directions-nationalC-v33.png",
+      "referenceRow": 3
+    },
+    {
+      "id": "emberthrower",
+      "kind": "emberthrower",
+      "combat": true,
+      "mode": "primary",
+      "source": "assets/attack-emberthrower-v34.png",
+      "reference": "assets/directions-nationalC-v33.png",
+      "referenceRow": 4
+    },
+    {
+      "id": "tangdou",
+      "kind": "tangdou",
+      "combat": true,
+      "mode": "primary",
+      "source": "assets/attack-tangdou-v34.png",
+      "reference": "assets/directions-heroesC-v33.png",
+      "referenceRow": 3
+    },
+    {
+      "id": "tuantuan",
+      "kind": "tuantuan",
+      "combat": true,
+      "mode": "primary",
+      "source": "assets/attack-tuantuan-v34.png",
+      "reference": "assets/directions-heroesC-v33.png",
+      "referenceRow": 4
+    },
+    {
+      "id": "bomber",
+      "kind": "bomber",
+      "combat": true,
+      "mode": "primary",
+      "source": "assets/attack-bomber-v34.png",
+      "reference": "assets/directions-special-v33.png",
+      "referenceRow": 1
+    },
+    {
+      "id": "carrier",
+      "kind": "carrier",
+      "combat": false,
+      "mode": "primary",
+      "source": "assets/attack-carrier-v34.png",
+      "reference": "assets/directions-navalAir-v33.png",
+      "referenceRow": 2
+    },
+    {
+      "id": "airwing",
+      "kind": "airwing",
+      "combat": true,
+      "mode": "primary",
+      "source": "assets/attack-airwing-v34.png",
+      "reference": "assets/directions-special-v33.png",
+      "referenceRow": 2
+    },
+    {
+      "id": "bear",
+      "kind": "bear",
+      "combat": true,
+      "mode": "primary",
+      "source": "assets/attack-bear-v34.png",
+      "reference": "assets/directions-animals-v33.png",
+      "referenceRow": 1
+    },
+    {
+      "id": "jackal",
+      "kind": "jackal",
+      "combat": true,
+      "mode": "primary",
+      "source": "assets/attack-jackal-v34.png",
+      "reference": "assets/directions-animals-v33.png",
+      "referenceRow": 2
+    },
+    {
+      "id": "kcdragon_breath",
+      "kind": "kcdragon",
+      "combat": true,
+      "mode": "breath",
+      "source": "assets/attack-kcdragon-breath-v34.png",
+      "reference": "assets/directions-special-v33.png",
+      "referenceRow": 3
+    },
+    {
+      "id": "kcdemon_breath",
+      "kind": "kcdemon",
+      "combat": true,
+      "mode": "breath",
+      "source": "assets/attack-kcdemon-breath-v34.png",
+      "reference": "assets/directions-special-v33.png",
+      "referenceRow": 4
+    },
+    {
+      "id": "villager_mine",
+      "kind": "villager",
+      "combat": false,
+      "mode": "work",
+      "source": "assets/attack-villager-mine-v34.png",
+      "reference": "assets/directions-workerwork-v33.png",
+      "referenceRow": 1
+    },
+    {
+      "id": "villager_wood",
+      "kind": "villager",
+      "combat": false,
+      "mode": "work",
+      "source": "assets/attack-villager-wood-v34.png",
+      "reference": "assets/directions-workerwork-v33.png",
+      "referenceRow": 2
+    },
+    {
+      "id": "villager_food",
+      "kind": "villager",
+      "combat": false,
+      "mode": "work",
+      "source": "assets/attack-villager-food-v34.png",
+      "reference": "assets/directions-workerwork-v33.png",
+      "referenceRow": 3
+    },
+    {
+      "id": "villager_build",
+      "kind": "villager",
+      "combat": false,
+      "mode": "work",
+      "source": "assets/attack-villager-build-v34.png",
+      "reference": "assets/directions-workerwork-v33.png",
+      "referenceRow": 4
+    }
+  ]
+}
