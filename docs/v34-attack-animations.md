@@ -7,3 +7,5 @@
 - 31 组自动回归通过。截图：C:/Users/bingh/.codex/visualizations/2026/11/05/01a1a90c-b2b7-7d30-8ebd-81cab9f16889/v34-four-direction-attacks.png。
 
 范围：四方向攻击和职责动作。未进行物理 iPhone/iPad 触摸、音频、长期帧率或完整多人压力测试。
+
+- 发布体积：保留旧起床号和试听混音的源码档案，仅从发布包省去这两份未使用录音，以符合站点的 256 MiB 展开上限。

@@ -5,7 +5,9 @@ if(output!==path.join(root,'dist')||!fs.existsSync(path.join(source,'index.html'
 fs.mkdirSync(path.join(output,'server'),{recursive:true});
 // A dedicated generated directory, checked above; public/ remains the source of truth.
 const client=path.join(output,'client');if(fs.existsSync(client))fs.rmSync(client,{recursive:true});
-fs.cpSync(source,client,{recursive:true});
+// Keep source recordings for review; omit the retired morning call and review-only mix from deployment.
+const sourceOnly=new Set(['audio/horn.mp3','audio/charge-preview.wav']);
+fs.cpSync(source,client,{recursive:true,filter:p=>!sourceOnly.has(path.relative(source,p).replaceAll('\\','/'))});
 const modules=new Map();
 function collect(filename){filename=path.resolve(filename);const id=path.relative(root,filename).replaceAll('\\','/');if(modules.has(id))return id;const text=fs.readFileSync(filename,'utf8');modules.set(id,text);for(const m of text.matchAll(/require\(['"](\.[^'"]+)['"]\)/g))collect(path.resolve(path.dirname(filename),m[1]));return id}
 const entry=collect(path.join(root,'worker/index.js'));
