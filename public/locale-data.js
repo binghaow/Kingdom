@@ -137,6 +137,8 @@
 附近没有可施法的敌方陆军|No enemy land units nearby for this spell
 所选单位无法攻击此目标|Selected units cannot attack this target
 经济加速与持续军队压力|Accelerated economy and sustained military pressure
+标准经济与战斗属性；更快决策、更大编队与更有针对性的防御|Standard economy and combat stats; faster decisions, larger formations and more focused defense
+标准经济与战斗属性；更快决策、更大编队、主动资源扩张与更有针对性的防御|Standard economy and combat stats; faster decisions, larger formations, active resource expansion and more focused defense
 电脑按难度逐步推进时代|AI advances through ages according to its difficulty
 无保护期，开局即可交战|No protection timer. Combat is possible from the start
 请靠近海岸或岛屿后卸载|Move near a coast or island to unload
@@ -660,7 +662,7 @@ KC 火焰伤害|KC fire damage
 国家|Nation
 队伍|Team
 盟友|Ally
-全图|Map
+本地战场|Local battlefield
 本国|Your nation
 敌对|Hostile
 中立|Neutral
@@ -724,4 +726,5 @@ KC 火焰伤害|KC fire damage
 你|You
 与|and
 以|With
+查看本地战场|View local battlefield
 `;const entries=pairs.trim().split('\n').filter(Boolean).map(l=>{const i=l.indexOf('|');return[l.slice(0,i),l.slice(i+1)]});root.KingdomLocaleData=Object.fromEntries(entries);if(typeof module!=='undefined')module.exports=root.KingdomLocaleData})(typeof window==='undefined'?globalThis:window);

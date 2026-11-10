@@ -1,5 +1,32 @@
 # Frontier Kingdom — persistent UI and scale requirements
 
+## Product development roles and review workflow
+
+Use these roles as a repeatable review workflow for future feature work. The coordinating agent owns the task end to end and may perform several roles itself. Do not create parallel agents by default; delegate only when the task explicitly calls for it or when a bounded independent review will materially help. Keep one implementation owner for overlapping files.
+
+- **Product manager:** Translate the player's request into a short player-facing outcome, scope, priority, acceptance criteria, and open questions. Preserve the user's intent; explain technical tradeoffs in plain language.
+- **Game architect:** Inspect the current implementation before proposing changes. Map affected systems and dependencies, identify reusable features, performance risks, save/network compatibility, and the smallest safe extension. Ask for approval before major architectural changes.
+- **Software engineer:** Make incremental, localized changes and preserve existing gameplay. Before implementation, inspect applicable project rules and existing systems. Include App Store readiness in design and code review whenever a change could affect eventual iPhone/iPad distribution; see the mandatory release-compliance gate below.
+- **Art director:** Review visual and audio direction for readability, animation/state coverage, scale, faction identity, consistency, and device presentation. Track each shipped asset's source and license. Do not invent, copy, or ship unverified third-party game/movie assets; leave a gap documented when a suitable authorized asset is unavailable.
+- **Coordinator / reviewer:** Keep the request, implementation, and acceptance criteria aligned; resolve conflicts before code changes; review the diff and test evidence; state device-only checks that remain unverified.
+- **Raster asset alpha gate:** Flattened JPEG or non-alpha source art must be checked for black/white matte and edge halos, then inspected through the actual production script order on contrasting terrain. A raw source preview or passing crop test alone is not visual sign-off. Record the production-render evidence and explicitly name who performed the review; role descriptions do not mean a separate persistent reviewer ran.
+
+For each feature, use this order: clarify the player outcome and acceptance criteria → inspect current behavior and dependencies → agree on a minimal implementation plan → implement → run relevant checks → review regressions and platform/compliance effects → update the relevant documentation. For small safe changes this can be a concise checklist in the task notes; do not create ceremony or extra files without a reason.
+
+## App Store release-compliance gate
+
+The intended product path includes iPhone/iPad distribution through TestFlight and the Apple App Store. Treat this as an engineering constraint during feature design, not as a last-minute packaging step. Track project-wide release gaps in [docs/app-store-readiness.md](docs/app-store-readiness.md). This gate is a risk review, not a legal opinion or a guarantee of App Review approval.
+
+- **Intellectual property and asset provenance:** For code, images, sprite sheets, audio, music, fonts, names, logos, and generated content, record source, creator/provider, license or terms, attribution duties, and whether redistribution in a free or paid app is allowed. Do not use assets extracted from Age of Empires, Warcraft, movies, or other games/media unless the project has explicit redistribution rights. Flag unclear ownership before release; prefer original or documented, compatible assets.
+- **Brand and store listing:** Keep the game name, icon, screenshots, metadata, and marketing distinct from third-party brands. Describe genre inspirations without implying affiliation or using another game's protected branding as the product identity.
+- **Privacy and data:** Before adding analytics, accounts, chat, multiplayer identity, crash reporting, or other collection, document what data is collected, why, retention, sharing, deletion, and whether it is necessary. Minimize collection, update the privacy notice and store disclosures, and do not claim “no data collected” without checking all code and SDK behavior.
+- **User-generated content and multiplayer:** For chat, player names, shared content, or social features, review applicable current Apple requirements for reporting, blocking, moderation, contact/support, and safety controls. Keep server-side abuse and data handling in scope when the feature depends on a backend.
+- **Purchases and external services:** If monetization, subscriptions, ads, external account linking, or third-party services are introduced, check current Apple rules and payment/privacy implications before implementation. Do not assume today's free prototype rules cover a future monetized release.
+- **iOS product behavior:** Review touch controls, safe areas, orientation changes, audio activation, interruptions/backgrounding, battery/thermal load, memory, network loss/reconnect, accessibility/readability, and supported device versions. A browser preview or desktop build is not evidence of iOS readiness.
+- **Release evidence:** Maintain a concise release checklist for asset/license inventory, dependencies/licenses, privacy/data flows, device testing, store metadata, and TestFlight/App Review readiness. Verify current Apple policies at release time; requirements change. Clearly separate code checks from legal review, physical-device results, and Apple approval.
+
+When a feature touches these areas, include its compliance impact and follow-up evidence in the implementation summary. If it does not affect them, state that no new release-compliance dependency was introduced rather than repeating the whole checklist.
+
 ## Incremental development
 
 - Before adding a feature, identify existing features, components, and assets that can serve it. Reuse them when they fit and preserve the behavior their current callers rely on.

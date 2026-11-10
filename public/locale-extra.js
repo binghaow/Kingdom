@@ -130,7 +130,8 @@ V 时代飞艇工场先研发航空工程，再生产侦察热气球、运输飞
 指挥你的王国|Command Your Kingdom
 开局可设 1–4 名电脑及队伍，同队免伤并共享胜负。顶部旗帜打开外交面板；市场可训练商队，与盟友、停战国家市场或中立商站交易。商队完成往返后赚取黄金，外国市场获得 50% 分成。|Set up 1–4 AI opponents and teams before starting. Teammates cannot damage each other and share victory. Open diplomacy with the flag button. Train caravans at markets and trade with allies, truce partners or neutral posts. Round trips earn gold; foreign markets receive a 50% share.
 探索与缩放|Exploration & Zoom
-新增湖泊、岩石丘陵、湿地和遗迹。村民靠近未探索遗迹获得一次资源奖励；海岛遗迹需运输登陆。缩放范围 6%–350%，全图按钮可查看全部营地。|Explore lakes, rocky hills, wetlands and ruins. Villagers discover one-time resources at ruins; island ruins require transport landings. Zoom from 6% to 350%, or use Map to see all settlements.
+新增湖泊、岩石丘陵、湿地和遗迹。村民靠近未探索遗迹获得一次资源奖励；海岛遗迹需运输登陆。缩放范围为本地战场至 350%；小地图仍可查看并跳转至全图区域。|Explore lakes, rocky hills, wetlands and ruins. Villagers discover one-time resources at ruins; island ruins require transport landings. Zoom from a local battlefield view to 350%; use the minimap to view and jump across the full map.
+新增湖泊、岩石丘陵、湿地和遗迹。村民靠近未探索遗迹获得一次资源奖励；海岛遗迹需运输登陆。最远缩放保持在本地战场范围；小地图可查看和跳转到全图各处。|Explore lakes, rocky hills, wetlands and ruins. Villagers discover one-time resources at ruins; island ruins require transport landings. The zoom limit keeps the main view local; use the minimap to view and jump across the full map.
 操作反馈与声音|Orders & Audio
 敌人、资源、工地分别有红色、金色、橙色光圈与任务鼠标；下达命令后显示确认落点。暂停菜单“声音与音乐”可调整音乐与音效、试听兵器、施工与落成声。|Enemies, resources and construction sites have red, gold and orange highlights with contextual cursors. Orders show a confirmation marker. Open Sound & Music from Pause to adjust audio and test weapon, construction and completion sounds.
 所有难度均没有保护时间，开局即可交战。较低难度只降低电脑发展速度、伤害与军队规模。|No difficulty has a protection timer. Combat is possible from the start. Lower difficulties reduce AI growth, damage and army size.

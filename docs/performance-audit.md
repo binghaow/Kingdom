@@ -83,3 +83,90 @@ Validation: `node check-all.cjs` passes all project groups and `npm run build` s
 The user's follow-up iPhone 17 screenshot reports 58.8 FPS, frame p50/p95 17/25 ms, update p50 0.0 ms, render p50 1.1 ms, UI 0.0 ms, A* 0 calls, grid 0, collision 0, fog 0, scene/minimap 1.0 ms each, and 88 active units plus 28 buildings (89 visible). Device/effective Canvas DPR is 3/1.5. This is the first supplied device evidence after the path-cache/A* changes and shows the formerly severe stall is absent in that 61-second sample. It is one observed scenario, not a guarantee for all maps or devices.
 
 The HUD now follows the existing single-player `debug` chat command. Enabling it creates the HUD and installs timing wrappers; disabling it removes the HUD and restores the original hot methods, so ordinary play avoids profiling wrappers and per-frame samples. The explicit `?perf=1` URL remains available for profiling without turning on the gameplay debug cheats. Multiplayer still cannot enable the single-player debug mode. Device-layout checks after this HUD behavior change were not run here; the HUD uses the existing compact, pointer-transparent panel geometry.
+
+## 2026-11-08 code audit: zoomed-out rendering and multiplayer sync
+
+### Evidence
+
+- Confirmed in source: `expansion.js` calls `sim.view(0)` during every animation-frame draw. In fog mode that rebuilds visible units/buildings/resource lists; rendering then created three filtered arrays, three mapped wrapper arrays and a combined depth-sorted list on every draw. This is a measured code path, but its iPhone CPU cost was not sampled in the user's current multiplayer match.
+- Confirmed in source: the strategic camera previously allowed zoom down to 6%, and the “全图” control fit the full map into the main viewport. Current map extents are 7,488–11,712 world units wide and 5,568–8,064 high. At that scale most or all of a small map could be on screen, increasing the number of drawable objects and reducing unit readability.
+- Confirmed in source: the browser game draws on every `requestAnimationFrame` (normally around 60 Hz), while simulation steps run at 20 Hz. Canvas drawing is therefore repeated between simulation steps.
+- Confirmed in source: multiplayer polls about every 350 ms while active. Each room request hydrates and advances the authoritative simulation, commits a compressed full room state, then builds a per-seat snapshot containing currently visible entities and fog arrays. This is a plausible source of sync latency and serialization work, but it has not been timed against the user's two-device connection.
+- Prior device evidence is not contradictory: the 2026-11-07 iPhone screenshot measured about 1.1 ms median render and 58.8 FPS in one single-player 61-second scenario. It does not measure a long heated session or multiplayer polling/application costs.
+
+### Changes
+
+- Cache the render visibility view until its simulation, entity arrays or fog revision changes. Fog revisions update on the existing half-second cadence; moving entity objects remain live references.
+- Build the depth list with direct loops, avoiding the three intermediate `filter`/`map` arrays.
+- Cap zoom-out dynamically so the main view covers at most about 68% of each map dimension. At that time, the overview control centered on a strategic view; the minimap remained the full-map navigation tool.
+- Refresh minimap graphics at most 10 times per second on both pointer classes, except immediately when fog changes.
+- Extend opt-in `?perf=1` diagnostics with visible-view cost and multiplayer request / response-application time. These metrics are absent from normal play.
+
+### Validation and remaining work
+
+- `node check-all.cjs` and `npm run build` pass after these changes.
+- The local browser opened the setup screen; battlefield interaction and the required phone portrait/landscape, iPad landscape and desktop visual matrix were not completed in this environment. No physical iPhone/iPad or two-device multiplayer retest has been run.
+- For the next online sample, open both players with `?perf=1` and compare `update`, `render`, `scene`, `view`, `net` and `apply` lines after the match has run for at least 60 seconds. `net` measures fetch plus response parsing; `apply` measures the client state/UI update. These values help distinguish local rendering from request/snapshot work but do not isolate server CPU from network transit.
+
+## 2026-11-08 local-battle zoom limit
+
+The user requested Warcraft III / Red Alert-style camera limits that keep the main view around the local battle instead of zooming out to most or all of the world. The old production camera allowed a 6% zoom floor; the previous strategic-view cap was based on map size and could still show a large fraction of a small map. The new minimum camera scale is 0.55, with the existing viewport/map bound still allowed to raise it for small maps or large viewports. Pinch, wheel, buttons, slider, saved cameras, orientation changes and the local-battle overview all pass through the same clamp. The local-battle overview keeps the current focus point and changes only zoom; the minimap remains the full-map navigation control.
+
+The draw loop already culls entity draw calls outside the camera rectangle plus a 240-world-unit margin. The closer minimum should reduce off-screen entity drawing when the old camera made most map entities visible. It does not reduce simulation, AI, collision, pathfinding or multiplayer synchronization work, so it is a rendering/readability improvement rather than a complete heat/CPU fix. No device FPS/thermal comparison has been measured yet.
+
+Validation: `node check-all.cjs` and `npm run build` pass after the camera/control/help/localization update. The local preview reached the setup dialog, but the battle view and zoom slider were not exercised. The supported Windows browser automation stopped because it could not establish the active browser URL with enough confidence; phone portrait/landscape, iPad landscape and desktop visual checks remain outstanding. No physical iPhone/iPad comparison was run.
+
+## 2026-11-08 8-minute desktop slowdown sample
+
+### Measured evidence
+
+The user supplied a screenshot from the local game after 7:52 in-game. The opt-in HUD reads 2.6 FPS, frame p50/p95 383.4/833.4 ms, update 4.7 ms, render 385.7 ms, UI 0.7 ms, A* 2 calls / 0 failed / 0.1 ms, collision 1.2 ms, fog 0 ms, scene 385.2 ms, minimap 0.7 ms, 78 active units, 19 buildings, 110 visible objects and 87.7 MiB reported heap. This directly identifies the main sampled delay as scene drawing: simulation, routing, collision, fog, HUD and minimap are all small in this sample. It does not identify which draw pass consumed the scene time, and the screenshot is desktop evidence only; there is no corresponding iPhone/iPad measurement yet.
+
+### Source-confirmed hot-path candidate and change
+
+The worker and infantry animation compositor in `public/detail-art.js` blends adjacent animation frames through one 540×540 offscreen canvas. For each animated entity requiring a blend, it previously cleared all 291,600 pixels although the next draw samples only a frame-sized crop. This cost repeats with visible animated entities and is a credible match for the sharp slowdown after producing units. The compositor now clears only the crop it will redraw and sample. It preserves the same frame blending, assets and animation timing; it does not remove animation frames.
+
+This is a source-confirmed redundant-work reduction, but its contribution to the supplied 385 ms measurement remains unproven because that run predates the change and the earlier HUD had no per-pass timing. The diagnostics now report the slowest of four opt-in scene groups (grass, entities, occlusion, overlay/fog) alongside the overall scene time. Capture a comparable post-change run to verify the effect and isolate any remaining hot pass.
+
+### Validation and limits
+
+`node check-all.cjs` passed all registered simulation, combat, multiplayer, rendering and art checks; `npm run build` succeeded; `git diff --check` reported no whitespace errors in the four touched files. Browser battle-scene visual review, the same eight-minute scenario after the change, physical iPhone 17/iPad performance and thermal measurements have not been performed here. The desktop screenshot cannot be used to claim mobile performance. No gameplay systems, balance, save format, network protocol, external dependencies or assets were changed; no new App Store compliance dependency was introduced.
+
+## 2026-11-09 direct-file launch visual failure
+
+The user's Chrome screenshot shows the game opened from `file:///.../frontier-kingdom/public/index.html`. All game assets are referenced with relative `assets/...` URLs, and the renderer intentionally uses primitive dots/ellipses when `KingdomArt.loaded` is false. The art readiness promise rejects on image decode or canvas atlas processing errors; the caller's failure branch previously re-enabled Continue/Start, so a failed art load could enter a simulation with these fallback marks. The screenshot matches this failure state. The exact browser exception was not captured, so attributing it specifically to Chrome's local-file origin security is a likely trigger, not a confirmed console error.
+
+Change: direct `file://` launches now stop at setup with a persistent instruction to use the local preview server; any other art readiness failure keeps Continue/Start disabled and reports that art failed. This prevents the fallback-debug view from being mistaken for a playable release. `http://127.0.0.1:8765/` continues to load the game through the project's existing `npm run dev` server.
+
+Visual check: the local HTTP preview rendered its nation artwork and map normally at the available 486×864 CSS viewport. A user-provided 1904×985 desktop screenshot documents the broken file-URL fallback. The actual file-URL error branch could not be exercised through the supported browser tab, so its persistent copy is source-reviewed but not visually verified there. iPad, physical phone and desktop HTTP visual matrices remain untested. This startup guard introduces no new data collection, assets or release compliance dependency.
+
+## 2026-11-09 army-density hitch follow-up
+
+### Screenshot evidence
+
+The user's latest `?perf=1` screenshot shows a 46-unit selection, 79 active units, 13 buildings and 106 visible objects. It reports 30.1 FPS, frame p50/p95 33.2/266.7 ms, update p50 1.3 ms, render p50 5.5 ms, scene p50 5.2 ms, entity pass 1.0 ms, occlusion 1.4 ms, grass 0.7 ms, collision 0.8 ms and two fog updates totaling 14.5 ms. The 266.7 ms p95 is a severe hitch. The other phase values in this screenshot are medians only, so they cannot rule out a render or update spike on the slow frames. Fog may explain some individual slow frames, but its recorded total does not explain the full frame p95 by itself. The screenshot's reported DPR is 1/1, so it is not sufficient evidence of iPhone 17 or iPad behavior.
+
+### Source review and diagnostic change
+
+The main loop performs a full simulation serialization plus synchronous `localStorage.setItem` every eight seconds. This is a credible source of occasional blocking, but its duration has not previously been measured and must not be presented as the confirmed root cause. The existing opt-in HUD now shows p50/p95 for update, render and scene, plus the last/maximum serialization-and-storage duration. Normal play still has no performance HUD or timing wrapper; measurements are active only under `?perf=1` or single-player debug mode. No gameplay or rendering behavior was changed in this diagnostic follow-up.
+
+### Next comparison and limits
+
+On the same computer/browser and same busy army scene, leave `?perf=1` open for at least 30 seconds and record the HUD both during a hitch and after it. If `update p95` rises, inspect simulation/AI; if `scene p95` rises, use its pass list; if save last/max spikes with frame p95, the synchronous save path is implicated. If all measured phases stay low while frame p95 spikes, the remaining cause is outside these measured JS phases (for example browser scheduling, garbage collection or raster/GPU work) and requires a browser performance trace. `node --check` passed for both changed JavaScript files, `node check-all.cjs` passed, and `npm run build` succeeded. No physical iPhone/iPad retest or deployment was performed.
+
+
+## 2026-11-09 desktop stutter and flattened-building matte
+
+### Measured symptoms
+
+Two user-provided local desktop captures report 11.9 FPS (frame p50/p95 84.1/183.3 ms) and 8.6 FPS (116.7/333.3 ms). Render medians are 50.7 and 76.6 ms; scene medians are 50.5 and 75.5 ms. Simulation update medians are 32.3 and 33.9 ms. In the same samples, collision takes 15.3 and 14.4 ms. The scenes contain approximately 162–166 active units, 36–37 buildings and 149–154 visible entities. These measurements show both rendering and simulation are over budget; collision is a material measured part of the update cost. They are desktop captures at device/effective DPR 1/1, not iPhone or iPad evidence.
+
+### Changes and evidence
+
+- Unit collision separation now builds transient 128-world-unit buckets and evaluates nearby candidate pairs in the same stable unit-index order as the old all-pairs pass. This preserves the existing separation rule and blocking checks. Regression comparison against the prior algorithm passed 100 seeded mixed scenarios and dense 80, 166, 300 and 600-unit crowds; distant pairs are pruned. The debug HUD now reports tested/possible pairs alongside collision milliseconds. Device timing improvement remains unmeasured.
+- The moving-unit gait renderer previously issued 19 sprite drawImage operations per moving unit per frame (one torso plus 18 leg strips). It now memoizes production-equivalent gait composites at 16 gait phases, four blend levels and the active Canvas scale, with an LRU limit of 192 frames and a 4.5-million-pixel backing-store budget (about 18 MB). The same nine gait bands and source images remain in use; only repeated composition is cached. This is a source-confirmed high-call-count candidate for the entity-render cost, not yet a measured contribution. The existing HUD’s separate units/buildings/nodes pass timings are retained to verify a fresh sample.
+- The mill/mining camp/riding academy base and refined art is cut from functional-buildings-v1.jpg, which is flattened and has no alpha channel. The existing gray-key cleanup could not remove its black backdrop and white specks. A JPEG-specific border flood fill now clears black/white matte before the existing gray cleanup; other PNG atlases and crop logic are unchanged. A regression test executes the production matte-cleanup function against synthetic black/white matte and opaque building pixels.
+
+### Validation and remaining limits
+
+The full `node check-all.cjs` suite passed after the collision change, including the multiplayer checks. After the final cache-budget adjustment, focused motion, gait-cache, collision-parity and matte-alpha checks plus Node syntax checks passed; `npm run build` succeeded. Browser visual QA could not be completed because the available preview tab did not connect to http://127.0.0.1:8765/; the game asset therefore still needs an in-context desktop visual confirmation on this machine. The full project suite/build are being run for this change. No physical iPhone 17/iPad test, multiplayer retest, thermal comparison, or release deployment was made. No third-party assets, dependencies, gameplay balance, save schema, or network protocol were introduced.
