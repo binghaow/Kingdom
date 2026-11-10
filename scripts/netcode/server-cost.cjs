@@ -4,7 +4,7 @@
    CPU only: in-memory SQLite, no network, no real D1 latency. CPU time = process.cpuUsage() (robust to a busy machine).
    Method: fast-forward the authoritative state with the sim directly, write it into the room row, then drive N real polls
    (4 seats, each every 350 ms => one request every 87.5 ms of game clock) and record per-request CPU, response size, stored size.
-   usage: node server-cost.cjs [--fog 1] [--polls 40] [--seats 4] [--seed N] [--checkpoints N] [--json out]
+   usage: node server-cost.cjs [--fog 1] [--polls 40] [--seats 4] [--proto 1|2] [--seed N] [--checkpoints N] [--json out]
    stages.firstTickAfterHydrate = cold isolate (no nav cache); stages.firstTickCached = same isolate, cache hit. */
 const fs=require('node:fs'),path=require('node:path'),zlib=require('node:zlib'),{DatabaseSync}=require('node:sqlite');
 const H=require('./harness.cjs'),{K,S,ROOT}=H;const {sqliteD1}=require(path.join(ROOT,'scripts/sqlite-d1.cjs'));
@@ -14,7 +14,7 @@ const db=new DatabaseSync(':memory:');db.exec(fs.readFileSync(path.join(ROOT,'dr
 const env={DB:sqliteD1(db)};let clock=1793910000000;Date.now=()=>clock;
 /* --seed N pins the world seed chosen by start() so runs are comparable; --checkpoints N stops early (1 = opening only). */
 if(argv.seed){const real=crypto.getRandomValues.bind(crypto);crypto.getRandomValues=x=>x instanceof Uint32Array?(x[0]=+argv.seed,x):real(x)}
-const LIMIT=+(argv.checkpoints||5);
+const LIMIT=+(argv.checkpoints||5),PROTO=+(argv.proto||2);
 const cpu=()=>{const u=process.cpuUsage();return (u.user+u.system)/1000};
 async function call(p,body,token){const headers={'Content-Type':'application/json'};if(token)headers.Authorization='Bearer '+token;const a=cpu();const r=await S.handle(new Request('https://k.test'+p,{method:'POST',headers,body:JSON.stringify(body)}),env);const text=await r.text();const ms=cpu()-a;return {status:r.status,ms,bytes:Buffer.byteLength(text),json:r.status<500?JSON.parse(text):null,text}}
 const pct=(a,p)=>{const s=[...a].sort((x,y)=>x-y);return s[Math.min(s.length-1,Math.floor(p*s.length))]},mean=a=>a.reduce((x,y)=>x+y,0)/a.length;
@@ -37,7 +37,7 @@ const pct=(a,p)=>{const s=[...a].sort((x,y)=>x-y);return s[Math.min(s.length-1,M
    for(let i=0;i<POLLS;i++){const seat=i%SEATS;clock+=POLL/SEATS;const s=seats[seat];
      const cur=await S.decode(db.prepare('SELECT payload FROM multiplayer_rooms WHERE id=?').get(id).payload);const sh=K.networkHydrate(cur.state);const cmds=H.botCommands(sh,bots,Math.floor((clock-1793910000000)/100)).filter(c=>c[0]===seat).slice(0,6).map(c=>c[1]);
      const batch=cmds.map(c=>({seq:++s.seq,type:c.type,args:c.args}));
-     const r=await call('/api/rooms/'+id,{commands:batch,eventAfter:s.eventAfter||0},s.token);if(r.status!==200){s.seq-=batch.length;continue}s.eventAfter=r.json.view.eventSeq;
+     const r=await call('/api/rooms/'+id,PROTO>=2?{commands:batch,eventAfter:s.eventAfter||0,proto:2,have:s.have||{}}:{commands:batch,eventAfter:s.eventAfter||0},s.token);if(r.status!==200){s.seq-=batch.length;continue}s.eventAfter=r.json.view.eventSeq;if(r.json.view.slim){s.have={...r.json.view.slim};s.cache??={};if(!K.networkExpand(r.json.view,s.cache))s.have={}}
      polls.push(r.ms);bytes.push(r.bytes);if(i%8===0)respGz.push(zlib.gzipSync(r.text).length);(batch.length?withCmd:[]).push(r.ms)}
    const pl=db.prepare('SELECT payload FROM multiplayer_rooms WHERE id=?').get(id).payload;gz=pl.byteLength;const rm=await S.decode(pl);raw=Buffer.byteLength(JSON.stringify(rm));
    // stage breakdown on this exact state (5 repetitions, CPU ms)

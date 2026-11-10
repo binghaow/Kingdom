@@ -1,8 +1,10 @@
 /* Render-only replica. All gameplay mutations become authenticated server commands. */
 (()=>{'use strict';const K=window.KingdomSim,Base=K.NetworkSim;
 class Client extends Base{
- static create(view,send){const c=Object.create(Client.prototype);c.networkClient=true;c.send=send;c.lastEvent=0;c._localEffects=[];c.apply(view,true);return c}
- apply(view,first=false){const old=new Map((this.s?.units||[]).map(u=>[u.id,u]));this.s=view.state;this.orderMap=view.order;this.grid=null;this.seaGrid=null;this._gateGrids=null;this._tradeTotals=this.s.tradeGold.slice();K.activateWorld(this.s.world);this.s.tech[-1]=Object.fromEntries(Object.keys(K.tech).map(k=>[k,0]));for(const u of this.s.units){const p=old.get(u.id);u._nx=u.x;u._ny=u.y;if(p&&!first&&Math.hypot(p.x-u.x,p.y-u.y)<500){u.x=p.x;u.y=p.y}}this.serverTime=this.s.time;this.visualTime=0;
+ static create(view,send){const c=Object.create(Client.prototype);c.networkClient=true;c.send=send;c.lastEvent=0;c._localEffects=[];c._sections={};c.apply(view,true);return c}
+ /* Hashes of the static sections this replica holds; the server omits a section whose hash it would send again (protocol 2). */
+ have(){const c=this._sections,out={};for(const key of ['world','tech','nodes','fog'])if(c[key])out[key]=c[key].hash;return out}
+ apply(view,first=false){if(view.slim&&!K.networkExpand(view,this._sections??={})){this._sections={};return false}const old=new Map((this.s?.units||[]).map(u=>[u.id,u]));this.s=view.state;this.orderMap=view.order;this.grid=null;this.seaGrid=null;this._gateGrids=null;this._tradeTotals=this.s.tradeGold.slice();K.activateWorld(this.s.world);this.s.tech[-1]=Object.fromEntries(Object.keys(K.tech).map(k=>[k,0]));for(const u of this.s.units){const p=old.get(u.id);u._nx=u.x;u._ny=u.y;if(p&&!first&&Math.hypot(p.x-u.x,p.y-u.y)<500){u.x=p.x;u.y=p.y}}this.serverTime=this.s.time;this.visualTime=0;
   const f=view.fog,memory=Object.fromEntries([...this.s.buildings,...this.s.nodes].filter(e=>e.remembered).map(e=>[e.id,e]));this.fog=f?{cols:f.cols,rows:f.rows,revision:f.revision,visible:this.s.nations.map((_,i)=>i===0?Uint8Array.from(f.visible):new Uint8Array(f.visible.length)),explored:this.s.nations.map((_,i)=>i===0?Uint8Array.from(f.explored):new Uint8Array(f.explored.length)),memory:this.s.nations.map((_,i)=>i===0?memory:{})}:null;
   this._localEffects=this._localEffects.filter(f=>f.life>0);this.s.effects.push(...this._localEffects);this.events=[...(this.events||[]),...view.events.filter(e=>e.nid>this.lastEvent)].slice(-200);this.lastEvent=view.eventSeq;
  }
