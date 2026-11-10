@@ -32,7 +32,7 @@ class NetworkSim extends Base{
  profile(team=1){const p=super.profile(team);return this.human(team)?{...p,economy:1,damage:1,cap:10000,train:1,age:0,think:1000000,wave:0}:p}
  ai(){for(const t of this.s.humanTeams||[])this.s.nextThink[t]=Number.MAX_SAFE_INTEGER;return super.ai()}
  aiPlayer(t){if(!this.human(t))return super.aiPlayer(t)}
- allied(a,b){if(super.allied(a,b))return true;const p=this.s.netTreaties?.[this.pair(a,b)];return a>=0&&b>=0&&!!p&&(!p.warAt||p.warAt>this.s.time)}
+ allied(a,b){if(super.allied(a,b))return true;const treaties=this.s.netTreaties;if(!treaties||!(a>=0&&b>=0))return false;for(const key in treaties){const p=treaties[this.pair(a,b)];return !!p&&(!p.warAt||p.warAt>this.s.time)}return false}
  label(t){return t<0?'KC 中立守卫':this.s.playerNames?.[t]||('玩家 '+(t+1))}
  emit(type,data={}){super.emit(type,data);const s=this.s;s.netEventSeq=(s.netEventSeq||0)+1;(s.netEvents??=[]).push({type,...data,nid:s.netEventSeq,at:s.time});if(s.netEvents.length>200)s.netEvents.shift()}
  fx(type,data,life=.6){super.fx(type,data,life);this.s.effects.at(-1).eid=++this.s.netEffectSeq|| (this.s.netEffectSeq=1)}
