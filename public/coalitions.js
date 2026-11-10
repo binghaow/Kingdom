@@ -18,7 +18,7 @@ class Coalitions extends Base{
   for(const u of s.units)this.freeSpawn(u);
  }
  allied(a,b){return a===b||(a>=0&&b>=0&&this.s.groups?.[a]===this.s.groups?.[b])}
- pair(a,b){return [a,b].sort((x,y)=>x-y).join(':')}
+ pair(a,b){return a<=b?a+':'+b:b+':'+a}
  hostile(a,b){return Number.isInteger(a)&&Number.isInteger(b)&&a>=0&&b>=0&&!this.allied(a,b)&&!this.s.pacts?.[this.pair(a,b)]}
  label(team){return (team===0?'你':'电脑 '+team)+' · '+this.nation(team).name}
  seedPlayer(team){const s=this.s,p=starts[team];s.resources[team]={food:450,wood:600,gold:300,stone:220};s.ages[team]=1;s.tech[team]={weapons:0,armor:0,gather:0,navigation:0,hulls:0};
