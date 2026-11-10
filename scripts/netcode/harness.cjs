@@ -52,5 +52,5 @@ function deepDiff(a,b,p='',out=[],lim=8){if(out.length>=lim)return out;if(a===b)
   if(Array.isArray(a)!==Array.isArray(b)){out.push(p+': array/object mismatch');return out}
   if(Array.isArray(a)){if(a.length!==b.length){out.push(`${p}.length: ${a.length} vs ${b.length}`);}const n=Math.min(a.length,b.length);for(let i=0;i<n&&out.length<lim;i++){deepDiff(a[i],b[i],`${p}[${i}]${a[i]&&a[i].id!==undefined?'(id='+a[i].id+',kind='+(a[i].kind||'')+')':''}`,out,lim)}return out}
   const ka=Object.keys(a),kb=Object.keys(b);for(const k of new Set([...ka,...kb])){if(out.length>=lim)break;if(a[k]===undefined&&b[k]===undefined)continue;if(a[k]===undefined||b[k]===undefined){if(!(k in a)||!(k in b)||true){out.push(`${p}.${k}: key only in ${a[k]===undefined?'B':'A'}`);}continue}deepDiff(a[k],b[k],p+'.'+k,out,lim)}return out}
-function hydrateRoundTrip(sim){const st=JSON.parse(JSON.stringify(K.networkPersistent(sim)));return K.networkHydrate(st)}
+function hydrateRoundTrip(sim,room){const st=JSON.parse(JSON.stringify(K.networkPersistent(sim)));return room?K.networkHydrate(st,{room}):K.networkHydrate(st)}
 module.exports={boost,K,S,ROOT,DT,createSim,mkBots,botCommands,applyCommands,fieldHashes,combine,deepDiff,hydrateRoundTrip,fnv};
