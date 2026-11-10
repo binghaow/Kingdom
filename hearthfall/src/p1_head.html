@@ -1,0 +1,286 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0d120c">
+<title>Hearthfall</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;800&family=Inter:wght@400;500;600&display=swap">
+<style>
+/* Layout: one framed game window. Resource bar on top, full-bleed map canvas, command deck below (minimap | selection | 4x2 command grid).
+   Three layouts: desktop/tablet (default), phone portrait (<=760px wide: commands become a 4x2 row-grid under minimap+info),
+   phone landscape (short height: map left, minimap/info/commands in a right column). Touch targets >=44px on coarse pointers.
+   Palette: forest night panels, parchment text, brass gold accent; team colors are blue (you) and ember red (enemy). */
+:root{
+  --bg:#0d120c;--panel:#161d13;--panel2:#212b1d;--line:#34412f;--fg:#ece6cf;--muted:#98a28a;
+  --gold:#e5b447;--food:#e0795b;--wood:#b58b55;--good:#86c46f;--bad:#e0594f;--me:#4f8cf0;--foe:#e8573a;
+  --display:'Cinzel',Georgia,'Times New Roman',serif;
+  --body:'Inter',system-ui,-apple-system,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;
+  --gx:16px;--gy:10px;--gap:8px;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{height:100%;overscroll-behavior:none}
+body{margin:0;background:var(--bg);color:var(--fg);font:13px/1.4 var(--body);
+  position:fixed;inset:0;width:100%;
+  padding-left:max(var(--gx),env(safe-area-inset-left,0px));padding-right:max(var(--gx),env(safe-area-inset-right,0px));
+  padding-top:max(var(--gy),env(safe-area-inset-top,0px));padding-bottom:max(var(--gy),env(safe-area-inset-bottom,0px));
+  overflow:hidden;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-text-size-adjust:100%;
+  touch-action:none;-webkit-tap-highlight-color:transparent}
+#app{height:100%;display:flex;flex-direction:column;gap:var(--gap);max-width:1560px;margin:0 auto}
+button{font:inherit;color:var(--fg);background:var(--panel2);border:1px solid var(--line);border-radius:6px;padding:5px 10px;cursor:pointer;touch-action:manipulation}
+button:hover:not(:disabled){border-color:var(--gold)}
+button:focus-visible{outline:2px solid var(--gold);outline-offset:1px}
+button:disabled{opacity:.45;cursor:default}
+button.on{background:#3a4a2a;border-color:var(--good)}
+.scrollok{touch-action:pan-y;-webkit-overflow-scrolling:touch}
+
+#top{display:flex;align-items:center;gap:6px 14px;flex-wrap:wrap;background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:6px 10px;flex:none}
+.brand{font:800 15px var(--display);letter-spacing:.14em;color:var(--gold)}
+.res{display:flex;align-items:center;gap:6px;font-weight:600;font-variant-numeric:tabular-nums;min-width:56px}
+.res i{width:12px;height:12px;border-radius:3px;display:inline-block;flex:none}
+.res.age{min-width:0;color:var(--muted);font-weight:500}
+.res.popfull b{color:var(--bad)}
+.res.popnear b{color:var(--gold)}
+.sp{flex:1;min-width:0}
+#top button{padding:4px 9px;white-space:nowrap}
+
+#stage{position:relative;flex:1;min-height:0;border:1px solid var(--line);border-radius:6px;overflow:hidden;background:#07090a}
+#c{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none}
+#toast{position:absolute;left:50%;top:10px;transform:translateX(-50%);display:flex;flex-direction:column;gap:4px;align-items:center;pointer-events:none;width:max-content;max-width:90%}
+#toast div{background:rgba(16,22,13,.92);border:1px solid var(--line);border-radius:5px;padding:5px 12px;font-weight:500;text-align:center}
+#toast div.warn,#toast div.alert{border-color:var(--bad);color:#ffb4a8}
+#toast div.good{border-color:var(--good);color:#c8efb9}
+#hint{position:absolute;left:10px;bottom:8px;color:rgba(236,230,207,.7);font-size:12px;pointer-events:none;text-shadow:0 1px 2px #000}
+#hud{position:absolute;left:6px;top:6px;display:none;gap:8px;align-items:center;background:rgba(16,22,13,.78);border:1px solid var(--line);border-radius:12px;padding:2px 10px;font-size:12px;color:var(--muted);pointer-events:none;font-variant-numeric:tabular-nums}
+#grp{position:absolute;left:6px;bottom:6px;display:none;gap:4px;align-items:center}
+.gch{position:relative;min-width:44px;height:44px;padding:0 6px;background:rgba(16,22,13,.82);border-radius:8px;font-weight:600;display:flex;align-items:center;justify-content:center;flex-direction:column;line-height:1.05}
+.gch small{font-size:10px;color:var(--muted);font-weight:500}
+.gch.full{border-color:var(--good)}
+.gch.txt{font-size:12px}
+
+#bottom{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:var(--gap);align-items:stretch;flex:none;height:166px}
+#mmwrap{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:5px;display:flex;align-items:center;justify-content:center}
+#mm{width:150px;height:150px;display:block;border-radius:3px;cursor:pointer;touch-action:none}
+#info{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:8px 10px;overflow:hidden;display:flex;flex-direction:column;gap:6px;min-height:0}
+#info h3{margin:0;font:600 15px var(--body);display:flex;gap:8px;align-items:baseline;flex-wrap:wrap}
+#info h3 small{font-weight:500;color:var(--muted);font-size:12px}
+.bar{height:7px;background:#0b0f0a;border-radius:4px;overflow:hidden;border:1px solid #28331f;flex:none}
+.bar>i{display:block;height:100%;background:var(--good);width:0}
+.bar.prog>i{background:var(--gold)}
+.stats{display:flex;gap:4px 14px;flex-wrap:wrap;color:var(--muted);font-size:12px}
+.stats b{color:var(--fg);font-weight:600}
+.muted{color:var(--muted)}
+.queue{display:flex;gap:5px;flex-wrap:wrap;align-items:center}
+.qi{width:34px;height:34px;border:1px solid var(--line);border-radius:4px;background:var(--panel2);padding:2px;position:relative}
+.qi img{width:100%;height:100%;display:block}
+.qi.first{border-color:var(--gold)}
+.groupgrid{display:flex;gap:5px;flex-wrap:wrap}
+.gchip{display:flex;align-items:center;gap:5px;padding:3px 8px 3px 3px}
+.gchip img{width:28px;height:28px}
+.mbtn{align-self:flex-start;padding:8px 14px;font-weight:600}
+.mbtn.ok{background:var(--gold);color:#1b1608;border-color:var(--gold)}
+#cmds{display:grid;grid-template-columns:repeat(4,58px);grid-auto-rows:58px;gap:5px;align-content:start}
+.cmd{position:relative;padding:2px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;line-height:1.15;overflow:hidden;min-width:0}
+.cmd img{width:30px;height:30px;display:block;flex:none}
+.cmd .glyph{width:30px;height:30px;display:flex;align-items:center;justify-content:center;font:700 16px var(--body);color:var(--gold);flex:none}
+.cmd .tx{display:flex;flex-direction:column;align-items:center;min-width:0}
+.cmd .nm{font-size:10.5px;white-space:nowrap}
+.cmd .ct{font-size:9.5px;color:var(--muted);white-space:nowrap}
+.cmd .hk{position:absolute;left:4px;top:2px;font-size:9.5px;color:var(--gold);font-weight:600}
+.cmd .qb{position:absolute;right:3px;top:2px;min-width:16px;height:16px;border-radius:8px;background:var(--gold);color:#1b1608;font-size:10px;font-weight:700;line-height:16px;text-align:center;padding:0 3px}
+.cmd.empty{visibility:hidden}
+.cmd.bad .ct{color:var(--bad)}
+
+.overlay{position:absolute;inset:0;display:flex;padding:16px;background:rgba(7,10,6,.78);overflow:auto;touch-action:pan-y;z-index:5}
+.overlay[hidden]{display:none!important}
+.card{margin:auto;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:22px 26px;max-width:560px;width:100%;display:flex;flex-direction:column;gap:12px}
+.card h1{margin:0;font:800 34px var(--display);letter-spacing:.12em;color:var(--gold)}
+.card h2{margin:0;font:800 26px var(--display);letter-spacing:.1em}
+.card h4{margin:6px 0 -4px;font-size:13px;color:var(--gold);letter-spacing:.06em}
+.card p{margin:0;color:var(--muted);line-height:1.55}
+.card ul{margin:0;padding-left:18px;color:var(--muted);line-height:1.6}
+.card ul b{color:var(--fg);font-weight:600}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.big{background:var(--gold);color:#1b1608;border-color:var(--gold);font-weight:700;padding:9px 18px}
+.big:hover:not(:disabled){background:#f0c35e}
+.seg button.sel{background:#3a4a2a;border-color:var(--good)}
+.mlist{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.mlist button{padding:10px 12px;min-height:48px;text-align:left;display:flex;flex-direction:column;gap:1px}
+.mlist button small{color:var(--muted);font-size:11px}
+.mlist button.wide{grid-column:1/-1}
+
+/* ---- touch devices: >=44px targets, no hover hints, group strip ---- */
+@media (pointer:coarse){
+  button{min-height:44px}
+  #top button{min-width:44px;padding:4px 12px}
+  #hint,.cmd .hk{display:none}
+  #grp{display:flex}
+  .qi{width:44px;height:44px}
+  .gchip{min-height:44px}
+  #cmds{grid-template-columns:repeat(4,64px);grid-auto-rows:64px}
+  .card ul{line-height:1.7}
+}
+
+/* ---- phone portrait ---- */
+@media (max-width:760px) and (orientation:portrait){
+  :root{--gx:8px;--gy:6px;--gap:6px}
+  #top{padding:4px 6px;gap:4px 10px;flex-wrap:nowrap;overflow:hidden}
+  .brand,#top .res.age,#bSpeed,#bHelp{display:none}
+  .res{min-width:0;gap:4px;font-size:13px}
+  #top button{padding:2px 8px}
+  #hud{display:flex}
+  #toast{top:34px}
+  #bottom{grid-template-columns:auto minmax(0,1fr);grid-template-rows:104px auto;height:auto}
+  #mm{width:94px;height:94px}
+  #mmwrap{padding:4px}
+  #cmds{grid-column:1/-1;grid-template-columns:repeat(4,minmax(0,1fr));grid-auto-rows:50px;gap:4px}
+  .cmd{flex-direction:row;justify-content:flex-start;gap:5px;padding:2px 6px}
+  .cmd img,.cmd .glyph{width:26px;height:26px}
+  .cmd .tx{align-items:flex-start}
+  .cmd .nm{font-size:11.5px}.cmd .ct{font-size:10px}
+  .cmd .qb{top:1px;right:2px}
+  #info{padding:6px 8px;gap:4px;overflow:auto;touch-action:pan-y}
+  #info h3{font-size:14px}
+  .card{padding:16px}
+  .card h1{font-size:26px}
+}
+
+/* ---- phone landscape / any short window: map left, side column right ---- */
+@media (orientation:landscape) and (max-height:520px){
+  :root{--gx:8px;--gy:6px;--gap:6px}
+  #app{display:grid;grid-template-columns:minmax(0,1fr) 240px;grid-template-rows:auto auto minmax(0,1fr) auto;column-gap:var(--gap);row-gap:var(--gap);max-width:none}
+  #top{grid-column:1/-1;padding:3px 8px;gap:4px 12px;flex-wrap:nowrap;overflow:hidden}
+  .brand,#top .res.age,#bSpeed,#bHelp{display:none}
+  .res{min-width:0}
+  #top button{padding:2px 10px}
+  #hud{display:flex}
+  #toast{top:36px}
+  #stage{grid-column:1;grid-row:2/5}
+  #bottom{display:contents}
+  #mmwrap{grid-column:2;grid-row:2;padding:4px}
+  #mm{width:96px;height:96px}
+  #info{grid-column:2;grid-row:3;padding:6px 8px;gap:4px;overflow:auto;touch-action:pan-y}
+  #info h3{font-size:14px}
+  #cmds{grid-column:2;grid-row:4;grid-template-columns:repeat(4,minmax(0,1fr));grid-auto-rows:48px;gap:4px}
+  .cmd img,.cmd .glyph{width:24px;height:24px}
+  .cmd .nm{font-size:10px}.cmd .ct{font-size:9px}
+  #grp{bottom:6px}
+  .card{padding:14px 18px;gap:8px}
+  .card h1{font-size:24px}.card h2{font-size:20px}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="top">
+    <span class="brand">HEARTHFALL</span>
+    <span class="res" title="食物"><i style="background:var(--food)"></i><b id="rFood">0</b></span>
+    <span class="res" title="木材"><i style="background:var(--wood)"></i><b id="rWood">0</b></span>
+    <span class="res" title="黄金"><i style="background:var(--gold)"></i><b id="rGold">0</b></span>
+    <span class="res" id="rPopBox" title="人口 / 上限"><i style="background:var(--me)"></i><b id="rPop">0/0</b></span>
+    <span class="res age" id="rAge">黑暗时代</span>
+    <span class="sp"></span>
+    <span class="res age" id="rTime">00:00</span>
+    <button id="bIdle" title="选中下一个闲置村民 (.)">闲置 <b id="nIdle">0</b></button>
+    <button id="bSpeed" title="游戏速度">1×</button>
+    <button id="bPause">暂停</button>
+    <button id="bHelp">帮助</button>
+    <button id="bMenu" title="菜单 (Esc)">菜单</button>
+  </div>
+
+  <div id="stage">
+    <canvas id="c"></canvas>
+    <div id="hud"><span id="hAge">黑暗时代</span><span id="hTime">00:00</span></div>
+    <div id="toast"></div>
+    <div id="hint"></div>
+    <div id="grp">
+      <button class="gch" data-gk="1">1</button><button class="gch" data-gk="2">2</button><button class="gch" data-gk="3">3</button><button class="gch" data-gk="4">4</button>
+      <button class="gch txt" data-gk="army" title="选中全部军队">军队</button>
+      <button class="gch txt" id="bBox" title="框选开关：开启后单指拖动框选">框选</button>
+    </div>
+
+    <div class="overlay scrollok" id="menu">
+      <div class="card">
+        <h1>HEARTHFALL</h1>
+        <p>采集资源，建造村庄，训练军队，摧毁红方的城镇中心。这是一个可玩的早期原型，用来验证节奏和手感。</p>
+        <div class="row seg" id="diffRow">
+          <span class="muted">难度</span>
+          <button data-d="easy">简单</button>
+          <button data-d="normal" class="sel">普通</button>
+          <button data-d="hard">困难</button>
+        </div>
+        <div class="row"><button class="big" id="bStart">开始游戏</button><button id="bContinue" hidden>继续存档</button><button id="bHelp2">操作说明</button></div>
+      </div>
+    </div>
+
+    <div class="overlay scrollok" id="pmenu" hidden>
+      <div class="card">
+        <h2>菜单</h2>
+        <div class="mlist">
+          <button class="wide big" id="mResume">继续游戏</button>
+          <button id="mSave">存档<small id="mSaveInfo">&nbsp;</small></button>
+          <button id="mLoad">读档<small id="mLoadInfo">&nbsp;</small></button>
+          <button id="mLoadAuto">读取自动存档<small id="mAutoInfo">&nbsp;</small></button>
+          <button id="mSpeed">游戏速度<small id="mSpeedInfo">1×</small></button>
+          <button id="mHelp">操作说明<small>各平台操作方式</small></button>
+          <button id="mRestart">重新开始<small>放弃当前对局</small></button>
+        </div>
+        <p id="mNote"></p>
+      </div>
+    </div>
+
+    <div class="overlay scrollok" id="help" hidden>
+      <div class="card">
+        <h2>操作说明</h2>
+        <h4>电脑（鼠标键盘）</h4>
+        <ul>
+          <li><b>选择</b>：左键点击或拖框；双击选中同类；Shift/Ctrl 追加。</li>
+          <li><b>命令</b>：右键点击地面移动，点击树木/浆果/金矿采集，点击敌人攻击；选中建筑后右键设置集结点。</li>
+          <li><b>建造</b>：选中村民，用底部按钮或 Q W E R A 建造，左键放置，Shift 连续放置，Esc 取消。</li>
+          <li><b>训练</b>：选中建筑后按钮或 Q W E R 训练，Shift+点击一次排 5 个；可同时选多座建筑，自动分配到最短队列。</li>
+          <li><b>镜头</b>：方向键或鼠标贴边滚动，滚轮缩放，点击/拖动小地图跳转，Home 回城镇中心。</li>
+          <li><b>编队</b>：Ctrl+数字 保存，数字键调用，连按两次居中；. 选闲置村民；Del 拆除（按两次确认）；Space 暂停；Esc 菜单。</li>
+        </ul>
+        <h4>手机 / 平板（触屏）</h4>
+        <ul>
+          <li><b>选择</b>：点按单位或建筑；双击同类单位选中屏幕内全部；底部“军队”选中全部军队。</li>
+          <li><b>下令</b>：已选中单位后，点按地面移动、点按敌人攻击、点按资源采集；<b>长按</b>地面强制移动（即使点在己方单位上）。</li>
+          <li><b>框选</b>：长按后不松手拖动出选框；或打开“框选”开关后单指拖动框选。</li>
+          <li><b>镜头</b>：单指拖动平移，双指捏合缩放，点按/拖动小地图跳转。</li>
+          <li><b>建造</b>：选村民点建筑按钮，点地图摆放虚影（可多次点按调整位置），点“确认放置”或再点一下虚影完成。</li>
+          <li><b>编队</b>：左下角 1-4：空编队点一下保存当前选择，已有编队点一下调用（再点居中），<b>长按</b>覆盖保存。</li>
+          <li><b>训练</b>：选建筑点单位按钮，打开“批量×5”后每次点按排 5 个；点队列图标取消并返还。</li>
+        </ul>
+        <h4>iPad 外接键鼠</h4>
+        <ul><li>支持与电脑相同的鼠标与快捷键；触控板双指点按等同右键，双指捏合/滚动缩放。</li></ul>
+        <h4>其他</h4>
+        <ul>
+          <li>菜单中可存档/读档（保存在浏览器本地存储，不可用时仅限本次会话），并会自动存档。</li>
+          <li>选中村民后“补种”开关：农田耗尽时自动在原地重建并继续耕作。</li>
+          <li><b>胜负</b>：摧毁对方的城镇中心获胜，己方城镇中心被毁则失败。</li>
+        </ul>
+        <div class="row"><button class="big" id="bHelpClose">继续</button></div>
+      </div>
+    </div>
+
+    <div class="overlay scrollok" id="end" hidden>
+      <div class="card">
+        <h2 id="endTitle">胜利</h2>
+        <p id="endText"></p>
+        <div class="row"><button class="big" id="bAgain">再来一局</button></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="bottom">
+    <div id="mmwrap"><canvas id="mm" width="300" height="300"></canvas></div>
+    <div id="info" class="scrollok"></div>
+    <div id="cmds"></div>
+  </div>
+</div>
