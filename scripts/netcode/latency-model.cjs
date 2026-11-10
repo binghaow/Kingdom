@@ -59,6 +59,19 @@ function lockstep({rtt,T=100,J=1,secs=600,seed=2,D=1,smoothRender=8}){
   const q=(a,p)=>{a.sort((x,y)=>x-y);return a[Math.min(a.length-1,Math.floor(p*a.length))]};
   const mean=out.reduce((a,b)=>a+b,0)/out.length;
   return {mean:Math.round(mean),p95:Math.round(q(out,.95)),withJitterBuffer:Math.round(mean+J*T)}}
+/* After P0 (netcode-p0.md): a command is sent at once (it only waits for a request already in flight), the next poll follows after
+   200 ms, and own units are predicted locally on the next frame. Conflict rate is taken from the event model above at the same CPU.
+   Same assumptions: RTT and D1 round trip are inputs, not measurements. */
+function simulateP0({rtt,cpu,d1,seats=4,pollMs=350,fastMs=200,smooth=80,seed=3}){const base=simulateHttp({rtt,cpu,d1,seats,pollMs}),R=rng(seed),jit=()=>1+(R()-.5)*.3,retry=base.conflictsPerReq/(1+base.conflictsPerReq);
+  const dur=()=>{let t=rtt*jit()+d1*1.5*jit()+cpu*jit(),n=0;while(n++<5&&R()<retry)t+=cpu*jit()+d1*1.5*jit()+25;return t},ack=[],move=[];
+  for(let i=0;i<20000;i++){const d0=dur(),cycle=Math.max(d0+80,pollMs),wait=R()<d0/cycle?R()*d0+30:4,d1r=dur(),gap=Math.max(80,fastMs-d1r);let d2=dur(),extra=0;if(gap+d2-rtt/2<100)extra=Math.max(80,fastMs-d2)+dur();ack.push(wait+d1r);move.push(wait+d1r+gap+d2+extra+smooth)}
+  const q=(a,p)=>{a.sort((x,y)=>x-y);return a[Math.floor(p*a.length)]},mean=a=>a.reduce((x,y)=>x+y,0)/a.length;return {conflictsPerReq:base.conflictsPerReq,ackMean:Math.round(mean(ack)),ackP95:Math.round(q(ack,.95)),moveMean:Math.round(mean(move)),moveP95:Math.round(q(move,.95))}}
+if(argv.p0!==undefined||process.argv.includes('--p0')){
+  const cases=[['opening, 2 seats, ~12 units each',{seats:2},52,20],['4 seats, ~170 units',{seats:4},446,68],['4 seats, ~570 units, combat',{seats:4},778,244],['4 seats, ~810 units, combat',{seats:4},1050,369]];
+  console.log('## Order -> first movement, before vs after P0 (model; RTT and D1=20 ms are assumptions, CPU from server-cost.cjs)');
+  console.log('| scenario | RTT | CPU/poll before -> after | conflicts/req before -> after | order confirmed, mean (p95) before -> after | authoritative first movement visible, mean (p95) before -> after | own unit starts moving on screen (local prediction) |');console.log('|---|---|---|---|---|---|---|');
+  for(const [name,o,before,after] of cases)for(const rtt of [40,100,200]){const b=simulateHttp({rtt,d1:20,cpu:before,...o}),a=simulateP0({rtt,d1:20,cpu:after,...o});console.log(`| ${name} | ${rtt} | ${before} -> ${after} | ${b.conflictsPerReq} -> ${a.conflictsPerReq} | ${b.ackMean} (${b.ackP95}) -> ${a.ackMean} (${a.ackP95}) | ${b.reactMean} (${b.reactP95}) -> ${a.moveMean} (${a.moveP95}) | next frame (<= 33 ms at 60 fps), not network dependent |`)}
+  process.exit(0)}
 const rows=[];
 const cases=[
  ['2 seats, small map, measured CPU ~200 ms/poll',{cpu:200,seats:2}],

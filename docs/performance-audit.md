@@ -170,3 +170,57 @@ Two user-provided local desktop captures report 11.9 FPS (frame p50/p95 84.1/183
 ### Validation and remaining limits
 
 The full `node check-all.cjs` suite passed after the collision change, including the multiplayer checks. After the final cache-budget adjustment, focused motion, gait-cache, collision-parity and matte-alpha checks plus Node syntax checks passed; `npm run build` succeeded. Browser visual QA could not be completed because the available preview tab did not connect to http://127.0.0.1:8765/; the game asset therefore still needs an in-context desktop visual confirmation on this machine. The full project suite/build are being run for this change. No physical iPhone 17/iPad test, multiplayer retest, thermal comparison, or release deployment was made. No third-party assets, dependencies, gameplay balance, save schema, or network protocol were introduced.
+
+
+## 2026-11-10 multiplayer server cost (netcode P0) and single-player unit-count scaling
+
+### Multiplayer: fixed per-request cost
+
+Full write-up, protocol notes and all tables: [netcode-p0.md](netcode-p0.md). Summary of what was measured in Node (sandbox, in-memory SQLite, no network, no real D1; not device or Worker evidence):
+
+| scenario | server CPU per poll, mean / p95 ms, before -> after | response JSON KB before -> after |
+|---|---|---|
+| opening, 2 seats, 27 units, fog off | 52.4 / 142.1 -> 20.4 / 42.9 | 173.7 -> 37.2 |
+| 2 seats, 64 units | 128.5 / 160.9 -> 25.6 / 60.3 | 197.4 -> 53.6 |
+| 4 seats, 47 units, fog on | 120.9 / 359.1 -> 39.4 / 73.0 | 64.7 -> 16.0 |
+| 4 seats, ~170 units | 446.1 / 551.8 -> 68.0 / 115.3 | 119.1 -> 51.2 |
+| 4 seats, ~810 units in combat | 1049.7 / 1364.9 -> 369.2 / 509.3 | 335.9 -> 276.9 |
+
+Changes: the `art-profiles` lookup left the `blocked()` inner loop; the server keeps navigation grids across requests (keyed by room, world and standing buildings; unit movement never invalidates them; a miss rebuilds from the saved state and reuses a terrain-only mask); `start()`/`advance()` prewarm land and sea grids; protocol 2 stops resending fog arrays and unchanged static sections. Remaining per-request cost at large armies is save decompression/compression, `updateFog()` on every restore, the auto-target roster rebuild and the simulation step itself.
+
+### Single player: step cost versus unit count
+
+The user reports single-player stutter when armies are large. `scripts/perf/sim-scaling.cjs` builds a two-nation `coast_s` game, adds N mixed land units split between both sides, orders both armies to advance on each other and times 240 single-player steps (0.05 s) covering march, contact and melee. Node v22 on the sandbox; milliseconds per step; columns are inclusive time of the named method.
+
+| units | step mean | p50 | p95 | max | collision | auto-target | pathfinding | fog | other (orders, combat, tactics, companions, economy) |
+|---|---|---|---|---|---|---|---|---|---|
+| 55 | 4.06 | 2.34 | 12.85 | 59 | 0.22 | 0.24 | 0.61 | 0.83 | 2.13 |
+| 105 | 6.01 | 3.70 | 17.96 | 89 | 0.39 | 0.57 | 0.88 | 1.06 | 3.11 |
+| 205 | 10.01 | 6.41 | 30.70 | 115 | 1.01 | 1.47 | 1.49 | 1.43 | 4.61 |
+| 405 | 22.32 | 13.33 | 64.99 | 140 | 3.21 | 4.78 | 2.32 | 2.74 | 9.27 |
+
+Same script on the commit before this work: 3.72 / 6.15 / 11.65 / 27.80 ms mean. The 15–20% difference at 200–400 units comes from the `blocked()` and `pair()` changes; the `require` part of that gain exists only in Node, so the browser gain is smaller and was not measured.
+
+Findings:
+
+- Unit count x8 (55 -> 405) costs x5.5 in the mean step, but **auto-target grows x20 and collision x15**: both are quadratic in units that are close together. Pathfinding (x3.8), fog (x3.3) and the rest (x4.4) grow roughly linearly or slower.
+- p95 is about three times the mean at every size (13 -> 65 ms). The spikes line up with the 0.5 s fog refresh and bursts of path requests when a whole selection is ordered at once; `max` (59–140 ms) is the first step after the mass order.
+- A CPU profile at 405 units has no single dominant function. Largest self times: `findPath` 8.7%, `separateCrowd` 6.2%, `updateFog` 5.9%, `tactics.tick` 5.7%, `siege.blocked` and its building callback 10%, `distance` 3.7%, `acquireAutoTarget` 3.6%, `canSee` 2.6%, `canTarget` 2.4%, `byId` (linear scan over units, buildings and all resource nodes) 3.3%.
+- `view(0)` costs 0.2–0.4 ms per call and is not a factor.
+- At 205 units the desktop Node step averages 10 ms against a 16.7 ms frame; a phone that is three to four times slower would spend 30–40 ms per step on simulation alone, before rendering. This extrapolation is an estimate, not a device measurement.
+
+No single-player code was changed in this pass: nothing here is a confirmed, isolated hot spot that can be fixed without touching targeting or collision behaviour, and rendering was not profiled. Recommended next steps, in order, each to be verified with a state-hash comparison so behaviour stays identical:
+
+1. Auto-target: reuse the existing 128-unit collision buckets (or a similar spatial hash rebuilt with the 0.3 s roster) so `acquireAutoTarget` only tests enemies within sight range instead of the whole roster.
+2. `byId`: an id -> entity map maintained by `add`/removal, or a per-step lazily built map; it is called per unit per step and scans up to ~900 nodes.
+3. `blocked()` during movement: prefilter buildings by bounding box (or sample the cached navigation grid first and only run the exact ellipse test for cells next to buildings).
+4. Fog: update incrementally or spread the 0.5 s refresh over several frames to remove the periodic spike.
+5. Stagger path requests for large selections over a few steps (the retry cache already exists) to cut the first-step spike.
+
+### Not verified
+
+- `?perf=1` frame, render, entity-pass, minimap and canvas-DPR numbers were **not** collected: no browser or device was available in this environment, so render sort/draw scaling with unit count is unknown. The 50/100/200/400-unit scenario above should be repeated on desktop and phone with `?perf=1` before optimizing rendering.
+- No physical iPhone/iPad run, no Cloudflare Worker/D1 run. All figures above are Node CPU times on a shared two-core sandbox with roughly ±20% noise.
+- Multiplayer latency figures in netcode-p0.md are model outputs with assumed RTT and D1 round-trip times.
+
+No new release-compliance dependency was introduced.

@@ -48,7 +48,7 @@ const pct=(a,p)=>{const s=[...a].sort((x,y)=>x-y);return s[Math.min(s.length-1,M
    console.log(JSON.stringify(o));results.push(o);
    room=rm;sim=K.networkHydrate(rm.state); // continue from what the server wrote
  }
- await checkpoint('t=0s (47 units)');
+ await checkpoint('opening t=0s');
  const save=()=>{if(argv.json)fs.writeFileSync(argv.json,JSON.stringify({fog:FOG,seats:SEATS,polls:POLLS,results},null,1))};if(LIMIT<2)return save();
  forward(60);await checkpoint('bot t~60s');if(LIMIT<3)return save();
  forward(120);await checkpoint('bot t~180s');
