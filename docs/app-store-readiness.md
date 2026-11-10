@@ -32,7 +32,7 @@ Add one row per shipped asset, code package, font, audio track, or other third-p
 
 | Path / package | Type | Creator / source | License or terms | Attribution required | App redistribution allowed | Evidence / notes |
 | --- | --- | --- | --- | --- | --- | --- |
-| _Add entries during the asset/dependency audit_ | | | | | | |
+| public/assets/carrier-v45.png | Four-view carrier sprite | OpenAI image edit based on existing public/assets/carrier-v34.png; project author supplied the design direction | Generated/edited asset; verify provider terms for redistribution before store release | No known attribution requirement; recheck terms | Unverified for App Store redistribution | Empty-deck carrier hull; source asset retained. Visual alpha/terrain production render not verified in this task |
 
 ## Per-feature review note
 

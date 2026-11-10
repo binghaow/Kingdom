@@ -170,3 +170,19 @@ Two user-provided local desktop captures report 11.9 FPS (frame p50/p95 84.1/183
 ### Validation and remaining limits
 
 The full `node check-all.cjs` suite passed after the collision change, including the multiplayer checks. After the final cache-budget adjustment, focused motion, gait-cache, collision-parity and matte-alpha checks plus Node syntax checks passed; `npm run build` succeeded. Browser visual QA could not be completed because the available preview tab did not connect to http://127.0.0.1:8765/; the game asset therefore still needs an in-context desktop visual confirmation on this machine. The full project suite/build are being run for this change. No physical iPhone 17/iPad test, multiplayer retest, thermal comparison, or release deployment was made. No third-party assets, dependencies, gameplay balance, save schema, or network protocol were introduced.
+
+## 2026-11-09 accepted fluency baseline and release guardrail
+
+The user reports that the current live version's fluency is satisfactory. That qualitative acceptance is the product baseline. There is no new, matched physical-device HUD capture in this task, so this document does not present an older screenshot or a desktop/Node result as the current iPhone/iPad baseline.
+
+### Required release comparison
+
+- Compare the candidate to the exact accepted release on the same device, browser, viewport/orientation, map, fog/resource settings and game duration. Use three runs per build and compare the median run; include a busy scene with a similar unit/building count. Record build identity and conditions with the numbers.
+- Capture the opt-in HUD's frame p50/p95, update p50/p95, render p50/p95, scene p50/p95 and scene-pass timings, active/visible units and buildings, collision pair counts/time, heap when supported, and device/effective DPR. Record phone and iPad separately; desktop results do not stand in for them.
+- Target: candidate p50 and p95 frame, update and render times stay within 5% of the accepted baseline in a matched run. A 5–10% decline requires a written reason, affected devices/scenes and a concrete improvement plan before release. A decline above 10%, repeated frame hitches, or thermal regression blocks publication until fixed or explicitly accepted by the user with the trade-off recorded.
+- New strategic AI remains on the existing per-team think timer, not the render loop. Its Node decision cost is tracked separately from frame rendering; a Node result is a regression signal, not device evidence.
+- Keep profiling opt-in in normal play. Every AI or rendering update must report the before/after comparison and known limitations; do not publish a performance-sensitive build without recording the check.
+
+### Available historical reference (not a substitute for current baseline)
+
+The earlier Phase 1 AI benchmark in `ARCHITECTURE.md` recorded 0.26 ms at 22 entities, 0.94 ms at 62 and 1.99 ms at 122 for one local Node sample of `aiPlayer`. In the current workspace, three repeated runs of that same check had medians of 0.97, 3.53 and 5.74 ms at 22, 62 and 122 entities. The new goal-scoring method measured 0.30 ms once at 173 units. These code-side readings vary by run and are not device frame timings; the AI check calls `aiPlayer` directly and omits rendering. Keep the current workspace medians as a repeatable local regression signal, not a claim about accepted iPhone/iPad performance. The user-provided desktop capture later showed severe mixed simulation and render load before the collision/gait-cache work. Neither result is the current accepted-device baseline. Obtain fresh matched HUD captures on the accepted build before using absolute FPS thresholds.

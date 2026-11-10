@@ -12,6 +12,8 @@
 - Expert uses standard economy, unit damage, training speed and age pace; its added challenge comes from the larger army plan, quicker raid interval, stronger reactive defense, resource-site outposts and a higher share of age IV+ units when affordable.
 - Expert outposts reuse existing lumbercamps and quarries, send a villager to an explored and reachable resource area, avoid nearby threats and respect building costs. Goals are transient and reset safely after loading; other difficulty profiles retain their current expansion behavior.
 - The existing age progression and high-tech chain remain in place: the town advances through five ages, the siege layer plans siegeyards and aerodromes, and Dynasty AI builds universities, arsenals, foundries and palaces when their eras unlock.
+- Phase 2 begins with a periodic, explainable strategic assessment (defense, economy, technology, military, expansion, naval, neutral objective and offense), net resource-flow snapshots, goal hysteresis and goal-aware technology priorities. It runs only on the existing per-team AI think timer.
+- Existing cavalry/air harassment now has a cautious withdrawal check: a raiding unit returns toward its saved home position when it is badly hurt in a nearby multi-unit fight or visibly outmatched. This does not cancel player-ordered ally cooperation.
 
 ## Existing player systems preserved
 
@@ -19,4 +21,9 @@ Ten national identities and units, five eras, four resources, trade, diplomacy, 
 
 ## Known AI limitations
 
-Strategic expansion still follows the existing building list near a town rather than scoring distant resource sites. Research order is rule-based. Raids target known capitals and do not flank or coordinate separate fronts. Retreat decisions, adaptive counters, deliberate neutral-objective assaults and coordinated naval landings remain future phases.
+Strategic expansion still follows the existing building list near a town for non-Expert difficulties; Expert resource outposts score only explored existing resource nodes. Research priorities are now strategy-aware but still use simple rule-based estimates, not a full tech-tree search. Raids target known settlements and harassment targets; flanking, encirclement, diversionary attacks, multi-front coordination, adaptive counters, deliberate neutral-objective assaults and coordinated naval landings remain future work. Phase 2 is in progress, not complete.
+
+## Carrier aviation balance (2026-11-09)
+- V-age carrier fighters have 340 HP, 7 base armor, and 96 bomb damage; low-tier bow units now take many hits, while musketeers and dedicated anti-air can still intercept them.
+- Carriers support up to four separately produced aircraft. The aerodrome no longer offers the retired duplicate land bomber; existing saved bombers remain valid.
+- Carrier art uses an original edited four-view asset with empty decks; aircraft now render as attached deck units, staggered takeoffs and return/landing/rearm states. The map legend uses nation names instead of placeholder computer numbers.
