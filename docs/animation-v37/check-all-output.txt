@@ -1,0 +1,216 @@
+PASS 12 scenarios:
+  Explicit movement interrupts an attack and never reacquires during retreat
+  Death removes the unit, releases population and leaves a timed corpse
+  Working villagers produce resources, visible particles and material-specific audio
+  Farm is a real food source and market actually earns gold
+  Age requirements, research queue, duplicate protection and max age
+  Weapon and armor research apply to existing and newly trained units
+  Cannon causes splash and siege damage with an audible explosion
+  Healer restores allied health without dealing damage
+  Building construction completes, adds housing, and validates sites
+  Expanded map has three bridges, fishing resources and traversable cross-river paths
+  Veterancy and all expansion state survive a save and reload
+  Move orders finish at accessible destinations even when the clicked building blocks its center
+Spatial collision separation matches the original pair order across 100 seeded mixed scenarios and dense crowds (80–600 units).
+Production functional-building matte cleanup removes black/white JPEG matte and preserves artwork pixels.
+Moving gait keeps all nine articulated bands, reuses the composited frame and stays inside its memory budget.
+PASS all difficulty profiles have distinct defensive cadence; Expert keeps standard economy and combat values
+PASS Expert stages a worker-built resource outpost while other difficulties keep existing behavior
+PASS Expert shifts production toward available age IV+ units without changing other profiles
+PASS resource shortages rebalance surplus gatherers without cancelling construction orders
+PASS military production favors underrepresented eligible roles and never queues unaffordable units
+PASS defensive towers respond to visible threats, stop at the difficulty cap and ignore quiet areas
+  sample {"workers":6,"gatherers":6,"military":10,"queued":3,"buildings":5,"food":340,"wood":368,"gold":265,"stone":220}
+PASS fixed-seed strategic decisions are repeatable and report useful economy/army metrics
+PASS fog-enabled computer gathers only from explored resource nodes
+PASS fog-enabled defensive planning reacts to a visible raider and ignores an unseen one
+  Node strategic update benchmark [{"entities":22,"ms":0.46},{"entities":62,"ms":3.82},{"entities":122,"ms":3.24}]
+PASS strategic update time scales with worker/army count and stays outside the render loop
+PASS idle military auto-acquires nearby military before nearer buildings, retaining its target
+PASS unit definitions can override the automatic acquisition radius
+PASS acquisition prioritizes combat buildings over workers and noncombat buildings, then falls back to other valid targets
+PASS dead targets are reacquired immediately and explicit attack orders stay locked
+PASS military moving units engage and retaliate while workers keep gathering through nearby enemies
+PASS automatic target state is transient and does not change save structure
+PASS production exit avoids blocked building cells and crowded unit footprints
+PASS spawn recovery moves a worker out of a building without overlapping nearby units
+PASS crowd-stalled units receive a safe lateral path waypoint
+PASS tower and cannon turret launch visible projectiles from above the structure
+Unit spawn/recovery checks passed
+PASS 15 maritime checks:
+  Three nations have identical starting banks, populations and structures
+  National units and buildings are gated by country and age
+  Nation bonuses have explicit economic or production tradeoffs
+  Four-resource costs are actually paid and insufficient stone blocks a battery
+  Separate navigation grids keep ships in water and land troops on land
+  Fishing boats harvest sea fish and cannot gather wood or attack
+  Stone quarry, lumber camp and seaside bath have functioning economic effects
+  Transport respects six population, hides cargo, and unloads onto island land
+  A sunk transport loses its cargo and releases all occupied population
+  Naval siege and coastal defenses have role restrictions
+  Equal-cost anti-cavalry troops defeat a lone premium cuirassier
+  Nation choice, naval technologies and cargo persist through save/reload
+  Twelve-minute AI develops unique buildings and shipyard without drafting villagers
+  PWA manifest and every offline cache dependency exist
+  Service worker serves cached campaign offline and excludes authentication routes
+PASS 9 coalition checks:
+  Four players have independent banks, tech, populations and two alliances
+  Allies are immune to direct, automatic and splash attacks; enemies take damage
+  Paid bilateral trade pacts stop attacks and enforce a sixty-second commitment
+  Caravans physically complete a round trip before both markets earn income
+  War and destruction cancel trade; neutral trading posts work without a foreign market
+  Defeating one enemy is not victory; alliance survives the loss of one capital
+  A whole defeated alliance loses; saved teams, pacts, discoveries and routes persist
+  Lakes and rocky hills affect navigation; ruins award treasure once
+  All three computer nations develop economies and never raid their allies
+PASS 3 feedback checks:
+  Context feedback distinguishes attack, siege, gathering, construction and invalid units
+  Construction emits repeated hammer strokes and one distinct completion event
+  Medieval score and material effects schedule finite, bounded Web Audio voices
+PASS 12 dynasty checks:
+  All six difficulty profiles have zero grace and allow immediate combat
+  Independent computer difficulty changes never create a protection window
+  AI caps and reduced gathering are enforced by actual training and economy
+  Ten countries have distinct gated units, architecture, doctrines and hero skills
+  Fourth and fifth era costs, stone payment and research requirements are real
+  National tradeoffs and doctrines modify actual paid costs and combat stats
+  Engineers build faster and repair damaged buildings without gathering resources
+  Hero cap includes queues; death requires full cost and a three-minute recruitment wait
+  Hero attacks obey radius, target limits, gold costs and cooldown; they do not hit allies
+  Healing and defense skills are bounded and expire; skills cannot hit buildings or ships
+  Difficulty changes, five eras, hero cooldowns and doctrines survive saves
+  New national gunpowder units and howitzers use their correct weapon effects
+PASS 12 world checks:
+  Six seeded maps have irregular borders, equal starting resource budgets and reachable capitals
+  Initial ships and automatically selected fishing grounds stay outside the KC arena
+  Fog hides both armies from one another and rejects blind explicit attack orders
+  Explored building memory freezes unseen health and disappears when scouted empty
+  Disabled fog gives symmetric full visibility; allies share their real sight
+  AI raids cannot use undiscovered capitals, and scouts explore frontier cells instead
+  Map, fog exploration, neutral state and five-player setup survive saves
+  KC resists all pre-V damage, and the lair is protected while guardians live
+  KC breath is telegraphed, avoidable, dangerous and cancelled by killing its caster
+  Guardians cannot target homes beyond their leash
+  KC reward goes to contribution rather than the final hit and does not win the match
+  The 糖豆 spellbook grants bounded mana spells with independent cooldowns
+PASS 6 frontier checks:
+  Every map has one distant lair, one random guardian, safe home resources and an accessible objective
+  No initial or difficulty-change immunity survives saving or older world migration
+  Industrial units require V era, pay actual costs, consume population and enforce the three-vehicle queue cap
+  Paid industry research has bounded effects and persists through saves
+  Industrial weapon effects are appropriate and medics heal only nearby allied troops
+  Touch unlock, interrupted-context resume, playback session and explicit context recovery work without timer leaks
+PASS 11 siege checks:
+  All six maps are larger, retain equal home budgets and stay within the path-index budget
+  Unreachable routes throttle A* retries but replan immediately after a new order or target cell
+  Blocked movement preserves static grids and throttles the same obstructed route
+  Gathering is exactly 25% slower without a battle timer
+  Defeating the single guardian captures one working fortress and still awards bounded treasure
+  Fortress unit and airship caps include paid training queues
+  Walls join without gaps and gates use separate friendly and enemy navigation grids
+  Aircraft cross water and cliffs directly while ground troops remain blocked
+  Air transport enforces cargo limits, safe landings, and passenger loss on destruction
+  Melee troops cannot hit aircraft; muskets, turrets and KC guardians can
+  Airborne cargo, gates, captured fortress and exclusive research survive saves
+PASS 4 localization checks:
+  Every nation, unit, building, technology, map and reward has English text
+  Static UI and help text translate without losing numbers or game names
+  Dynamic teams, ages, costs, recruitment and hero prompts retain their values
+  Chinese remains exact and localization never changes simulation IDs or definitions
+PASS 9 companion/chat checks:
+  The hidden phrase summons exactly two named friendly companions and is not echoed
+  Both companions can defeat either KC guardian in the first age while ordinary units cannot
+  The pair toggles off even after one dies and the toggle persists through saves
+  Network or multiple-human sessions reject summoning, strip imported companions, and prohibit training
+  Defend and retreat commands move allied soldiers without drafting workers or enemies
+  Ally tasks survive autonomous AI orders and newly trained soldiers join the active task
+  Rally and attack respect explored territory, hostile teams and discovered enemy capitals
+  No ally, status, greetings, capped history and saved team assignments have clear responses
+  Future chat envelopes validate type, channel, sender and bounded text without activating a network
+PASS 8 immersion checks:
+  Both resource phrases toggle a finite unlimited balance for the local player and restore the original bank
+  Unlimited resources persist through local saves and are removed from network or multi-human imports
+  Actual damage emits material and armor impacts; ally immunity and KC age restrictions produce no false hit
+  World sounds are clipped to the unobscured viewport rather than a broad radius, with stereo falloff
+  Selections distinguish national capitals, work units, cavalry, artillery, animals and ancient guardians
+  Mining and construction use low-pitched voices and low-pass noise; rapid repeats are throttled
+  All ten national motifs, animal, guardian, damage and completion effects schedule finite cleaned-up voices
+  The ambient score changes through three chapters without percussion or runaway polyphony
+(node:8293) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+PASS 16 multiplayer checks:
+  Four independent anonymous seats join a real SQLite-backed room, with private credentials and a full-room limit
+  Start requires the host, readiness, online players and opposing teams; no player can change a nation after start
+  Each of four players receives their own nation as local player zero, equal banks and no opponent economy
+  Owned movement is authoritative, resource forgery and foreign orders are rejected, and retries do not duplicate training
+  All human seats have identical gathering, damage and research timing; AI never drafts a human army
+  Single-player keys are refused by the server without leaking them into room chat or creating monsters
+  Room chat reaches everyone, ally chat remains private, and arbitrary text remains data
+  Temporary alliances require consent, grant immunity, and declaration restores hostility only after ten seconds
+  Fixed teammates cannot declare war, and victory follows the initial teams rather than temporary pacts
+  Fog snapshots exclude unseen armies, unknown attack commands fail, and each player gets only their own fog mask
+  Reconnect preserves the seat and army, absent hosts hand over the lobby, and concurrent readiness writes are not lost
+  AI filling creates only the requested extra seats and the compressed persistent state stays well below one megabyte
+  Sub-tick polling retains elapsed fractions instead of slowing the game when four clients stagger requests
+  Malformed bodies, prototype names, excessive messages and forged unit types do not alter a battle
+  Browser replicas enqueue commands without mutating armies, training queues or banks and deduplicate server events
+  Changing alliances never reveals old private plans to a new ally or new messages to a former ally
+PASS 6 fortification/art checks:
+  Wall plans snap to a common grid, choose direction, cap strokes and preserve vertical gates
+  A paid wall stroke queues builders and completes every segment without further input
+  Partial affordability never creates free walls; move cancels queued work and saves preserve it
+  Gate replacement pays once and retains friendly passage in horizontal and vertical walls
+  All ordinary buildings have explicit functional recipes and ten countries have national material profiles
+  Online wall commands verify workers and points, charge the acting nation and hide private queues
+PASS 5 rendering checks:
+  Render positions interpolate every logic step without changing orders or authoritative coordinates
+  Gait follows distance, stays frame-rate independent, and stationary units do not bounce
+  Opposing legs alternate their ground contact while hips remain fixed and mesh bands stay continuous
+  Icon previews and corpses remain static; animation storage is bounded and teleports never swing limbs
+  Villager gait uses a slower 64-unit stride without changing movement coordinates
+PASS 4 tactics checks:
+  Trained infantry emerges in front on free ground; custom rally orders are persistent and paid production is intact
+  Rally commands reject foreign buildings, non-production buildings and unsuitable terrain
+  Food cannot be gathered from living cows or sheep; hunting produces one stationary carcass before collection
+  Both KC guardians and ordinary ranged troops face their target at attack and gathering time
+PASS recorded-only runtime, 50 sound cue file signatures, gesture hooks, remote explored walls, unknown fog rejection, opening/closing gates and 32-bit large-map navigation
+PASS 12 campaign checks:
+  Production roles are explicit and retired buildings cannot be newly constructed
+  Ships receive embark orders, approach waiting ground passengers, unload and preserve cargo in saves
+  Capacity limits reject excess passengers and foreign passengers cannot embark
+  All ten heroes have distinct effective national spells, costs, cooldowns and visible magic events
+  The KC book unlocks four independently cooled spells for existing and future heroes
+  Aircraft need final-age research, melee cannot hit air, and bombs require an overhead pass
+  Empty aircraft return to a real base, rearm and retain their combat order
+  Carrier production consumes resources, respects two aircraft and population, and saves sorties
+  Actual income, paid spending, kills, losses and history survive saves
+  Authoritative commands validate carrier training, boarding ownership and four book spells
+  Older live room states gain new fields and merged buildings without restarting the match
+  Carrier is the fleet flagship and its embarked scout-bombers are lighter than land bombers
+PASS all 22 tutorials through real simulation actions, sub-minute completion, persistent green checks and campaign restoration
+PASS paid repair, completion, enemy rejection, insufficient materials, cancellation, passenger privacy/count and neutral sites
+PASS 3 adaptive maps for 2–5 players and multiplayer configuration, equal resources, single remote guardian, real marine gold collection, air/cliff restrictions, saves, 4 guardian poses, facing and 8 distinct recorded cues
+PASS rich reserves without faster economy, forest belts, save/config, closed wall ring, stale-path sweep, corner continuity, friendly/enemy gates, destroyed opening, one alarm per attack episode, and land bridge crossing and low-bridge naval exclusion
+PASS physical resource delivery, visible loads, upgrades, interrupted loads, saved cargo, nearest depot, no-depot retention, separated spawns, 9 guarded maps, KC isolation, color/region ally orders and six AI compositions
+PASS campaign/network rally rendering is read-only across 600 frames, flag stays fixed through 10 separated spawns per producer, custom/reset rally and old high-cursor saves
+PASS real PCM recordings/headroom, original pitch, correctly delayed envelopes, shared horn/alarm cooldowns, no double charge/contact/voice, independent urgent alarm, immediate previews, mute, one voice per engagement and saved cooldowns
+PASS Debug toggles one-second training/research/construction and restores ordinary resources
+PASS Multiplayer refuses debug and strips imported debug timing/resources
+PASS Both companions deal real damage through the full final simulation chain to soldiers, ships and KC
+PASS Melee can hit a ship touching shore; ranged ships can hit land and final-age guardians
+PASS Engagement chooses navigable grid cells inside reach and refuses disconnected melee terrain
+PASS Every active building has a deliberate recorded selection cue with real audio files
+PASS 6 v28 regression groups
+PASS Eight ordered frames cover a complete smooth cycle; non-looping actions recover without wrapping
+PASS Villagers have all eight coherent actions, loaded idle stops its gait, and presentation leaves orders/cargo unchanged
+PASS Arrows, shells and thrown stones have stable end points and distinct ballistic arcs
+PASS All low bridges block even small boats with hull clearance, retain land crossing and allow aircraft
+PASS Naval A* segments and stale direct movement never cross a low bridge
+PASS Old on-bridge saved ships are moved to legal nearby water and cached paths discarded
+PASS Successful hero spells store an explicit short casting gesture without changing cooldowns
+PASS 7 V29 motion/navigation groups
+PASS existing-source crops, all32 basket placements, per-frame sockets, native aspect ratio and no missing-resource substitute
+PASS foundation segment sweep, detour, widened footprint, embedded-unit recovery, aircraft overflight, reachable paid repair 2→1→0 and four collapse phases
+PASS four cardinal headings, diagonal hysteresis, stopped facing, unchanged cargo/orders/coordinates, all62 unit art keys, animal/load/work coverage, PNG atlases, movement heading, save and multiplayer snapshots
+PASS 53 native combat strike cues,68 per-unit/action mappings,1088 heading/keyframe samples,unchanged damage/banks,noncombat roles,work loops,guardian channels,save/network event persistence
+PASS all68 action source atlases have usable alpha, no opaque white/checkerboard backdrop
