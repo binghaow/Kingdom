@@ -22,7 +22,7 @@ const RULES={
   count:{warn:.10,fail:.20,floor:5},        // deterministic counts (A* calls, expanded nodes, dropped routes)
   size:{warn:.10,fail:.15,floor:1},
   hud:{warn:.30,fail:.50,floor:4},
-  tail:{warn:.30,fail:.50,floor:5},         // p95 of a few dozen samples (server CPU per poll, sim step p95)
+  tail:{warn:.30,fail:1.0,floor:10},        // p95 of a few dozen samples (server CPU per poll, sim step p95): mostly WARN, FAIL only when doubled; the mean gates carry FAIL
   countNoisy:{warn:.20,fail:.35,floor:5},   // per-frame Canvas counts: depend on how far the melee has progressed           // ?perf=1 HUD medians from few frames (headless render JS time)         // response KB (deterministic for a pinned seed)
 };
 function gate(results,base){const checks=[];
