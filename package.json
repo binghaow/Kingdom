@@ -4,6 +4,7 @@
   "scripts": {
     "build": "node scripts/build.cjs",
     "dev": "node preview.cjs",
-    "test": "node check-all.cjs"
+    "test": "node check-all.cjs",
+    "release-check": "node scripts/release/release-check.cjs"
   }
 }
