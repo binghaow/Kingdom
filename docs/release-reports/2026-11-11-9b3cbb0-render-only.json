@@ -1,0 +1,206 @@
+{
+ "verdict": "PASS",
+ "meta": {
+  "commit": "9b3cbb0",
+  "branch": "feature/realistic-walls",
+  "dirty": true,
+  "date": "2026-11-11T16:18:03.049Z",
+  "mode": "full",
+  "node": "v22.23.4",
+  "cpus": 2,
+  "platform": "linux"
+ },
+ "baseline": {
+  "commit": "fb70bd1",
+  "branch": "claude/release-gates",
+  "dirty": false,
+  "date": "2026-11-11T11:22:10.435Z",
+  "mode": "full",
+  "node": "v22.23.4",
+  "cpus": 2,
+  "platform": "linux"
+ },
+ "checks": [
+  {
+   "area": "渲染",
+   "name": "desktop 帧间隔 p50",
+   "value": 3533.2,
+   "baseline": 2383.3,
+   "unit": "ms",
+   "rule": "timingNoisy",
+   "status": "PASS",
+   "why": ""
+  },
+  {
+   "area": "渲染",
+   "name": "desktop 帧间隔 p95",
+   "value": 3983.1,
+   "baseline": 2849.9,
+   "unit": "ms",
+   "rule": "timingNoisy",
+   "status": "PASS",
+   "why": ""
+  },
+  {
+   "area": "渲染",
+   "name": "desktop render p50",
+   "value": 12.1,
+   "baseline": 8.6,
+   "unit": "ms",
+   "rule": "hud",
+   "status": "PASS",
+   "why": ""
+  },
+  {
+   "area": "渲染",
+   "name": "desktop 每帧 drawImage",
+   "value": 465.5,
+   "baseline": 453,
+   "unit": "",
+   "rule": "countNoisy",
+   "status": "PASS",
+   "why": ""
+  },
+  {
+   "area": "渲染",
+   "name": "desktop 每帧带 filter 的绘制",
+   "value": 39,
+   "baseline": 39,
+   "unit": "",
+   "rule": "countNoisy",
+   "status": "PASS",
+   "why": ""
+  },
+  {
+   "area": "渲染",
+   "name": "phone 帧间隔 p50",
+   "value": 2624.9,
+   "baseline": 1999.9,
+   "unit": "ms",
+   "rule": "timingNoisy",
+   "status": "PASS",
+   "why": ""
+  },
+  {
+   "area": "渲染",
+   "name": "phone 帧间隔 p95",
+   "value": 3041.6,
+   "baseline": 2416.5,
+   "unit": "ms",
+   "rule": "timingNoisy",
+   "status": "PASS",
+   "why": ""
+  },
+  {
+   "area": "渲染",
+   "name": "phone render p50",
+   "value": 6.6,
+   "baseline": 6.8,
+   "unit": "ms",
+   "rule": "hud",
+   "status": "PASS",
+   "why": ""
+  },
+  {
+   "area": "渲染",
+   "name": "phone 每帧 drawImage",
+   "value": 420,
+   "baseline": 384.8,
+   "unit": "",
+   "rule": "countNoisy",
+   "status": "PASS",
+   "why": ""
+  },
+  {
+   "area": "渲染",
+   "name": "phone 每帧带 filter 的绘制",
+   "value": 42.3,
+   "baseline": 38.8,
+   "unit": "",
+   "rule": "countNoisy",
+   "status": "PASS",
+   "why": ""
+  }
+ ],
+ "results": {
+  "render": {
+   "note": "headless Chromium --disable-gpu（CPU 软件光栅，无 GPU），2 个共享 CPU 核：只作提交之间的回退信号，不是真机帧率",
+   "reps": 2,
+   "desktop": {
+    "viewport": "1280x720@1",
+    "frames": [
+     5,
+     5
+    ],
+    "drawImagePerFrame": 465.5,
+    "filteredDrawsPerFrame": 39,
+    "units": 203,
+    "unitsAlive": 203,
+    "visible": 275,
+    "dpr": "1/1",
+    "frameP50": 3533.2,
+    "frameP95": 3983.1,
+    "fps": 0.3,
+    "renderP50": 12.1,
+    "renderP95": 187.9,
+    "sceneP50": 11.5,
+    "sceneP95": 187.1,
+    "updateP50": 23.3,
+    "updateP95": 69.9,
+    "runs": [
+     {
+      "frameP50": 3416.5,
+      "frameP95": 4183.1,
+      "renderP50": 10.7,
+      "renderP95": 182.3
+     },
+     {
+      "frameP50": 3649.9,
+      "frameP95": 3783.1,
+      "renderP50": 13.4,
+      "renderP95": 193.4
+     }
+    ],
+    "errors": []
+   },
+   "phone": {
+    "viewport": "393x852@3",
+    "frames": [
+     6,
+     7
+    ],
+    "drawImagePerFrame": 420,
+    "filteredDrawsPerFrame": 42.3,
+    "units": 203,
+    "unitsAlive": 203,
+    "visible": 254,
+    "dpr": "3/1.5",
+    "frameP50": 2624.9,
+    "frameP95": 3041.6,
+    "fps": 0.4,
+    "renderP50": 6.6,
+    "renderP95": 62,
+    "sceneP50": 5.8,
+    "sceneP95": 61.6,
+    "updateP50": 22.3,
+    "updateP95": 65.7,
+    "runs": [
+     {
+      "frameP50": 2799.9,
+      "frameP95": 3199.9,
+      "renderP50": 6.5,
+      "renderP95": 46.3
+     },
+     {
+      "frameP50": 2449.8,
+      "frameP95": 2883.3,
+      "renderP50": 6.7,
+      "renderP95": 77.7
+     }
+    ],
+    "errors": []
+   }
+  },
+  "calibrationMs": 50.76
+ }
+}
