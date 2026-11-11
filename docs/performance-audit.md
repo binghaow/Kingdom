@@ -241,6 +241,14 @@ No single-player code was changed in this pass: nothing here is a confirmed, iso
 
 No new release-compliance dependency was introduced.
 
+## 2026-11-11 Claude release-gates review
+
+The claude/release-gates branch adds repeatable pre-release path/stuck-unit, simulation, browser-render, and multiplayer cost checks plus a baseline report. It does not change the game renderer, unit art, or gameplay systems. Its committed full report passed against the branch's Linux baseline; the report also records known stuck-unit scenarios, and a PASS means no regression against that baseline, not that those known defects are fixed.
+
+On this Windows review machine, the branch's quick run initially reported many timing FAILs because its baseline was recorded on Linux with Node 22 and two CPUs, while this run uses Windows with Node 24 and sixteen CPUs. The calibration cap (1.6x) did not cover the environment difference. That result is **not a valid before/after performance comparison**. The release checker now detects platform, Node-major, architecture, and (when recorded) CPU-model mismatches; it labels the comparison WARN and does not claim a game regression or pass. check-release-baseline.cjs covers matching and mismatching environments. The current environment also lacks Playwright, so its real-render headless check is explicitly unrun. No iPhone/iPad performance result is inferred.
+
+The branch tests, production build, and artifact declaration check passed on this review machine. The Claude baseline's full Linux report is preserved at [the release report](release-reports/2026-11-11-4c286f7.md). A fresh comparable performance baseline and the browser-render check remain necessary before claiming a local performance gate or visual sign-off.
+
 ### 2026-11-10 independent P0 merge comparison
 
 I reran the new `scripts/netcode/server-cost.cjs` against the pre-merge `main` and the integrated candidate using the same seed (4242), two seats, fog off, 40 requests per checkpoint, Node `process.cpuUsage()` and in-memory SQLite. The candidate is the branch integrated on current main, including the current carrier-water fix. This is a local server-path benchmark, not a browser, Worker, D1, or device measurement.

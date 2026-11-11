@@ -19,4 +19,14 @@ function medianOf(runs){const first=runs[0];if(typeof first==='number')return me
 function calibrate(){const runs=[];for(let r=0;r<10;r++){const t=now();let x=12345,acc=0;const a=new Float64Array(150000);for(let i=0;i<a.length;i++){x=Math.imul(x,1664525)+1013904223>>>0;a[i]=x/4294967296}
   const b=Array.from(a.subarray(0,60000)).sort((p,q)=>p-q);acc+=b[30000];const m=new Map();for(let i=0;i<60000;i++){const k='k'+(i*7919%60000);m.set(k,(m.get(k)||0)+a[i])}acc+=m.size;
   for(let i=1;i<a.length;i++)a[i]=a[i]*.5+a[i-1]*.5+Math.sqrt(i);acc+=a[a.length-1];if(acc===42)console.log('');if(r)runs.push(now()-t)}return median(runs)}
-module.exports={calibrate,ROOT,now,pct,median,mean,r1,r2,args,node,medianOf};
+function baselineCompatibility(current,baseline){
+  if(!baseline)return {compatible:false,reasons:['没有基线']};
+  const reasons=[];
+  if(current.platform&&baseline.platform&&current.platform!==baseline.platform)reasons.push(`平台不同（${current.platform} / ${baseline.platform}）`);
+  const major=v=>String(v||'').match(/^v?(\d+)/)?.[1]||null;
+  if(major(current.node)&&major(baseline.node)&&major(current.node)!==major(baseline.node))reasons.push(`Node 主版本不同（${current.node} / ${baseline.node}）`);
+  if(current.arch&&baseline.arch&&current.arch!==baseline.arch)reasons.push(`CPU 架构不同（${current.arch} / ${baseline.arch}）`);
+  if(current.cpuModel&&baseline.cpuModel&&current.cpuModel!==baseline.cpuModel)reasons.push('CPU 型号不同');
+  return {compatible:reasons.length===0,reasons};
+}
+module.exports={baselineCompatibility,calibrate,ROOT,now,pct,median,mean,r1,r2,args,node,medianOf};

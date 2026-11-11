@@ -1,0 +1,13 @@
+'use strict';
+const assert=require('node:assert/strict');
+const {baselineCompatibility}=require('./scripts/release/lib.cjs');
+const current={platform:'win32',node:'v24.19.0',arch:'x64',cpuModel:'CPU A'};
+assert.equal(baselineCompatibility(current,{platform:'win32',node:'v24.8.0',arch:'x64',cpuModel:'CPU A'}).compatible,true,'same platform/Node major/architecture/CPU remains comparable');
+const cross=baselineCompatibility(current,{platform:'linux',node:'v22.23.4',arch:'x64'});
+assert.equal(cross.compatible,false,'cross-platform/major baselines must not produce performance FAILs');
+assert.equal(cross.reasons.length,2);
+assert.equal(baselineCompatibility(current,{platform:'win32',node:'v22.1.0',arch:'x64'}).compatible,false,'different Node majors are not comparable');
+assert.equal(baselineCompatibility(current,{platform:'win32',node:'v24.1.0',arch:'arm64'}).compatible,false,'different CPU architectures are not comparable');
+assert.equal(baselineCompatibility(current,{platform:'win32',node:'v24.1.0',arch:'x64',cpuModel:'CPU B'}).compatible,false,'different CPU models are not comparable');
+assert.equal(baselineCompatibility(current,null).compatible,false,'missing baseline cannot pass as a comparable run');
+console.log('PASS release baseline compatibility: cross-platform and runtime mismatch is reported, not mislabeled as game regression');

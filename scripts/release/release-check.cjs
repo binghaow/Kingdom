@@ -6,12 +6,12 @@
    usage: npm run release-check [-- --quick] [-- --update-baseline] [-- --only path,sim,render,net] [-- --no-report]
    Diagnostics only: all instrumentation lives in scripts/release and is attached to test instances or to pages opened with
    ?perf=1; no game file is changed and normal play is unaffected. */
-const fs=require('node:fs'),path=require('node:path'),{execSync}=require('node:child_process'),{ROOT,now,r1,r2,args,calibrate}=require('./lib.cjs');
+const fs=require('node:fs'),path=require('node:path'),os=require('node:os'),{execSync}=require('node:child_process'),{ROOT,now,r1,r2,args,calibrate,baselineCompatibility}=require('./lib.cjs');
 process.removeAllListeners('warning');/* node:sqlite prints an ExperimentalWarning in-process */
 const BASELINE=path.join(__dirname,'baseline.json'),REPORTS=path.join(ROOT,'docs/release-reports');
 const a=args(),quick=!!a.quick,mode=quick?'quick':'full',only=a.only?new Set(String(a.only).split(',')):null;
 const git=c=>{try{return execSync('git '+c,{cwd:ROOT,encoding:'utf8',stdio:['ignore','pipe','ignore']}).trim()}catch{return ''}};
-const meta={commit:git('rev-parse --short HEAD')||'unknown',branch:git('rev-parse --abbrev-ref HEAD'),dirty:!!git('status --porcelain --untracked-files=no'),date:new Date().toISOString(),mode,node:process.version,cpus:require('node:os').cpus().length,platform:process.platform};
+const meta={commit:git('rev-parse --short HEAD')||'unknown',branch:git('rev-parse --abbrev-ref HEAD'),dirty:!!git('status --porcelain --untracked-files=no'),date:new Date().toISOString(),mode,node:process.version,cpus:os.cpus().length,platform:process.platform,arch:process.arch,cpuModel:os.cpus()[0]?.model||null};
 
 /* ---------- gates ----------
    rel(limitWarn, limitFail, floor): value is worse when higher; relative change vs baseline, ignored when the absolute
@@ -76,7 +76,7 @@ function markdown(results,checks,base,elapsed){const V=verdict(checks),fails=che
   L.push('','## 仍需真机验证（本检查不能代替）','','- iPhone 17 / iPad 实机 `?perf=1` 帧率、render/scene、发热与降频（headless 无 GPU，数字只用于提交之间比较）。','- Safari/WebKit 上的渲染与内存（这里只测 Chromium）。','- Cloudflare Worker / D1 实际 CPU、isolate 复用率、D1 往返和真实冲突率；跨设备、弱网、丢包、后台恢复。','- 触控操作、HUD 布局与双语文本（Frontier UI audit 另行执行）。');
   return L.join('\n')+'\n'}
 
-(async()=>{if(only&&a['update-baseline'])throw Error('--update-baseline must run every section (the speed calibration is shared by all of them); drop --only');const t0=now(),cal0=calibrate();const base=fs.existsSync(BASELINE)?JSON.parse(fs.readFileSync(BASELINE,'utf8')):null,baseMode=base?.[mode]||null;const results={};
+(async()=>{if(only&&a['update-baseline'])throw Error('--update-baseline must run every section (the speed calibration is shared by all of them); drop --only');const t0=now(),cal0=calibrate();const base=fs.existsSync(BASELINE)?JSON.parse(fs.readFileSync(BASELINE,'utf8')):null,baseMode=base?.[mode]||null,compat=baselineCompatibility(meta,baseMode?.meta);const results={};
   const step=async(key,label,fn)=>{if(only&&!only.has(key))return;const t=now();process.stdout.write(`[release-check] ${label} …`);results[key]=await fn();console.log(` ${r1((now()-t)/1000)} s`)};
   await step('path','路径分析与卡住单位',()=>require('./path-analysis.cjs').run({quick}));
   await step('sim','模拟开销 50/100/200/400 单位',()=>require('./sim-cost.cjs').run({quick}));
@@ -84,7 +84,13 @@ function markdown(results,checks,base,elapsed){const V=verdict(checks),fails=che
   await step('net','服务器与联机延迟',()=>require('./net-cost.cjs').run({quick}));
   results.calibrationMs=r2((cal0+calibrate())/2);const elapsed=(now()-t0)/1000;
   if(a['update-baseline']){const next=base||{},previous=base?.[mode]?.results;next[mode]={meta,results};next.meta={updated:meta.date,commit:meta.commit,branch:meta.branch,note:'release-check baselines; full and quick runs are compared only with the same mode. Regenerate with npm run release-check -- --update-baseline [--quick] on the same machine.'};if(only&&previous)next[mode].results={...previous,...results};fs.writeFileSync(BASELINE,JSON.stringify(next,null,1)+'\n');console.log(`[release-check] baseline (${mode}) written to ${path.relative(ROOT,BASELINE)}`)}
-  const ref=a['update-baseline']?null:baseMode?.results;const checks=a['update-baseline']?[]:gate(results,ref?{...ref,meta:baseMode.meta}:null);if(ref&&!ref.calibrationMs)checks.push({area:'机器',name:'速度校准',value:results.calibrationMs,baseline:null,unit:'ms',rule:'custom',status:'WARN',why:'基线没有速度校准，耗时项未校正；请重建基线'});const V=a['update-baseline']?'BASELINE':verdict(checks);
+  const ref=a['update-baseline']?null:baseMode?.results;let checks=[];
+  if(!a['update-baseline']){
+    if(baseMode&&!compat.compatible)checks.push({area:'机器',name:'性能基线兼容性',value:`${meta.platform}/${meta.node}/${meta.arch}`,baseline:`${baseMode.meta.platform}/${baseMode.meta.node}/${baseMode.meta.arch||'未知架构'}`,unit:'',rule:'custom',status:'WARN',why:`环境不匹配，本次不作性能退化判定：${compat.reasons.join('；')}。请在目标机器上重建基线后比较。`});
+    else checks=gate(results,ref?{...ref,meta:baseMode.meta}:null);
+    if(baseMode&&!compat.compatible&&results.render?.skipped)checks.push({area:'渲染',name:'Playwright',value:0,baseline:null,unit:'',rule:'custom',status:'WARN',why:results.render.skipped});
+  }
+  if(ref&&compat.compatible&&!ref.calibrationMs)checks.push({area:'机器',name:'速度校准',value:results.calibrationMs,baseline:null,unit:'ms',rule:'custom',status:'WARN',why:'基线没有速度校准，耗时项未校正；请重建基线'});const V=a['update-baseline']?'BASELINE':verdict(checks);
   const md=markdown(results,checks,a['update-baseline']?null:baseMode,elapsed);
   if(!a['no-report']){fs.mkdirSync(REPORTS,{recursive:true});const name=`${meta.date.slice(0,10)}-${meta.commit}${quick?'-quick':''}`;fs.writeFileSync(path.join(REPORTS,name+'.md'),md);fs.writeFileSync(path.join(REPORTS,name+'.json'),JSON.stringify({verdict:V,meta,baseline:baseMode?.meta||null,checks,results},null,1)+'\n');console.log(`[release-check] report: docs/release-reports/${name}.md`)}
   for(const c of checks.filter(c=>c.status!=='PASS'))console.log(`  ${c.status} ${c.area} · ${c.name}: ${fmt(c.value)}${c.unit} vs ${fmt(c.baseline)}${c.unit} — ${c.why}`);
