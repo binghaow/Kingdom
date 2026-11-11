@@ -1,7 +1,8 @@
 /* Pure presentation timing; no simulation or resource changes. */
 ((root)=>{'use strict';const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
 function frames(phase,count,loop=true,continuous=false){const q=loop?((phase%1)+1)%1:clamp(phase,0,.999999),v=q*count,i=Math.floor(v),f=v-i;return{a:i,b:loop?(i+1)%count:Math.min(count-1,i+1),blend:continuous?f:clamp((f-.65)/.35,0,1)}}
+function frameIndex(phase,count,loop=true){if(count<=1)return 0;const q=loop?((phase%1)+1)%1:clamp(phase,0,.999999);return Math.min(count-1,Math.floor(q*count))}
 function villagerAction(u,t,moving){if(t-(u.lastHurtAt??-100)>=0&&t-(u.lastHurtAt??-100)<.42)return{row:6,phase:(t-u.lastHurtAt)/.42,loop:false};if(u.actionType==='attack'&&t-(u.actionAt??-100)>=0&&t-(u.actionAt??-100)<.8)return{row:5,phase:(t-u.actionAt)/.8,loop:false};if(u.working){const r=u.workResource;return{row:r==='wood'?3:r==='food'||r==='hunt'?4:r==='build'||r==='repair'?3:2,phase:t/(r==='wood'?1.1:1.3)+(u._actionSeed??u.id??0)*.137,loop:true}}if(u.cargo?.amount>.1)return{row:7,phase:moving?.weight>.08?moving.phase/(Math.PI*2):0,loop:true};return{row:moving?.weight>.08?1:0,phase:moving?.weight>.08?moving.phase/(Math.PI*2):t*.18,loop:true}}
 function shot(f,p){const arc=f.weapon==='arrow'||f.weapon==='towerArrow'?28:f.weapon==='grenade'?48:f.weapon==='boulder'?72:12,x=f.x+(f.tx-f.x)*p,y=f.y+(f.ty-f.y)*p-Math.sin(p*Math.PI)*arc;return{x,y,angle:Math.atan2(f.ty-f.y-Math.cos(p*Math.PI)*arc*Math.PI,f.tx-f.x)}}
-const api={frames,villagerAction,shot};if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.KingdomMotion=api;
+const api={frames,frameIndex,villagerAction,shot};if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.KingdomMotion=api;
 })(typeof window==='undefined'?globalThis:window);

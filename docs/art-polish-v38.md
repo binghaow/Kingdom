@@ -1,13 +1,13 @@
 # Art & motion acceptance audit — V38
 
 Date: 2026-11-11  
-Scope: audit of the current `main` source at `b58b602`; this pass records gaps and evidence. It deliberately does not alter simulation, movement, pathfinding, collision, AI, combat balance, or production logic.
+Scope: initial audit of `main` at `b58b602`, followed by a localized worker-animation rendering fix in the current worktree. It does not alter simulation, movement, pathfinding, collision, AI, combat balance, or production logic.
 
 ## Acceptance summary
 
-**Not ready to call polished or release-ready against the requested bar.** Existing V34/V37 work provides real four-direction combat atlases, a presentation-only motion layer, pooled combat effects, staged damage/collapse art, and headless regression checks. The stored continuous-frame samples reveal that current infantry walking still relies on a standing sprite with sliced-leg deformation, not an authored 8-frame gait; the V37 diagnosis estimates foot slip at ~20%, above the required <5%. Other requirements lack a saved, one-second production-order capture, and the 200-unit physical-device target has no current evidence.
+**Not ready to call polished or release-ready against the requested bar.** Existing V34/V37 work provides real four-direction combat atlases, a presentation-only motion layer, pooled combat effects, staged damage/collapse art, and headless regression checks. The stored infantry sample shows a standing sprite with sliced-leg deformation, not an authored 8-frame gait; the V37 diagnosis estimates foot slip at ~20%, above the required <5%. Production-chain inspection also found that villagers already have authored 8-frame walk/work/carry art, but their renderer cross-faded adjacent poses with additive compositing, producing doubled silhouettes. This pass removes that worker cross-fade; the change still needs a production-browser visual capture. Other requirements lack saved one-second evidence, and the 200-unit physical-device target has no current measurement.
 
-The current test suite exercises simulation/gameplay and renderer invariants, but passing it does not establish the requested visual acceptance criteria. No new in-game behavior was changed in this audit, so there is no candidate release to publish.
+The current test suite exercises simulation/gameplay and renderer invariants, but passing it does not establish the requested visual acceptance criteria. The V38 worker-frame change is limited to rendering; the full visual/performance acceptance remains incomplete.
 
 ## Motion and rendering evidence
 
@@ -55,10 +55,18 @@ No reproducible stuck-unit, pathfinding-pause, repeated-turn, or stop/start defe
 
 Only use project-owned, generated-on-request, or otherwise redistribution-cleared art/audio. No assets were fabricated or copied during this audit. Actual capture evidence must use the exact production script order and be stored under `docs/art-polish-v38/`; link each sequence here and identify desktop/headless vs physical device.
 
+## V38 implementation update — 2026-11-11
+
+- `public/detail-art.js`: worker animation now selects one authored source frame at a time. It no longer blends two different worker poses using additive compositing, the source of doubled silhouettes. All eight source frames, action timing, cargo attachment and simulation fields remain unchanged.
+- `public/presentation-motion.js`: adds a pure frame-index helper for looping and one-shot sequences.
+- `check-motion.cjs`: adds coverage that a cycle visits all eight source frames and loop/clamp boundaries behave correctly.
+- No new assets or simulation changes. No new App Store compliance dependency.
+
 ## Checks and release decision
 
+- `node check-motion.cjs`: **PASS**, 6 checks including the new authored-frame cadence test.
 - `npm test`: **PASS**; `check-all.cjs` completed with exit 0. Gameplay, AI, combat, recovery, maritime, world, siege, audio, networking, animation/action mapping and asset-alpha checks all passed.
 - `npm run build`: **PASS**; production Worker and client assets built; 15/15 PNGs losslessly repacked, 6.34 MiB saved.
-- Visual review: existing V37 headless strips visually inspected for infantry walk; it fails the requested gait criterion. No current production visual review performed for the other missing sequences.
-- Performance: no fresh `?perf=1` matched measurement and no device run.
-- Release: **blocked by unmet visual evidence and current performance gate**. This is a documentation-only audit; no gameplay code or assets changed, and no new App Store compliance dependency was introduced.
+- Visual review: existing V37 headless strips visually inspected for infantry walk; it fails the requested gait criterion. The local production-order browser preview was opened and the changed worker renderer was watched across successive frames; the previous doubled-pose ghosting was not visible. This was a desktop browser spot check only. A saved one-second sequence is still missing under `docs/art-polish-v38/`, so the required evidence gate is not complete; physical iPhone/iPad remain unverified.
+- Performance: no fresh `?perf=1` matched measurement and no device run. Worker compositing work is lower by design, but no FPS gain is claimed without measurement.
+- Release: **not published**; required current production visual review and matched performance check remain incomplete. No new App Store compliance dependency was introduced.

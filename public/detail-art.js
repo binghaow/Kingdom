@@ -8,7 +8,7 @@ function tint(frame,key,u){const v=A.visualState(u),id=key+':'+frame.key+':'+v.n
 function paintFrame(c,frame,key,u,scale,alpha=1,anchor){c.save();c.globalAlpha*=alpha;const img=key?tint(frame,key,u):frame.canvas;c.drawImage(img,-(anchor??frame.w/2)*scale,-(frame.anchorBottom??frame.bottom)*scale,frame.w*scale,frame.h*scale);c.restore()}
 const blended=make(540,540),bc=blended.getContext('2d');
 function blendFrames(c,a,b,key,u,scale,f){if(f<.001)return paintFrame(c,a,key,u,scale);const w=Math.max(a.w,b.w)+8,h=Math.max(a.h,b.h)+8;bc.setTransform(1,0,0,1,0,0);/* Only this crop is sampled below. Clearing it avoids a 540×540 clear per animated entity. */bc.clearRect(0,0,w,h);bc.save();bc.translate(w/2,h);bc.globalCompositeOperation='lighter';paintFrame(bc,a,key,u,1,1-f);paintFrame(bc,b,key,u,1,f);bc.restore();c.drawImage(blended,0,0,w,h,-w/2*scale,-h*scale,w*scale,h*scale)}
-function sequence(c,frames,key,u,scale,phase,loop=true){const f=M.frames(phase,frames.length,loop,key==='worker');blendFrames(c,frames[f.a],frames[f.b],key,u,scale,f.blend)}
+function sequence(c,frames,key,u,scale,phase,loop=true){if(key==='worker'){const i=M.frameIndex(phase,frames.length,loop);paintFrame(c,frames[i],key,u,scale);return i}const f=M.frames(phase,frames.length,loop,false);blendFrames(c,frames[f.a],frames[f.b],key,u,scale,f.blend);return f.a}
 A.detailFrames={slice,paintFrame,sequence};
 
 function shadow(c,u,w,selected){c.save();c.fillStyle='#11271955';c.beginPath();c.ellipse(u.x,u.y+7,w*.29,Math.max(4,w*.085),0,0,7);c.fill();c.strokeStyle=selected?'#f0d699':A.teamColor(u);c.lineWidth=selected?2:1.1;c.stroke();c.restore()}
