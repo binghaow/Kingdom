@@ -30,7 +30,7 @@ async function burst(rounds){const {DatabaseSync}=require('node:sqlite'),{sqlite
   finally{Date.now=realNow;crypto.getRandomValues=realRandom}}
 async function run({quick=false}={}){const reps=quick?2:3;
   const opening=serverCost(['--seats','2','--fog','0','--seed','4242','--checkpoints','2','--polls','40'],reps);
-  const four=serverCost(['--seats','4','--fog','1','--seed','4242','--checkpoints',quick?'3':'4','--polls','30'],reps);
+  const four=serverCost(['--seats','4','--fog','1','--seed','4242','--checkpoints',quick?'3':'4','--polls',quick?'30':'40'],reps);
   const conflicts=await burst(quick?6:12);
   const latency=[];for(const [name,seats,cpu] of [['2 人开局',2,opening[0].cpuMeanMs],['4 人 ~170 单位',4,four[2].cpuMeanMs],...(four[3]?[['4 人 ~570 单位对攻',4,four[3].cpuMeanMs]]:[])])for(const rtt of [40,100,200]){const m=L.simulateP0({rtt,cpu,d1:20,seats});latency.push({scenario:name,seats,rttMs:rtt,d1Ms:20,cpuMs:cpu,conflictsPerReqModel:m.conflictsPerReq,ackMeanMs:m.ackMean,ackP95Ms:m.ackP95,firstMoveMeanMs:m.moveMean,firstMoveP95Ms:m.moveP95,ownUnitOnScreen:'next frame (local prediction)'})}
   return {reps,opening,fourSeats:four,conflicts,latency,assumptions:'RTT 40/100/200 ms 与 D1 往返 20 ms 为假设值；CPU 为本机 Node 实测（内存 SQLite），不是 Cloudflare Worker / D1 实测。'}}

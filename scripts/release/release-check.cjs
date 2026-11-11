@@ -23,6 +23,8 @@ const RULES={
   size:{warn:.10,fail:.15,floor:1},
   hud:{warn:.50,fail:1.5,floor:6},          // ?perf=1 HUD medians from a handful of 2-3 s frames: WARN signal; frame interval and per-frame counts gate render
   tail:{warn:.30,fail:1.0,floor:10},        // p95 of a few dozen samples (server CPU per poll, sim step p95): mostly WARN, FAIL only when doubled; the mean gates carry FAIL
+  server:{warn:.20,fail:.30,floor:3},       // server CPU per poll, median of 3 runs x 30-40 polls; the sandbox VM shows about +-20% between runs
+  derived:{warn:.25,fail:1.0,floor:50},     // latency model outputs: amplify CPU noise, the CPU gates carry FAIL
   countNoisy:{warn:.20,fail:.35,floor:5},   // per-frame Canvas counts: depend on how far the melee has progressed           // ?perf=1 HUD medians from few frames (headless render JS time)         // response KB (deterministic for a pinned seed)
 };
 function gate(results,base){const checks=[];
@@ -42,9 +44,9 @@ function gate(results,base){const checks=[];
   if(results.render&&!results.render.skipped){for(const v of ['desktop','phone']){const r=results.render[v],b=base?.render?.[v]||{};if(!r)continue;add('渲染',`${v} 帧间隔 p50`,r.frameP50,b.frameP50,'timingNoisy','ms');add('渲染',`${v} 帧间隔 p95`,r.frameP95,b.frameP95,'timingNoisy','ms');add('渲染',`${v} render p50`,r.renderP50,b.renderP50,'hud','ms');/* HUD render p95 is reported, not gated: with 2-3 s software-raster frames it rests on a handful of samples */add('渲染',`${v} 每帧 drawImage`,r.drawImagePerFrame,b.drawImagePerFrame,'countNoisy');add('渲染',`${v} 每帧带 filter 的绘制`,r.filteredDrawsPerFrame,b.filteredDrawsPerFrame,'countNoisy');
       if(r.errors?.length)custom('渲染',`${v} 页面错误`,r.errors.length,0,'FAIL',r.errors.join(' | ').slice(0,200))}}
   else if(results.render?.skipped)custom('渲染','Playwright',0,null,'WARN',results.render.skipped);
-  if(results.net){const N=results.net,B=base?.net||{};const pairs=[['2 人',N.opening,B.opening],['4 人',N.fourSeats,B.fourSeats]];for(const [who,rows,brows] of pairs)rows.forEach((r,i)=>{const b=brows?.[i]||{};add('联机',`${who} ${r.label} CPU/轮询 均值`,r.cpuMeanMs,b.cpuMeanMs,'timing','ms');add('联机',`${who} ${r.label} CPU/轮询 p95`,r.cpuP95,b.cpuP95,'tail','ms');add('联机',`${who} ${r.label} 响应`,r.respKB,b.respKB,'size','KB');add('联机',`${who} ${r.label} 响应 gzip`,r.respGzKB,b.respGzKB,'size','KB')});
+  if(results.net){const N=results.net,B=base?.net||{};const pairs=[['2 人',N.opening,B.opening],['4 人',N.fourSeats,B.fourSeats]];for(const [who,rows,brows] of pairs)rows.forEach((r,i)=>{const b=brows?.[i]||{};add('联机',`${who} ${r.label} CPU/轮询 均值`,r.cpuMeanMs,b.cpuMeanMs,'server','ms');add('联机',`${who} ${r.label} CPU/轮询 p95`,r.cpuP95,b.cpuP95,'tail','ms');add('联机',`${who} ${r.label} 响应`,r.respKB,b.respKB,'size','KB');add('联机',`${who} ${r.label} 响应 gzip`,r.respGzKB,b.respGzKB,'size','KB')});
     const c=N.conflicts,bc=B.conflicts;if(c){const d=c.conflictsPerReq-(bc?.conflictsPerReq??c.conflictsPerReq);custom('联机','同时到达冲突重算 次/请求',c.conflictsPerReq,bc?.conflictsPerReq,c.failedRequests>0?'FAIL':d>.5?'FAIL':d>.25?'WARN':'PASS',c.failedRequests?`${c.failedRequests} 个请求因冲突失败`:d>.25?`上升 ${r2(d)}`:'');add('联机','同时到达 额外 CPU',c.cpuPerRoundSimultaneousMs,bc?.cpuPerRoundSimultaneousMs,'timingNoisy','ms')}
-    const BL=Object.fromEntries((B.latency||[]).map(l=>[l.scenario+'@'+l.rttMs,l]));for(const l of N.latency){const b=BL[l.scenario+'@'+l.rttMs]||{};add('联机',`${l.scenario} RTT ${l.rttMs} 首次权威位移（模型）`,l.firstMoveMeanMs,b.firstMoveMeanMs,'timing','ms')}}
+    const BL=Object.fromEntries((B.latency||[]).map(l=>[l.scenario+'@'+l.rttMs,l]));for(const l of N.latency){const b=BL[l.scenario+'@'+l.rttMs]||{};add('联机',`${l.scenario} RTT ${l.rttMs} 首次权威位移（模型）`,l.firstMoveMeanMs,b.firstMoveMeanMs,'derived','ms')}}
   return checks}
 
 function verdict(checks){return checks.some(c=>c.status==='FAIL')?'FAIL':checks.some(c=>c.status==='WARN')?'WARN':'PASS'}
