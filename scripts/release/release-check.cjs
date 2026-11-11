@@ -6,7 +6,7 @@
    usage: npm run release-check [-- --quick] [-- --update-baseline] [-- --only path,sim,render,net] [-- --no-report]
    Diagnostics only: all instrumentation lives in scripts/release and is attached to test instances or to pages opened with
    ?perf=1; no game file is changed and normal play is unaffected. */
-const fs=require('node:fs'),path=require('node:path'),{execSync}=require('node:child_process'),{ROOT,now,r1,r2,args}=require('./lib.cjs');
+const fs=require('node:fs'),path=require('node:path'),{execSync}=require('node:child_process'),{ROOT,now,r1,r2,args,calibrate}=require('./lib.cjs');
 process.removeAllListeners('warning');/* node:sqlite prints an ExperimentalWarning in-process */
 const BASELINE=path.join(__dirname,'baseline.json'),REPORTS=path.join(ROOT,'docs/release-reports');
 const a=args(),quick=!!a.quick,mode=quick?'quick':'full',only=a.only?new Set(String(a.only).split(',')):null;
@@ -27,9 +27,10 @@ const RULES={
   derived:{warn:.25,fail:1.0,floor:50},     // latency model outputs: amplify CPU noise, the CPU gates carry FAIL
   countNoisy:{warn:.20,fail:.35,floor:5},   // per-frame Canvas counts: depend on how far the melee has progressed           // ?perf=1 HUD medians from few frames (headless render JS time)         // response KB (deterministic for a pinned seed)
 };
-function gate(results,base){const checks=[];
+const SCALED=new Set(['timing','timingNoisy','server','tail','hud','derived']);
+function gate(results,base){const checks=[],speed=base?.calibrationMs&&results.calibrationMs?Math.min(1.6,Math.max(.6,results.calibrationMs/base.calibrationMs)):1;
   const add=(area,name,value,ref,rule,unit='')=>{if(value===undefined||value===null||Number.isNaN(value))return;const R0=RULES[rule],k=quick?1.5:1,R={warn:R0.warn*k,fail:R0.fail*k,floor:R0.floor};/* --quick has fewer repetitions: thresholds 1.5x looser */let status='PASS',why='';
-    if(ref===undefined||ref===null){status='WARN';why='基线中没有此项'}else{const diff=value-ref,rel=ref?diff/ref:(diff>0?Infinity:0);if(diff>R.floor&&rel>R.fail){status='FAIL';why=`比基线高 ${Math.round(rel*100)}%（门槛 ${Math.round(R.fail*100)}%）`}else if(diff>R.floor&&rel>R.warn){status='WARN';why=`比基线高 ${Math.round(rel*100)}%（警告线 ${Math.round(R.warn*100)}%）`}}
+    if(ref===undefined||ref===null){status='WARN';why='基线中没有此项'}else{const adj=SCALED.has(rule)?value/speed:value,diff=adj-ref,rel=ref?diff/ref:(diff>0?Infinity:0);if(diff>R.floor&&rel>R.fail){status='FAIL';why=`比基线高 ${Math.round(rel*100)}%（门槛 ${Math.round(R.fail*100)}%${SCALED.has(rule)&&speed!==1?`，已按机器速度系数 ${r2(speed)} 校正`:''}）`}else if(diff>R.floor&&rel>R.warn){status='WARN';why=`比基线高 ${Math.round(rel*100)}%（警告线 ${Math.round(R.warn*100)}%${SCALED.has(rule)&&speed!==1?`，已按机器速度系数 ${r2(speed)} 校正`:''}）`}}
     checks.push({area,name,value,baseline:ref??null,unit,rule,status,why})};
   const custom=(area,name,value,ref,status,why,unit='')=>checks.push({area,name,value,baseline:ref??null,unit,rule:'custom',status,why});
   if(results.path){const B=Object.fromEntries((base?.path?.scenarios||[]).map(s=>[s.scenario,s]));for(const s of results.path.scenarios){const b=B[s.scenario],A=s.astar,BA=b?.astar||{},n=s.scenario;
@@ -47,7 +48,7 @@ function gate(results,base){const checks=[];
   if(results.net){const N=results.net,B=base?.net||{};const pairs=[['2 人',N.opening,B.opening],['4 人',N.fourSeats,B.fourSeats]];for(const [who,rows,brows] of pairs)rows.forEach((r,i)=>{const b=brows?.[i]||{};add('联机',`${who} ${r.label} CPU/轮询 均值`,r.cpuMeanMs,b.cpuMeanMs,'server','ms');add('联机',`${who} ${r.label} CPU/轮询 p95`,r.cpuP95,b.cpuP95,'tail','ms');add('联机',`${who} ${r.label} 响应`,r.respKB,b.respKB,'size','KB');add('联机',`${who} ${r.label} 响应 gzip`,r.respGzKB,b.respGzKB,'size','KB')});
     const c=N.conflicts,bc=B.conflicts;if(c){const d=c.conflictsPerReq-(bc?.conflictsPerReq??c.conflictsPerReq);custom('联机','同时到达冲突重算 次/请求',c.conflictsPerReq,bc?.conflictsPerReq,c.failedRequests>0?'FAIL':d>.5?'FAIL':d>.25?'WARN':'PASS',c.failedRequests?`${c.failedRequests} 个请求因冲突失败`:d>.25?`上升 ${r2(d)}`:'');add('联机','同时到达 额外 CPU',c.cpuPerRoundSimultaneousMs,bc?.cpuPerRoundSimultaneousMs,'timingNoisy','ms')}
     const BL=Object.fromEntries((B.latency||[]).map(l=>[l.scenario+'@'+l.rttMs,l]));for(const l of N.latency){const b=BL[l.scenario+'@'+l.rttMs]||{};add('联机',`${l.scenario} RTT ${l.rttMs} 首次权威位移（模型）`,l.firstMoveMeanMs,b.firstMoveMeanMs,'derived','ms')}}
-  return checks}
+  checks.speed=speed;return checks}
 
 function verdict(checks){return checks.some(c=>c.status==='FAIL')?'FAIL':checks.some(c=>c.status==='WARN')?'WARN':'PASS'}
 
@@ -55,7 +56,7 @@ function verdict(checks){return checks.some(c=>c.status==='FAIL')?'FAIL':checks.
 const fmt=v=>v===null||v===undefined?'—':typeof v==='number'?String(r2(v)):String(v);
 function markdown(results,checks,base,elapsed){const V=verdict(checks),fails=checks.filter(c=>c.status==='FAIL'),warns=checks.filter(c=>c.status==='WARN'),L=[];
   L.push(`# 发布前常规检查 ${meta.date.slice(0,10)} · ${meta.commit}${meta.dirty?'（工作区有未提交改动）':''}`,'',a['update-baseline']?'## 结论：**BASELINE**（本次运行写入了新基线，未做门槛比较）':`## 结论：**${V}**`,'');
-  L.push(`- 模式 ${mode}，分支 \`${meta.branch}\`，基线 ${base?`${base.meta?.commit}（${base.meta?.date?.slice(0,10)}，${base.meta?.mode}）`:'无'}，耗时 ${Math.round(elapsed)} 秒，Node ${meta.node}，${meta.cpus} 核。`);
+  L.push(`- 模式 ${mode}，分支 \`${meta.branch}\`，基线 ${base?`${base.meta?.commit}（${base.meta?.date?.slice(0,10)}，${base.meta?.mode}）`:'无'}，耗时 ${Math.round(elapsed)} 秒，Node ${meta.node}，${meta.cpus} 核；机器速度校准 ${results.calibrationMs} ms（基线 ${base?.results?.calibrationMs??'—'} ms，耗时项按系数 ${r2(checks.speed??1)} 校正后再比较）。`);
   L.push(`- ${checks.length} 项门槛：PASS ${checks.filter(c=>c.status==='PASS').length} · WARN ${warns.length} · FAIL ${fails.length}。任何 FAIL 都不得发布（AGENTS.md）。`);
   for(const c of [...fails,...warns])L.push(`- **${c.status}** ${c.area} · ${c.name}：${fmt(c.value)}${c.unit} vs 基线 ${fmt(c.baseline)}${c.unit} — ${c.why}`);
   const P=results.path;if(P){const all=P.scenarios.flatMap(s=>s.stuck.samples);L.push('','## 卡住单位',`规则：有移动意图（路径或远处的移动/攻击/采集目标）、未在战斗或工作、${P.stuckRule.windowSec} 秒内位移 < ${P.stuckRule.thresholdPx} 像素；挤在共同终点附近的单位与“目标被围死”的预期情况单列，不计入卡住数。`,'');
@@ -75,15 +76,15 @@ function markdown(results,checks,base,elapsed){const V=verdict(checks),fails=che
   L.push('','## 仍需真机验证（本检查不能代替）','','- iPhone 17 / iPad 实机 `?perf=1` 帧率、render/scene、发热与降频（headless 无 GPU，数字只用于提交之间比较）。','- Safari/WebKit 上的渲染与内存（这里只测 Chromium）。','- Cloudflare Worker / D1 实际 CPU、isolate 复用率、D1 往返和真实冲突率；跨设备、弱网、丢包、后台恢复。','- 触控操作、HUD 布局与双语文本（Frontier UI audit 另行执行）。');
   return L.join('\n')+'\n'}
 
-(async()=>{const t0=now();const base=fs.existsSync(BASELINE)?JSON.parse(fs.readFileSync(BASELINE,'utf8')):null,baseMode=base?.[mode]||null;const results={};
+(async()=>{if(only&&a['update-baseline'])throw Error('--update-baseline must run every section (the speed calibration is shared by all of them); drop --only');const t0=now(),cal0=calibrate();const base=fs.existsSync(BASELINE)?JSON.parse(fs.readFileSync(BASELINE,'utf8')):null,baseMode=base?.[mode]||null;const results={};
   const step=async(key,label,fn)=>{if(only&&!only.has(key))return;const t=now();process.stdout.write(`[release-check] ${label} …`);results[key]=await fn();console.log(` ${r1((now()-t)/1000)} s`)};
   await step('path','路径分析与卡住单位',()=>require('./path-analysis.cjs').run({quick}));
   await step('sim','模拟开销 50/100/200/400 单位',()=>require('./sim-cost.cjs').run({quick}));
   await step('render','渲染帧耗时（Playwright）',()=>require('./render-cost.cjs').run({quick}));
   await step('net','服务器与联机延迟',()=>require('./net-cost.cjs').run({quick}));
-  const elapsed=(now()-t0)/1000;
+  results.calibrationMs=r2((cal0+calibrate())/2);const elapsed=(now()-t0)/1000;
   if(a['update-baseline']){const next=base||{},previous=base?.[mode]?.results;next[mode]={meta,results};next.meta={updated:meta.date,commit:meta.commit,branch:meta.branch,note:'release-check baselines; full and quick runs are compared only with the same mode. Regenerate with npm run release-check -- --update-baseline [--quick] on the same machine.'};if(only&&previous)next[mode].results={...previous,...results};fs.writeFileSync(BASELINE,JSON.stringify(next,null,1)+'\n');console.log(`[release-check] baseline (${mode}) written to ${path.relative(ROOT,BASELINE)}`)}
-  const ref=a['update-baseline']?null:baseMode?.results;const checks=a['update-baseline']?[]:gate(results,ref?{...ref,meta:baseMode.meta}:null);const V=a['update-baseline']?'BASELINE':verdict(checks);
+  const ref=a['update-baseline']?null:baseMode?.results;const checks=a['update-baseline']?[]:gate(results,ref?{...ref,meta:baseMode.meta}:null);if(ref&&!ref.calibrationMs)checks.push({area:'机器',name:'速度校准',value:results.calibrationMs,baseline:null,unit:'ms',rule:'custom',status:'WARN',why:'基线没有速度校准，耗时项未校正；请重建基线'});const V=a['update-baseline']?'BASELINE':verdict(checks);
   const md=markdown(results,checks,a['update-baseline']?null:baseMode,elapsed);
   if(!a['no-report']){fs.mkdirSync(REPORTS,{recursive:true});const name=`${meta.date.slice(0,10)}-${meta.commit}${quick?'-quick':''}`;fs.writeFileSync(path.join(REPORTS,name+'.md'),md);fs.writeFileSync(path.join(REPORTS,name+'.json'),JSON.stringify({verdict:V,meta,baseline:baseMode?.meta||null,checks,results},null,1)+'\n');console.log(`[release-check] report: docs/release-reports/${name}.md`)}
   for(const c of checks.filter(c=>c.status!=='PASS'))console.log(`  ${c.status} ${c.area} · ${c.name}: ${fmt(c.value)}${c.unit} vs ${fmt(c.baseline)}${c.unit} — ${c.why}`);
