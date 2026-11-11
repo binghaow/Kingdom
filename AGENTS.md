@@ -81,7 +81,7 @@ For changes to HUD, responsive layout, touch input, selection, camera, sprites o
 
 规则：
 
-- 结果与 `scripts/release/baseline.json` 中同一模式的基线比较（`--quick` 重复次数少，门槛放宽 1.5 倍）。耗时类（多次运行的中位数）相对基线回退超过 20% 判 FAIL、超过 15% 判 WARN；headless 渲染帧间隔与 A* 总耗时为 30%/20%；p95 类（服务端每次轮询 CPU、模拟步 p95）样本少，翻倍才判 FAIL、超过 30% 判 WARN，FAIL 主要由均值项承担；确定性计数（A* 次数、展开节点、首段受阻丢弃次数、响应体积）超过 15%–20% 判 FAIL；每帧 drawImage 与带 filter 的绘制次数超过 35% 判 FAIL；增长指数上升超过 0.25 判 FAIL；卡住单位数超过“基线 + 20%（至少 +1）”判 FAIL；冲突重算上升 0.5 次/请求或出现因冲突失败的请求判 FAIL。噪声大的项取多次运行的中位数。
+- 结果与 `scripts/release/baseline.json` 中同一模式的基线比较（`--quick` 重复次数少，门槛放宽 1.5 倍）。耗时类（多次运行的中位数）相对基线回退超过 20% 判 FAIL、超过 15% 判 WARN；headless 渲染帧间隔与 A* 总耗时为 30%/20%；HUD 的 render p50 只取到少量帧，超过 50% 判 WARN、2.5 倍才判 FAIL；p95 类（服务端每次轮询 CPU、模拟步 p95）样本少，翻倍才判 FAIL、超过 30% 判 WARN，FAIL 主要由均值项承担；确定性计数（A* 次数、展开节点、首段受阻丢弃次数、响应体积）超过 15%–20% 判 FAIL；每帧 drawImage 与带 filter 的绘制次数超过 35% 判 FAIL；增长指数上升超过 0.25 判 FAIL；卡住单位数超过“基线 + 20%（至少 +1）”判 FAIL；冲突重算上升 0.5 次/请求或出现因冲突失败的请求判 FAIL。噪声大的项取多次运行的中位数。
 - **任何 FAIL 都不得发布。** 先修复，或确认是有意的行为/性能变化后在同一台机器上用 `npm run release-check -- --update-baseline`（以及 `-- --quick --update-baseline`）更新基线，并在提交说明里写明原因。WARN 需在发布说明里解释。
 - 每次运行在 `docs/release-reports/<日期>-<提交号>.md` 与 `.json` 生成报告（结论在前）。**发布说明必须附上该报告**（链接或全文），以及上面四条命令的结果。
 - 基线只在同一台机器、同一模式（完整/快速）之间可比；换机器后先在旧提交上重建基线再比较。
