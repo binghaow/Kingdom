@@ -212,4 +212,13 @@ V 时代飞艇工场先研发航空工程，再生产侦察热气球、运输飞
 试听动物、人物与城防声音|Preview animal, unit and fortification sounds
 六张地图再次扩展，边长比上一版增加约 35%|All six maps are expanded again, with sides about 35% longer
 确认|Confirm
+战鼓警报：|War drums: 
+正在集结军队，约 | is massing an army, marching in about 
+ 秒后出击| seconds
+发现敌方斥候：|Enemy scout spotted: 
+正在侦察我方营地| is scouting your base
+的军队正在撤退|'s army is retreating
+快攻|Rush
+憋经济|Boom
+龟缩|Turtle
 `.trim().split('\n').map(l=>{const i=l.indexOf('|');return[l.slice(0,i),l.slice(i+1)]})));if(typeof module!=='undefined')module.exports=root.KingdomLocaleData})(typeof window==='undefined'?globalThis:window);
