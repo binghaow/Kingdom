@@ -67,7 +67,8 @@
 - render 和 scene 持平，p95 下降。帧间隔约 900 ms 是 headless 无 GPU 加上共享 2 核虚拟机的合成开销，两个版本一样，不是墙造成的。
 - drawImage 正好增加约“每段墙一次”，因为原来的矢量路径换成了一次贴图。
 - 两个版本里带 filter 的绘制都只来自 `precision-picking.js` 的 `drawOccluded`（被建筑挡住的单位的可点剪影）。之后多 1 次，是因为墙变高后多挡住了一个村民，属于预期行为。
-- `npm run release-check -- --only render`：10 PASS / 0 WARN / 0 FAIL（这个会战场景里没有墙，只能说明没有引起其它回退）。完整 release-check 的结果见提交后生成的报告。
+- `npm run release-check -- --only render`：10 PASS / 0 WARN / 0 FAIL（这个会战场景里没有墙，只能说明没有引起其它回退）。
+- **完整 `npm run release-check`（提交 e64d0b4）：92 PASS / 1 WARN / 1 FAIL，结论 FAIL，不得发布。** FAIL 是“模拟 · 50 单位每步均值”（+32%），WARN 是“opening A* 总耗时”（+28%）。两项都是 Node 里的纯模拟计时，而本次只改了浏览器里的渲染文件（wall-art.js、painted-architecture.js、sw.js），模拟代码逐字节相同。这次运行时机器速度校准为 53.3 ms（基线 32.8 ms），已经超过 1.6 倍的校正上限，所以校正不足。为了核实，我把基础提交 9b3cbb0 和 e64d0b4 各导出一份，交替各跑两次 `--only sim`：基础提交在同一项上同样 FAIL（4.72 / 4.95 ms，新提交是 4.93 / 5.06 ms，差别在噪声范围内）。结论：这个 FAIL 来自共享机器的负载（同时还有另外两个 agent 在跑），不是本次改动造成的。没有更新基线。发布前需要在机器空闲时重跑完整 release-check，确认没有 FAIL。报告：`docs/release-reports/2026-11-11-e64d0b4.md`。
 - 新增 PNG 842,608 字节（1272×880），解码后约 4.5 MiB 显存/内存；Service Worker 预缓存了它和它的 JSON，版本号已更新。
 
 ## 删除 `ornament()`
