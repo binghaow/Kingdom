@@ -251,3 +251,11 @@ I reran the new `scripts/netcode/server-cost.cjs` against the pre-merge `main` a
 | simulated 60 s, 64 units | 434.4 / 437 / 515 → 84 / 78 / 141 | 197.4 → 53.6 |
 
 The two checkpoints show lower CPU and payload size in the candidate; single-run CPU p50/p95 remain noisy on this shared machine. End-to-end latency figures in `netcode-p0.md` remain modeled estimates, and real two-device online latency and Cloudflare Worker/D1 CPU are unverified.
+
+### 2026-11-10 debug-production and attack-order change
+
+The combat fix stores the explicit target's last known coordinates when the player issues an attack, then changes that order to a one-time advance if the target disappears. It adds no roster/map scan or other per-frame search. The debug unlock changes only menu filtering and gated action validation; the existing one-second debug build/train/research cadence is preserved.
+
+I ran `scripts/perf/sim-scaling.cjs` against `HEAD` and the working candidate with the same Node runtime, 205 on-field units, seed, and 120 steps. Two paired samples were noisy: baseline mean 33.46/19.26 ms per 50 ms simulation step, candidate 35.78/18.85 ms; p50 baseline 23.94/12.06 ms, candidate 26.71/11.69 ms. The direction flips between runs, so these measurements do not establish a regression; p95/max spikes were also variable. They are Node-only measurements with no browser rendering, not iPhone/iPad evidence. The prior audit's ~10 ms at this scale is not directly comparable to this run because the execution load differs.
+
+Full `npm test` and `npm run build` passed. Local browser preview could not connect to `127.0.0.1:8765` in this environment, so no visual browser confirmation was available. Physical iPhone/iPad/desktop play remains unverified; use the existing in-game performance HUD after release for those checks.

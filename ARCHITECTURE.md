@@ -15,6 +15,12 @@ The AI is extended through the existing class chain rather than a parallel subsy
 
 `check-all.cjs` runs simulation regression suites; `check-ai-phase1.cjs` covers the new AI decisions and a small Node timing sample.
 
+## Debug-mode production and attack orders (2026-11-10)
+
+- Single-player debug bypasses era, nation, technology, population, resource and queue-cap gates for otherwise valid units/buildings and research. Producer compatibility, legal placement, builder requirements, and unit/building validity remain enforced. The build catalogue's `All` tab exposes nation-specific structures and training catalogues expose nation-specific units while debug is active. Building, unit and research work retains its existing one-second debug cadence. Turning debug off restores the ordinary checks; debug remains unavailable in multiplayer.
+- Explicit attack orders retain the target's last known coordinates. If that target is removed or destroyed, the order changes to an advance toward those coordinates, allowing the unit to keep moving and resume automatic target acquisition instead of stopping with a stale attack command. Fresh player orders still replace it immediately.
+- Regression coverage: `check-companions.cjs` and `check-combat-ai.cjs` cover debug gating/restoration and the dead-target advance path. This change adds no per-frame roster or map scan.
+
 ## Current AI audit
 
 ### Already present

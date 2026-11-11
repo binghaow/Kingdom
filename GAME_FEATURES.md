@@ -2,6 +2,9 @@
 
 ## Computer opponents
 
+- Single-player debug mode exposes all country-specific building options in the `All` build tab and country-specific unit options at their valid production buildings. It skips normal age, nation, research, resource, population and queue limits for debug construction/training/research and completes them in about one second. Turning debug off restores normal progression. Placement safety and producer compatibility remain active; multiplayer cannot enable debug.
+- When a player-issued attack target dies, surviving attackers continue toward its last known position and then use normal nearby target acquisition, preventing rear units from idling after the initial target disappears.
+
 - Six selectable profiles: Sandbox, Beginner, Easy, Normal, Hard and Expert. Profiles configure economic/combat scaling, army caps, raid size/cadence, age pace and strategic think interval.
 - Computer workers gather food, wood, gold and stone; fishing boats collect food; markets can train traders. Resource searches in fog-enabled matches use explored resources.
 - The computer develops its town, houses, military buildings, markets, docks and later-era infrastructure; it advances ages and researches technologies through the existing technology tree.
