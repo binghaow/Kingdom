@@ -2,7 +2,7 @@
 ((root)=>{
 'use strict';
 const K=typeof module!=='undefined'&&module.exports?require('./coalitions.js'):root.KingdomSim;
-const Base=K.Sim,D=K.defs,T=K.tech,N=K.nations,dist=K.distance;
+const Base=K.Sim,D=K.defs,T=K.tech,N=K.nations,dist=K.distance;const VOLLEY_DRILL=.9;
 const levels={
  sandbox:{name:'沙盒',grace:0,economy:.45,damage:0,cap:0,wave:0,raid:Infinity,train:2,age:2.2,think:21,defense:0,description:'电脑不主动组织军队，适合自由建设与试验'},
  beginner:{name:'入门',grace:0,economy:.45,damage:.55,cap:14,wave:4,raid:360,train:1.8,age:1.9,think:21,defense:.25,description:'电脑慢发展、低伤害、小规模进攻'},
@@ -93,8 +93,11 @@ class Dynasties extends Base{
  researchError(b,key){if(key!=='age'&&T[key]){if(T[key].age>this.s.ages[b?.team||0])return '需要 '+K.ageNames[T[key].age];if(T[key].nation&&T[key].nation!==this.nation(b?.team||0).id)return '需要本国国家学说'}if(key==='age'&&b?.team>0){const earliest=[240,510,840,1200][this.s.ages[b.team]-1]*this.profile(b.team).age;if(this.s.time<earliest)return '电脑按难度逐步推进时代'}return super.researchError(b,key)}
  applyResearch(team,key){super.applyResearch(team,key);if(key==='masonry')for(const b of this.s.buildings.filter(b=>b.team===team)){const ratio=b.hp/b.maxhp;b.maxhp=this.stat(b,'hp');b.hp=b.maxhp*ratio}}
  canTarget(u,e){return !this.protection(u.team,e.team)&&super.canTarget(u,e)}
- damage(e,amount,source){if(source&&this.protection(source.team,e.team))return;if(source?.kind==='howitzer'&&D[e.kind].building)amount*=1.8;if(e.buff?.until>this.s.time)amount*=e.buff.reduction||1;const before=e.hp;super.damage(e,amount,source);if(e.hp<before)e.lastHurtAt=this.s.time}
- strike(u,e){if(!this.canTarget(u,e))return;super.strike(u,e);if(this.nation(u.team).id==='ottoman'&&D[u.kind].role==='musketeer'&&this.s.tech[u.team].doctrine_ottoman)u.cool*=.9}
+ damage(e,amount,source){if(source&&this.protection(source.team,e.team))return;if(source?.kind==='howitzer'&&D[e.kind].building)amount*=K.structureFollowup('howitzer');if(e.buff?.until>this.s.time)amount*=e.buff.reduction||1;const before=e.hp;super.damage(e,amount,source);if(e.hp<before)e.lastHurtAt=this.s.time}
+ strike(u,e){if(!this.canTarget(u,e))return;super.strike(u,e);if(this.volleyDrill(u))u.cool*=VOLLEY_DRILL}
+ volleyDrill(u){return this.nation(u.team).id==='ottoman'&&D[u.kind].role==='musketeer'&&this.s.tech[u.team].doctrine_ottoman}
+ /* Read-only: nominal seconds between attacks as strike() sets them (UI and checks only). */
+ attackInterval(e){const v=super.attackInterval(e);return this.volleyDrill(e)?v*VOLLEY_DRILL:v}
  skillError(u){if(!D[u?.kind]?.hero)return '请选择英雄';if(u.hp<=0||u.embarkedOn)return '英雄目前无法行动';if((u.skillReadyAt||0)>this.s.time)return '冷却 '+Math.ceil(u.skillReadyAt-this.s.time)+' 秒';if(this.s.resources[u.team].gold<this.nation(u.team).skill.cost)return '技能黄金不足';return ''}
  skill(u){const error=this.skillError(u);if(error)return error;const d=this.nation(u.team).skill,s=this.s;let targets=[],limit=6;const allies=s.units.filter(v=>this.allied(u.team,v.team)&&!this.sea(v)&&!this.air?.(v)&&!v.embarkedOn&&dist(u,v)<=220),enemies=s.units.filter(v=>this.hostile(u.team,v.team)&&(!this.canSee||this.canSee(u.team,v))&&!this.protection(u.team,v.team)&&!this.sea(v)&&!this.air?.(v)&&!v.embarkedOn&&dist(u,v)<(d.type==='sweep'?100:d.type==='shot'?280:260));
   if(['volley','sweep','shot'].includes(d.type)){limit=d.type==='shot'?1:d.type==='sweep'||this.nation(u.team).id==='ottoman'?4:5;targets=enemies.sort((a,b)=>dist(u,a)-dist(u,b)).slice(0,limit);if(!targets.length)return '技能范围内没有可攻击的陆军';const amount=d.type==='shot'?95:d.type==='sweep'?48:this.nation(u.team).id==='ottoman'?45:35;for(const t of targets)this.damage(t,amount,u);this.fx('explosion',{x:targets[0].x,y:targets[0].y,size:d.type==='shot'?18:65},.7)}
