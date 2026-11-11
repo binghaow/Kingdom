@@ -224,3 +224,27 @@ No single-player code was changed in this pass: nothing here is a confirmed, iso
 - Multiplayer latency figures in netcode-p0.md are model outputs with assumed RTT and D1 round-trip times.
 
 No new release-compliance dependency was introduced.
+
+## 2026-11-10 发布前常规检查（release-check）
+
+新增 `npm run release-check`（`scripts/release/`），每次发布前必须运行，规则见 AGENTS.md“发布前常规检查（必须）”。它复用 `scripts/perf/sim-scaling.cjs`、`scripts/netcode/server-cost.cjs`、`scripts/netcode/latency-model.cjs`（后两者只加了可选的提前停止与库导出），并新增：
+
+- `path-analysis.cjs`：四个脚本场景（开局、200 单位会战、围攻被城墙围死的目标、160 单位大编队一次下令）的 A* 统计与卡住单位检测。挂钩只装在测试实例上；A* 展开节点借用 engine.js 已有的 opt-in 计数，仅在每次 findPath 调用期间启用。
+- `render-cost.cjs`：Playwright + headless Chromium（`--disable-gpu`）打开真实游戏 `?perf=1`，桌面与手机视口约 200 单位会战，记录帧间隔、HUD 的 render/scene，以及每帧 drawImage 与带 `ctx.filter` 的绘制次数（计数器只注入测试页面）。
+- `net-cost.cjs`：服务端每次轮询 CPU 与响应体积、4 席位同时到达的冲突重算（实测）、时延模型。
+- 结果与 `scripts/release/baseline.json` 比较，输出 PASS/WARN/FAIL，并写入 `docs/release-reports/`。
+
+### 首次运行的发现（基线 = claude/netcode-p0 的游戏代码）
+
+- **卡住单位，确定性复现**（模拟无随机数，每次相同）：
+  1. *首段受阻的死循环*：A* 网格按默认小半径单位、以格子中心判定；`Siege.walk()` 按单位真实半径逐段检查。若单位当前位置到第一个路点的直线擦过建筑角（开局村民贴着靶场）或窄通道对火炮太窄（大编队里的火炮），这段移动被判阻挡，路线被丢弃并记入不可达缓存，1.8 秒后重新寻路得到同一条路线，再次被丢弃，单位永久原地不动（样例 119.5 秒、69.5 秒）。
+  2. *迎面僵持*：两个单位在同一行格子中心上相向而行（会战里一名步兵与一名村民），碰撞分离沿同一直线把两者推回；`walk()` 的卡住恢复只比较本次 walk 内的位移，看不到之后碰撞造成的回退，所以从不触发绕行，两者整场不动。
+  3. *围攻被围死的目标*：60 个攻击者全部 `engagementBlocked` 原地不动，不会转去攻击城墙；`engagementPoint()` 每个单位每 2 秒做最多 6 次全图洪泛 A*（每次展开 10,608 格、约 1.5 ms），且所有单位的 2 秒记忆同时过期，造成约每 2 秒一次 ~600 ms 的模拟步尖峰。这一路径不经过 `pathFailures` 不可达缓存。
+- **渲染**：在无 GPU 的 headless Chromium 中，约 200 单位场景每帧约 40 次带 `ctx.filter` 的绘制（单位被树木/建筑遮挡时 `precision-picking.js` 的剪影描边 `brightness(0) invert(1) drop-shadow(...)`，以及受击闪光 `brightness(...)`）。在测试页面中临时把 filter 置空做对照：帧间隔约 3.8 s → 去掉 drop-shadow 后约 0.76 s → 去掉全部 filter 后约 0.08 s。软件光栅放大了这个差距，真机 GPU / Safari 上的比例未测，但 `ctx.filter` 是需要在 iPhone 上用 `?perf=1` 优先确认的候选热点。
+- **联机**：4 席位请求同时到达时，进程内实测乐观锁冲突约 1.4 次/请求，每轮 CPU 约翻倍；线上冲突率取决于 D1 往返与请求错开程度，未实测。
+
+以上均为诊断结论，本次没有修改任何游戏代码或数值。修复（网格/逐段检查使用一致的单位半径或对首段做容差、碰撞回退纳入卡住判定、围死目标时转攻城墙并错开重试、替换 canvas filter 描边）需单独立项，并在修复后用 `--update-baseline` 更新基线。
+
+### 未验证
+
+- 真机（iPhone 17 / iPad）帧率与发热、Safari 的 filter 开销、Cloudflare Worker / D1 线上数据均未测；headless 渲染数字只作提交之间的回退信号。
