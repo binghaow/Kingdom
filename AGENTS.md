@@ -70,3 +70,31 @@ For changes to HUD, responsive layout, touch input, selection, camera, sprites o
 - Prewarm land and sea navigation data before active simulation/resume so the first unit command does not pay the full grid build cost.
 - Profile update, render, pathfinding, collision, fog, minimap, visible/active entity counts, and both device/effective canvas DPR when diagnostics are enabled. Confirm findings on physical iPhone/iPad; desktop browser or Node measurements are not device evidence.
 - After performance changes, run `node check-all.cjs` and `npm run build`; record device measurements, scenario, and remaining unverified work in `docs/performance-audit.md`.
+
+## 发布前常规检查（必须）
+
+每次发布（包括部署预览链接、TestFlight 构建、合并到发布分支）之前，都必须按顺序运行并全部通过：
+
+1. `node check-all.cjs` —— 单机与联机回归。
+2. `npm run build` —— 生成 dist。
+3. `node check-artifact.cjs` —— 构建产物、Worker 与 D1 声明。
+4. `npm run release-check` —— 性能与行为门槛，约 8 分钟（`-- --quick` 约 4 分钟，只用于开发中自查，不能代替发布前的完整运行）。它依次做：
+   - **单位路径分析**：开局脚本对局、200 单位会战、围攻被城墙围死的目标、160 单位大编队一次下令四个场景，统计 A* 次数、展开节点 p50/p95/max、单次耗时、失败/重试率、不可达缓存命中、首段受阻被丢弃的路线，以及**卡住单位检测**（有移动意图、未在战斗或工作、4 秒内位移 < 16 像素），列出位置、指令与原因分类。
+   - **模拟开销**：50/100/200/400 单位每步均值/p95/max 与碰撞、索敌、寻路、迷雾分项，计算增长指数并标出超线性增长。
+   - **渲染帧耗时**：Playwright 打开真实游戏（`?perf=1`），桌面 1280×720 与手机 393×852，约 200 单位会战，取帧间隔与 render/scene p50/p95，以及每帧 drawImage 与带 filter 的绘制次数。这是无 GPU 的 headless 上限，只用于提交之间比较，不是真机帧率。
+   - **服务器与联机**：每次轮询的服务端 CPU、响应体积（gzip 前后）、4 席位同时到达时的冲突重算（实测）、下令到首次位移的模型时延（RTT 40/100/200 ms、D1 20 ms 为假设值）。
+
+规则：
+
+- 结果与 `scripts/release/baseline.json` 中同一模式的基线比较（`--quick` 重复次数少，门槛放宽 1.5 倍）。耗时类（多次运行的中位数）相对基线回退超过 20% 判 FAIL、超过 15% 判 WARN；headless 渲染帧间隔与 A* 总耗时为 30%/20%；HUD 的 render p50 只取到少量帧，超过 50% 判 WARN、2.5 倍才判 FAIL；服务端每次轮询 CPU 均值（沙箱虚拟机上次间波动约 ±20%）为 30%/20%；时延模型输出只放大 CPU 噪声，超过 25% 判 WARN、翻倍才判 FAIL；p95 类（服务端每次轮询 CPU、模拟步 p95）样本少，翻倍才判 FAIL、超过 30% 判 WARN，FAIL 主要由均值项承担；确定性计数（A* 次数、展开节点、首段受阻丢弃次数、响应体积）超过 15%–20% 判 FAIL；每帧 drawImage 与带 filter 的绘制次数超过 35% 判 FAIL；增长指数上升超过 0.25 判 FAIL；卡住单位数超过“基线 + 20%（至少 +1）”判 FAIL；冲突重算上升 0.5 次/请求或出现因冲突失败的请求判 FAIL。噪声大的项取多次运行的中位数。
+- **任何 FAIL 都不得发布。** 先修复，或确认是有意的行为/性能变化后在同一台机器上用 `npm run release-check -- --update-baseline`（以及 `-- --quick --update-baseline`）更新基线，并在提交说明里写明原因。WARN 需在发布说明里解释。
+- 每次运行在 `docs/release-reports/<日期>-<提交号>.md` 与 `.json` 生成报告（结论在前）。**发布说明必须附上该报告**（链接或全文），以及上面四条命令的结果。
+- 基线只在同一台机器、同一模式（完整/快速）之间可比；换机器后先在旧提交上重建基线再比较。每次运行开头和结尾各跑一次与游戏代码无关的固定 JS 负载作为机器速度校准，耗时项先按“当前校准 / 基线校准”系数校正再比较（共享虚拟机整体变慢不会误判为回退；系数限制在 0.6–1.6）。
+- 诊断仍须 opt-in：检查脚本只在测试实例上挂钩，或在带 `?perf=1` 的测试页面里注入计数，不修改游戏文件，正常游玩路径不得因此增加任何计时或采样。
+
+仍需真机验证（release-check 不能代替）：
+
+- iPhone 17 / iPad 实机 `?perf=1` 的帧率、render/scene 分项、长时间对局的发热与降频。
+- Safari/WebKit 的 Canvas 渲染（尤其 `ctx.filter` 的开销）与内存；release-check 只测 Chromium。
+- Cloudflare Worker / D1 线上 CPU、isolate 复用率、D1 往返、真实冲突率；跨设备、弱网、丢包、后台恢复。
+- 触控操作、HUD 布局与中英文文本（按 Frontier UI audit 执行）。

@@ -51,8 +51,8 @@ const pct=(a,p)=>{const s=[...a].sort((x,y)=>x-y);return s[Math.min(s.length-1,M
  await checkpoint('opening t=0s');
  const save=()=>{if(argv.json)fs.writeFileSync(argv.json,JSON.stringify({fog:FOG,seats:SEATS,polls:POLLS,results},null,1))};if(LIMIT<2)return save();
  forward(60);await checkpoint('bot t~60s');if(LIMIT<3)return save();
- forward(120);await checkpoint('bot t~180s');
- inject(140);forward(5);await checkpoint('4x140 units, advancing/combat');
+ forward(120);await checkpoint('bot t~180s');if(LIMIT<4)return save();
+ inject(140);forward(5);await checkpoint('4x140 units, advancing/combat');if(LIMIT<5)return save();
  inject(200);forward(5);await checkpoint('4x200 units, advancing/combat');
  if(argv.json)fs.writeFileSync(argv.json,JSON.stringify({fog:FOG,seats:SEATS,polls:POLLS,results},null,1));
 })();
