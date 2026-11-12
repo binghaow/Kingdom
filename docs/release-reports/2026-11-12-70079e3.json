@@ -1,0 +1,1597 @@
+{
+ "verdict": "PASS",
+ "meta": {
+  "commit": "70079e3",
+  "branch": "feature/gameplay-ai-roster",
+  "dirty": false,
+  "date": "2026-11-12T00:43:19.481Z",
+  "mode": "full",
+  "node": "v22.23.4",
+  "cpus": 2,
+  "platform": "linux"
+ },
+ "baseline": {
+  "commit": "fb70bd1",
+  "branch": "claude/release-gates",
+  "dirty": false,
+  "date": "2026-11-11T11:22:10.435Z",
+  "mode": "full",
+  "node": "v22.23.4",
+  "cpus": 2,
+  "platform": "linux"
+ },
+ "checks": [
+  {
+   "area": "路径",
+   "name": "opening A* 次数",
+   "value": 1543,
+   "baseline": 1931,
+   "unit": "",
+   "rule": "count",
+   "status": "PASS",
+   "why": ""
+  },
+  {
+   "area": "路径",
+   "name": "opening A* 展开节点 p95",
+   "value": 29,
+   "baseline": 876,
+   "unit": "",
+   "rule": "count",
+   "status": "PASS",
+   "why": ""
+  },
+  {
+   "area": "路径",
+   "name": "opening 寻路被首段阻挡丢弃",
+   "value": 19,
+   "baseline": 76,
+   "unit": "",
+   "rule": "count",
+   "status": "PASS",
+   "why": ""
+  },
+  {
+   "area": "路径",
+   "name": "opening A* 总耗时",
+   "value": 264,
+   "baseline": 327.9,
+   "unit": "ms",
+   "rule": "timingNoisy",
+   "status": "PASS",
+   "why": ""
+  },
+  {
+   "area": "路径",
+   "name": "opening 步均耗时",
+   "value": 2.15,
+   "baseline": 2.1,
+   "unit": "ms",
+   "rule": "timingNoisy",
+   "status": "PASS",
+   "why": ""
+  },
+  {
+   "area": "路径",
+   "name": "opening 寻路失败率",
+   "value": 0,
+   "baseline": 0,
+   "unit": "",
+   "rule": "custom",
+   "status": "PASS",
+   "why": ""
+  },
+  {
+   "area": "卡住单位",
+   "name": "opening 卡住单位数",
+   "value": 1,
+   "baseline": 2,
+   "unit": "",
+   "rule": "custom",
+   "status": "PASS",
+   "why": "基线已知 2 个，见“卡住单位”"
+  },
+  {
+   "area": "路径",
+   "name": "battle200 A* 次数",
+   "value": 4363,
+   "baseline": 4293,
+   "unit": "",
+   "rule": "count",
+   "status": "PASS",
+   "why": ""
+  },
+  {
+   "area": "路径",
+   "name": "battle200 A* 展开节点 p95",
+   "value": 1447,
+   "baseline": 1447,
+   "unit": "",
+   "rule": "count",
+   "status": "PASS",
+   "why": ""
+  },
+  {
+   "area": "路径",
+   "name": "battle200 寻路被首段阻挡丢弃",
+   "value": 0,
+   "baseline": 50,
+   "unit": "",
+   "rule": "count",
+   "status": "PASS",
+   "why": ""
+  },
+  {
+   "area": "路径",
+   "name": "battle200 A* 总耗时",
+   "value": 379.4,
+   "baseline": 329.7,
+   "unit": "ms",
+   "rule": "timingNoisy",
+   "status": "PASS",
+   "why": ""
+  },
+  {
+   "area": "路径",
+   "name": "battle200 步均耗时",
+   "value": 6.93,
+   "baseline": 6.2,
+   "unit": "ms",
+   "rule": "timingNoisy",
+   "status": "PASS",
+   "why": ""
+  },
+  {
+   "area": "路径",
+   "name": "battle200 寻路失败率",
+   "value": 0,
+   "baseline": 0,
+   "unit": "",
+   "rule": "custom",
+   "status": "PASS",
+   "why": ""
+  },
+  {
+   "area": "卡住单位",
+   "name": "battle200 卡住单位数",
+   "value": 0,
+   "baseline": 3,
+   "unit": "",
+   "rule": "custom",
+   "status": "PASS",
+   "why": ""
+  },
+  {
+   "area": "路径",
+   "name": "siegeEnclosed A* 次数",
+   "value": 1279,
+   "baseline": 5524,
+   "unit": "",
+   "rule": "count",
+   "status": "PASS",
+   "why": ""
+  },
+  {
+   "area": "路径",
+   "name": "siegeEnclosed A* 展开节点 p95",
+   "value": 24,
+   "baseline": 10608,
+   "unit": "",
+   "rule": "count",
+   "status": "PASS",
+   "why": ""
+  },
+  {
+   "area": "路径",
+   "name": "siegeEnclosed 寻路被首段阻挡丢弃",
+   "value": 0,
+   "baseline": 0,
+   "unit": "",
+   "rule": "count",
+   "status": "PASS",
+   "why": ""
+  },
+  {
+   "area": "路径",
+   "name": "siegeEnclosed A* 总耗时",
+   "value": 301.6,
+   "baseline": 8574.6,
+   "unit": "ms",
+   "rule": "timingNoisy",
+   "status": "PASS",
+   "why": ""
+  },
+  {
+   "area": "路径",
+   "name": "siegeEnclosed 步均耗时",
+   "value": 2.73,
+   "baseline": 17.06,
+   "unit": "ms",
+   "rule": "timingNoisy",
+   "status": "PASS",
+   "why": ""
+  },
+  {
+   "area": "路径",
+   "name": "siegeEnclosed 寻路失败率",
+   "value": 0.28,
+   "baseline": 0.98,
+   "unit": "",
+   "rule": "custom",
+   "status": "PASS",
+   "why": ""
+  },
+  {
+   "area": "卡住单位",
+   "name": "siegeEnclosed 卡住单位数",
+   "value": 0,
+   "baseline": 0,
+   "unit": "",
+   "rule": "custom",
+   "status": "PASS",
+   "why": ""
+  },
+  {
+   "area": "路径",
+   "name": "formation A* 次数",
+   "value": 5340,
+   "baseline": 5344,
+   "unit": "",
+   "rule": "count",
+   "status": "PASS",
+   "why": ""
+  },
+  {
+   "area": "路径",
+   "name": "formation A* 展开节点 p95",
+   "value": 474,
+   "baseline": 474,
+   "unit": "",
+   "rule": "count",
+   "status": "PASS",
+   "why": ""
+  },
+  {
+   "area": "路径",
+   "name": "formation 寻路被首段阻挡丢弃",
+   "value": 0,
+   "baseline": 15,
+   "unit": "",
+   "rule": "count",
+   "status": "PASS",
+   "why": ""
+  },
+  {
+   "area": "路径",
+   "name": "formation A* 总耗时",
+   "value": 175.8,
+   "baseline": 157.5,
+   "unit": "ms",
+   "rule": "timingNoisy",
+   "status": "PASS",
+   "why": ""
+  },
+  {
+   "area": "路径",
+   "name": "formation 步均耗时",
+   "value": 5.21,
+   "baseline": 4.36,
+   "unit": "ms",
+   "rule": "timingNoisy",
+   "status": "PASS",
+   "why": ""
+  },
+  {
+   "area": "路径",
+   "name": "formation 寻路失败率",
+   "value": 0,
+   "baseline": 0,
+   "unit": "",
+   "rule": "custom",
+   "status": "PASS",
+   "why": ""
+  },
+  {
+   "area": "卡住单位",
+   "name": "formation 卡住单位数",
+   "value": 0,
+   "baseline": 1,
+   "unit": "",
+   "rule": "custom",
+   "status": "PASS",
+   "why": ""
+  },
+  {
+   "area": "模拟",
+   "name": "50 单位 每步均值",
+   "value": 2.82,
+   "baseline": 2.61,
+   "unit": "ms",
+   "rule": "timing",
+   "status": "PASS",
+   "why": ""
+  },
+  {
+   "area": "模拟",
+   "name": "50 单位 每步 p95",
+   "value": 7.81,
+   "baseline": 8.17,
+   "unit": "ms",
+   "rule": "tail",
+   "status": "PASS",
+   "why": ""
+  },
+  {
+   "area": "模拟",
+   "name": "100 单位 每步均值",
+   "value": 3.41,
+   "baseline": 3.17,
+   "unit": "ms",
+   "rule": "timing",
+   "status": "PASS",
+   "why": ""
+  },
+  {
+   "area": "模拟",
+   "name": "100 单位 每步 p95",
+   "value": 10.06,
+   "baseline": 9.79,
+   "unit": "ms",
+   "rule": "tail",
+   "status": "PASS",
+   "why": ""
+  },
+  {
+   "area": "模拟",
+   "name": "200 单位 每步均值",
+   "value": 7.06,
+   "baseline": 6.92,
+   "unit": "ms",
+   "rule": "timing",
+   "status": "PASS",
+   "why": ""
+  },
+  {
+   "area": "模拟",
+   "name": "200 单位 每步 p95",
+   "value": 20.63,
+   "baseline": 18.86,
+   "unit": "ms",
+   "rule": "tail",
+   "status": "PASS",
+   "why": ""
+  },
+  {
+   "area": "模拟",
+   "name": "200 单位 collision",
+   "value": 0.68,
+   "baseline": 0.67,
+   "unit": "ms",
+   "rule": "timing",
+   "status": "PASS",
+   "why": ""
+  },
+  {
+   "area": "模拟",
+   "name": "200 单位 targeting",
+   "value": 1.04,
+   "baseline": 0.91,
+   "unit": "ms",
+   "rule": "timing",
+   "status": "PASS",
+   "why": ""
+  },
+  {
+   "area": "模拟",
+   "name": "200 单位 pathfinding",
+   "value": 0.98,
+   "baseline": 0.96,
+   "unit": "ms",
+   "rule": "timing",
+   "status": "PASS",
+   "why": ""
+  },
+  {
+   "area": "模拟",
+   "name": "200 单位 fog",
+   "value": 1.03,
+   "baseline": 0.98,
+   "unit": "ms",
+   "rule": "timing",
+   "status": "PASS",
+   "why": ""
+  },
+  {
+   "area": "模拟",
+   "name": "400 单位 每步均值",
+   "value": 16.27,
+   "baseline": 14.79,
+   "unit": "ms",
+   "rule": "timing",
+   "status": "PASS",
+   "why": ""
+  },
+  {
+   "area": "模拟",
+   "name": "400 单位 每步 p95",
+   "value": 48.88,
+   "baseline": 44.53,
+   "unit": "ms",
+   "rule": "tail",
+   "status": "PASS",
+   "why": ""
+  },
+  {
+   "area": "模拟",
+   "name": "400 单位 collision",
+   "value": 2.28,
+   "baseline": 2.1,
+   "unit": "ms",
+   "rule": "timing",
+   "status": "PASS",
+   "why": ""
+  },
+  {
+   "area": "模拟",
+   "name": "400 单位 targeting",
+   "value": 3.52,
+   "baseline": 3.03,
+   "unit": "ms",
+   "rule": "timing",
+   "status": "PASS",
+   "why": ""
+  },
+  {
+   "area": "模拟",
+   "name": "400 单位 pathfinding",
+   "value": 1.88,
+   "baseline": 1.89,
+   "unit": "ms",
+   "rule": "timing",
+   "status": "PASS",
+   "why": ""
+  },
+  {
+   "area": "模拟",
+   "name": "400 单位 fog",
+   "value": 1.79,
+   "baseline": 1.69,
+   "unit": "ms",
+   "rule": "timing",
+   "status": "PASS",
+   "why": ""
+  },
+  {
+   "area": "模拟",
+   "name": "增长指数 meanMs（成本∝单位数^k）",
+   "value": 0.88,
+   "baseline": 0.87,
+   "unit": "",
+   "rule": "custom",
+   "status": "PASS",
+   "why": ""
+  },
+  {
+   "area": "模拟",
+   "name": "增长指数 collision（成本∝单位数^k）",
+   "value": 1.33,
+   "baseline": 1.29,
+   "unit": "",
+   "rule": "custom",
+   "status": "PASS",
+   "why": "基线已超线性（已知）"
+  },
+  {
+   "area": "模拟",
+   "name": "增长指数 targeting（成本∝单位数^k）",
+   "value": 1.44,
+   "baseline": 1.44,
+   "unit": "",
+   "rule": "custom",
+   "status": "PASS",
+   "why": "基线已超线性（已知）"
+  },
+  {
+   "area": "模拟",
+   "name": "增长指数 pathfinding（成本∝单位数^k）",
+   "value": 0.72,
+   "baseline": 0.73,
+   "unit": "",
+   "rule": "custom",
+   "status": "PASS",
+   "why": ""
+  },
+  {
+   "area": "模拟",
+   "name": "增长指数 fog（成本∝单位数^k）",
+   "value": 0.61,
+   "baseline": 0.62,
+   "unit": "",
+   "rule": "custom",
+   "status": "PASS",
+   "why": ""
+  },
+  {
+   "area": "渲染",
+   "name": "desktop 帧间隔 p50",
+   "value": 2849.9,
+   "baseline": 2383.3,
+   "unit": "ms",
+   "rule": "timingNoisy",
+   "status": "PASS",
+   "why": ""
+  },
+  {
+   "area": "渲染",
+   "name": "desktop 帧间隔 p95",
+   "value": 3316.6,
+   "baseline": 2849.9,
+   "unit": "ms",
+   "rule": "timingNoisy",
+   "status": "PASS",
+   "why": ""
+  },
+  {
+   "area": "渲染",
+   "name": "desktop render p50",
+   "value": 11.6,
+   "baseline": 8.6,
+   "unit": "ms",
+   "rule": "hud",
+   "status": "PASS",
+   "why": ""
+  },
+  {
+   "area": "渲染",
+   "name": "desktop 每帧 drawImage",
+   "value": 466.5,
+   "baseline": 453,
+   "unit": "",
+   "rule": "countNoisy",
+   "status": "PASS",
+   "why": ""
+  },
+  {
+   "area": "渲染",
+   "name": "desktop 每帧带 filter 的绘制",
+   "value": 41.5,
+   "baseline": 39,
+   "unit": "",
+   "rule": "countNoisy",
+   "status": "PASS",
+   "why": ""
+  },
+  {
+   "area": "渲染",
+   "name": "phone 帧间隔 p50",
+   "value": 2266.7,
+   "baseline": 1999.9,
+   "unit": "ms",
+   "rule": "timingNoisy",
+   "status": "PASS",
+   "why": ""
+  },
+  {
+   "area": "渲染",
+   "name": "phone 帧间隔 p95",
+   "value": 2591.6,
+   "baseline": 2416.5,
+   "unit": "ms",
+   "rule": "timingNoisy",
+   "status": "PASS",
+   "why": ""
+  },
+  {
+   "area": "渲染",
+   "name": "phone render p50",
+   "value": 8.7,
+   "baseline": 6.8,
+   "unit": "ms",
+   "rule": "hud",
+   "status": "PASS",
+   "why": ""
+  },
+  {
+   "area": "渲染",
+   "name": "phone 每帧 drawImage",
+   "value": 403,
+   "baseline": 384.8,
+   "unit": "",
+   "rule": "countNoisy",
+   "status": "PASS",
+   "why": ""
+  },
+  {
+   "area": "渲染",
+   "name": "phone 每帧带 filter 的绘制",
+   "value": 41.3,
+   "baseline": 38.8,
+   "unit": "",
+   "rule": "countNoisy",
+   "status": "PASS",
+   "why": ""
+  },
+  {
+   "area": "联机",
+   "name": "2 人 opening t=0s CPU/轮询 均值",
+   "value": 16.6,
+   "baseline": 14.6,
+   "unit": "ms",
+   "rule": "server",
+   "status": "PASS",
+   "why": ""
+  },
+  {
+   "area": "联机",
+   "name": "2 人 opening t=0s CPU/轮询 p95",
+   "value": 39.2,
+   "baseline": 31.5,
+   "unit": "ms",
+   "rule": "tail",
+   "status": "PASS",
+   "why": ""
+  },
+  {
+   "area": "联机",
+   "name": "2 人 opening t=0s 响应",
+   "value": 37.3,
+   "baseline": 37.2,
+   "unit": "KB",
+   "rule": "size",
+   "status": "PASS",
+   "why": ""
+  },
+  {
+   "area": "联机",
+   "name": "2 人 opening t=0s 响应 gzip",
+   "value": 9.5,
+   "baseline": 9.5,
+   "unit": "KB",
+   "rule": "size",
+   "status": "PASS",
+   "why": ""
+  },
+  {
+   "area": "联机",
+   "name": "2 人 bot t~60s CPU/轮询 均值",
+   "value": 17.5,
+   "baseline": 15.3,
+   "unit": "ms",
+   "rule": "server",
+   "status": "PASS",
+   "why": ""
+  },
+  {
+   "area": "联机",
+   "name": "2 人 bot t~60s CPU/轮询 p95",
+   "value": 29.7,
+   "baseline": 26.4,
+   "unit": "ms",
+   "rule": "tail",
+   "status": "PASS",
+   "why": ""
+  },
+  {
+   "area": "联机",
+   "name": "2 人 bot t~60s 响应",
+   "value": 54.2,
+   "baseline": 53.6,
+   "unit": "KB",
+   "rule": "size",
+   "status": "PASS",
+   "why": ""
+  },
+  {
+   "area": "联机",
+   "name": "2 人 bot t~60s 响应 gzip",
+   "value": 6.7,
+   "baseline": 6.6,
+   "unit": "KB",
+   "rule": "size",
+   "status": "PASS",
+   "why": ""
+  },
+  {
+   "area": "联机",
+   "name": "4 人 opening t=0s CPU/轮询 均值",
+   "value": 35.8,
+   "baseline": 31.2,
+   "unit": "ms",
+   "rule": "server",
+   "status": "PASS",
+   "why": ""
+  },
+  {
+   "area": "联机",
+   "name": "4 人 opening t=0s CPU/轮询 p95",
+   "value": 77.1,
+   "baseline": 61.2,
+   "unit": "ms",
+   "rule": "tail",
+   "status": "PASS",
+   "why": ""
+  },
+  {
+   "area": "联机",
+   "name": "4 人 opening t=0s 响应",
+   "value": 17.1,
+   "baseline": 17,
+   "unit": "KB",
+   "rule": "size",
+   "status": "PASS",
+   "why": ""
+  },
+  {
+   "area": "联机",
+   "name": "4 人 opening t=0s 响应 gzip",
+   "value": 4.1,
+   "baseline": 4.1,
+   "unit": "KB",
+   "rule": "size",
+   "status": "PASS",
+   "why": ""
+  },
+  {
+   "area": "联机",
+   "name": "4 人 bot t~60s CPU/轮询 均值",
+   "value": 44.3,
+   "baseline": 39.2,
+   "unit": "ms",
+   "rule": "server",
+   "status": "PASS",
+   "why": ""
+  },
+  {
+   "area": "联机",
+   "name": "4 人 bot t~60s CPU/轮询 p95",
+   "value": 71.8,
+   "baseline": 69,
+   "unit": "ms",
+   "rule": "tail",
+   "status": "PASS",
+   "why": ""
+  },
+  {
+   "area": "联机",
+   "name": "4 人 bot t~60s 响应",
+   "value": 28.6,
+   "baseline": 29.8,
+   "unit": "KB",
+   "rule": "size",
+   "status": "PASS",
+   "why": ""
+  },
+  {
+   "area": "联机",
+   "name": "4 人 bot t~60s 响应 gzip",
+   "value": 5.6,
+   "baseline": 8,
+   "unit": "KB",
+   "rule": "size",
+   "status": "PASS",
+   "why": ""
+  },
+  {
+   "area": "联机",
+   "name": "4 人 bot t~180s CPU/轮询 均值",
+   "value": 68.1,
+   "baseline": 65.8,
+   "unit": "ms",
+   "rule": "server",
+   "status": "PASS",
+   "why": ""
+  },
+  {
+   "area": "联机",
+   "name": "4 人 bot t~180s CPU/轮询 p95",
+   "value": 110.6,
+   "baseline": 130,
+   "unit": "ms",
+   "rule": "tail",
+   "status": "PASS",
+   "why": ""
+  },
+  {
+   "area": "联机",
+   "name": "4 人 bot t~180s 响应",
+   "value": 68,
+   "baseline": 69.6,
+   "unit": "KB",
+   "rule": "size",
+   "status": "PASS",
+   "why": ""
+  },
+  {
+   "area": "联机",
+   "name": "4 人 bot t~180s 响应 gzip",
+   "value": 8.1,
+   "baseline": 8.6,
+   "unit": "KB",
+   "rule": "size",
+   "status": "PASS",
+   "why": ""
+  },
+  {
+   "area": "联机",
+   "name": "4 人 4x140 units, advancing/combat CPU/轮询 均值",
+   "value": 212.2,
+   "baseline": 189.5,
+   "unit": "ms",
+   "rule": "server",
+   "status": "PASS",
+   "why": ""
+  },
+  {
+   "area": "联机",
+   "name": "4 人 4x140 units, advancing/combat CPU/轮询 p95",
+   "value": 309.1,
+   "baseline": 274.6,
+   "unit": "ms",
+   "rule": "tail",
+   "status": "PASS",
+   "why": ""
+  },
+  {
+   "area": "联机",
+   "name": "4 人 4x140 units, advancing/combat 响应",
+   "value": 248.6,
+   "baseline": 246,
+   "unit": "KB",
+   "rule": "size",
+   "status": "PASS",
+   "why": ""
+  },
+  {
+   "area": "联机",
+   "name": "4 人 4x140 units, advancing/combat 响应 gzip",
+   "value": 21.6,
+   "baseline": 24.2,
+   "unit": "KB",
+   "rule": "size",
+   "status": "PASS",
+   "why": ""
+  },
+  {
+   "area": "联机",
+   "name": "同时到达冲突重算 次/请求",
+   "value": 1.4,
+   "baseline": 1.29,
+   "unit": "",
+   "rule": "custom",
+   "status": "PASS",
+   "why": ""
+  },
+  {
+   "area": "联机",
+   "name": "同时到达 额外 CPU",
+   "value": 317.3,
+   "baseline": 241.8,
+   "unit": "ms",
+   "rule": "timingNoisy",
+   "status": "PASS",
+   "why": ""
+  },
+  {
+   "area": "联机",
+   "name": "2 人开局 RTT 40 首次权威位移（模型）",
+   "value": 460,
+   "baseline": 452,
+   "unit": "ms",
+   "rule": "derived",
+   "status": "PASS",
+   "why": ""
+  },
+  {
+   "area": "联机",
+   "name": "2 人开局 RTT 100 首次权威位移（模型）",
+   "value": 571,
+   "baseline": 563,
+   "unit": "ms",
+   "rule": "derived",
+   "status": "PASS",
+   "why": ""
+  },
+  {
+   "area": "联机",
+   "name": "2 人开局 RTT 200 首次权威位移（模型）",
+   "value": 762,
+   "baseline": 757,
+   "unit": "ms",
+   "rule": "derived",
+   "status": "PASS",
+   "why": ""
+  },
+  {
+   "area": "联机",
+   "name": "4 人 ~170 单位 RTT 40 首次权威位移（模型）",
+   "value": 742,
+   "baseline": 655,
+   "unit": "ms",
+   "rule": "derived",
+   "status": "PASS",
+   "why": ""
+  },
+  {
+   "area": "联机",
+   "name": "4 人 ~170 单位 RTT 100 首次权威位移（模型）",
+   "value": 855,
+   "baseline": 847,
+   "unit": "ms",
+   "rule": "derived",
+   "status": "PASS",
+   "why": ""
+  },
+  {
+   "area": "联机",
+   "name": "4 人 ~170 单位 RTT 200 首次权威位移（模型）",
+   "value": 1124,
+   "baseline": 1097,
+   "unit": "ms",
+   "rule": "derived",
+   "status": "PASS",
+   "why": ""
+  },
+  {
+   "area": "联机",
+   "name": "4 人 ~570 单位对攻 RTT 40 首次权威位移（模型）",
+   "value": 1829,
+   "baseline": 1738,
+   "unit": "ms",
+   "rule": "derived",
+   "status": "PASS",
+   "why": ""
+  },
+  {
+   "area": "联机",
+   "name": "4 人 ~570 单位对攻 RTT 100 首次权威位移（模型）",
+   "value": 2134,
+   "baseline": 1982,
+   "unit": "ms",
+   "rule": "derived",
+   "status": "PASS",
+   "why": ""
+  },
+  {
+   "area": "联机",
+   "name": "4 人 ~570 单位对攻 RTT 200 首次权威位移（模型）",
+   "value": 2242,
+   "baseline": 1973,
+   "unit": "ms",
+   "rule": "derived",
+   "status": "PASS",
+   "why": ""
+  }
+ ],
+ "results": {
+  "path": {
+   "stuckRule": {
+    "windowSec": 4,
+    "thresholdPx": 16,
+    "sampleSec": 0.5
+   },
+   "scenarios": [
+    {
+     "scenario": "opening",
+     "units": 75,
+     "simSeconds": 120,
+     "dt": 0.1,
+     "astar": {
+      "calls": 1543,
+      "callsPerSimSec": 12.9,
+      "expandedP50": 7,
+      "expandedP95": 29,
+      "expandedMax": 170,
+      "msP50": 0.02,
+      "msP95": 0.04,
+      "msMax": 46.81,
+      "msTotal": 264,
+      "failRate": 0,
+      "fails": 0,
+      "retryRate": 0.01,
+      "retries": 18,
+      "unreachableCacheHits": 614,
+      "droppedRoutes": 19,
+      "cacheHitRate": 0.97,
+      "engagement": {
+       "memoHits": 0,
+       "searches": 0,
+       "astarCalls": 0,
+       "noPosition": 0,
+       "memoHitRate": 0
+      },
+      "airDirect": 0,
+      "gridBuilds": 6,
+      "gridMs": 230.8
+     },
+     "step": {
+      "meanMs": 2.15,
+      "p95Ms": 5.58,
+      "p99Ms": 8.16,
+      "stepsOver50ms": 0,
+      "maxMs": 48.8,
+      "worst": {
+       "ms": 48.8,
+       "calls": 5,
+       "at": 109.1
+      }
+     },
+     "stuck": {
+      "stuckUnits": 1,
+      "crowdedAtGoal": 0,
+      "expectedUnreachable": 0,
+      "byReason": {
+       "first-leg-obstructed": 1
+      },
+      "samples": [
+       {
+        "scenario": "opening",
+        "category": "first-leg-obstructed",
+        "id": 9,
+        "kind": "villager",
+        "team": 0,
+        "x": 1944,
+        "y": 2266,
+        "order": "gather",
+        "goal": {
+         "x": 1686,
+         "y": 1941
+        },
+        "toGoal": 415,
+        "since": 48.5,
+        "at": 120,
+        "travelled": 8,
+        "net": 7.9,
+        "pathLeft": 0,
+        "routeFailed": true,
+        "stallTries": 1,
+        "crowd": 1,
+        "nearestBuilding": "house 48px",
+        "reason": "route found but first leg obstructed (dropped, retried every 1.8 s)",
+        "duration": 71.5
+       }
+      ]
+     },
+     "title": "开局：2 人脚本对局（采集、建造、训练、首波进攻），NetworkSim 0.1 s 步"
+    },
+    {
+     "scenario": "battle200",
+     "units": 146,
+     "simSeconds": 40,
+     "dt": 0.05,
+     "astar": {
+      "calls": 4363,
+      "callsPerSimSec": 109.1,
+      "expandedP50": 58,
+      "expandedP95": 1447,
+      "expandedMax": 2159,
+      "msP50": 0.02,
+      "msP95": 0.35,
+      "msMax": 4.95,
+      "msTotal": 379.4,
+      "failRate": 0,
+      "fails": 0,
+      "retryRate": 0,
+      "retries": 0,
+      "unreachableCacheHits": 0,
+      "droppedRoutes": 0,
+      "cacheHitRate": 0,
+      "engagement": {
+       "memoHits": 0,
+       "searches": 0,
+       "astarCalls": 0,
+       "noPosition": 0,
+       "memoHitRate": 0
+      },
+      "airDirect": 0,
+      "gridBuilds": 0,
+      "gridMs": 0
+     },
+     "step": {
+      "meanMs": 6.93,
+      "p95Ms": 16.9,
+      "p99Ms": 31.67,
+      "stepsOver50ms": 2,
+      "maxMs": 82.5,
+      "worst": {
+       "ms": 82.5,
+       "calls": 196,
+       "at": 0.1
+      }
+     },
+     "stuck": {
+      "stuckUnits": 0,
+      "crowdedAtGoal": 0,
+      "expectedUnreachable": 0,
+      "byReason": {},
+      "samples": []
+     },
+     "title": "200 单位会战：coast_s 双方各约 100 混编单位推进对攻"
+    },
+    {
+     "scenario": "siegeEnclosed",
+     "units": 76,
+     "simSeconds": 30,
+     "dt": 0.05,
+     "astar": {
+      "calls": 1279,
+      "callsPerSimSec": 42.6,
+      "expandedP50": 3,
+      "expandedP95": 24,
+      "expandedMax": 83,
+      "msP50": 0.01,
+      "msP95": 0.03,
+      "msMax": 62.21,
+      "msTotal": 301.6,
+      "failRate": 0.28,
+      "fails": 360,
+      "retryRate": 0.12,
+      "retries": 152,
+      "unreachableCacheHits": 0,
+      "droppedRoutes": 0,
+      "cacheHitRate": 0,
+      "engagement": {
+       "memoHits": 11654,
+       "searches": 432,
+       "astarCalls": 732,
+       "noPosition": 60,
+       "memoHitRate": 0.96
+      },
+      "airDirect": 0,
+      "gridBuilds": 5,
+      "gridMs": 287.3
+     },
+     "step": {
+      "meanMs": 2.73,
+      "p95Ms": 11.81,
+      "p99Ms": 28.67,
+      "stepsOver50ms": 5,
+      "maxMs": 75.8,
+      "worst": {
+       "ms": 75.8,
+       "calls": 16,
+       "at": 8.4
+      }
+     },
+     "stuck": {
+      "stuckUnits": 0,
+      "crowdedAtGoal": 0,
+      "expectedUnreachable": 0,
+      "byReason": {},
+      "samples": []
+     },
+     "title": "围攻被围死目标：敌方城镇中心被完整城墙环绕（迷雾关），60 单位对其下达攻击"
+    },
+    {
+     "scenario": "formation",
+     "units": 187,
+     "simSeconds": 70,
+     "dt": 0.05,
+     "astar": {
+      "calls": 5340,
+      "callsPerSimSec": 76.3,
+      "expandedP50": 95,
+      "expandedP95": 474,
+      "expandedMax": 837,
+      "msP50": 0.02,
+      "msP95": 0.1,
+      "msMax": 3.89,
+      "msTotal": 175.8,
+      "failRate": 0,
+      "fails": 0,
+      "retryRate": 0,
+      "retries": 0,
+      "unreachableCacheHits": 36,
+      "droppedRoutes": 0,
+      "cacheHitRate": 1,
+      "engagement": {
+       "memoHits": 0,
+       "searches": 0,
+       "astarCalls": 0,
+       "noPosition": 0,
+       "memoHitRate": 0
+      },
+      "airDirect": 0,
+      "gridBuilds": 0,
+      "gridMs": 0
+     },
+     "step": {
+      "meanMs": 5.21,
+      "p95Ms": 13.75,
+      "p99Ms": 20.59,
+      "stepsOver50ms": 0,
+      "maxMs": 39.4,
+      "worst": {
+       "ms": 39.4,
+       "calls": 0,
+       "at": 28.6
+      }
+     },
+     "stuck": {
+      "stuckUnits": 0,
+      "crowdedAtGoal": 0,
+      "expectedUnreachable": 0,
+      "byReason": {},
+      "samples": []
+     },
+     "title": "大编队一次下令：160 混编单位按界面阵型（每列 √N、间距 25）移动到约 3000 像素外"
+    }
+   ]
+  },
+  "sim": {
+   "reps": 3,
+   "steps": 240,
+   "dtSec": 0.05,
+   "rows": [
+    {
+     "requested": 50,
+     "units": 55,
+     "meanMs": 2.82,
+     "p50": 1.39,
+     "p95": 7.81,
+     "max": 55.5,
+     "collision": 0.16,
+     "targeting": 0.2,
+     "pathfinding": 0.45,
+     "fog": 0.53,
+     "ai": 0.03,
+     "other": 1.43,
+     "pathCalls": 354
+    },
+    {
+     "requested": 100,
+     "units": 105,
+     "meanMs": 3.41,
+     "p50": 1.87,
+     "p95": 10.06,
+     "max": 47.6,
+     "collision": 0.21,
+     "targeting": 0.31,
+     "pathfinding": 0.55,
+     "fog": 0.53,
+     "ai": 0.01,
+     "other": 1.73,
+     "pathCalls": 692
+    },
+    {
+     "requested": 200,
+     "units": 205,
+     "meanMs": 7.06,
+     "p50": 4.06,
+     "p95": 20.63,
+     "max": 62.3,
+     "collision": 0.68,
+     "targeting": 1.04,
+     "pathfinding": 0.98,
+     "fog": 1.03,
+     "ai": 0.01,
+     "other": 3.28,
+     "pathCalls": 1393
+    },
+    {
+     "requested": 400,
+     "units": 405,
+     "meanMs": 16.27,
+     "p50": 9.12,
+     "p95": 48.88,
+     "max": 123.1,
+     "collision": 2.28,
+     "targeting": 3.52,
+     "pathfinding": 1.88,
+     "fog": 1.79,
+     "ai": 0.01,
+     "other": 6.7,
+     "pathCalls": 2790
+    }
+   ],
+   "growth": {
+    "meanMs": 0.88,
+    "p95": 0.92,
+    "collision": 1.33,
+    "targeting": 1.44,
+    "pathfinding": 0.72,
+    "fog": 0.61,
+    "ai": -0.55,
+    "other": 0.77
+   },
+   "unitRatio": 7.36,
+   "superlinear": [
+    "collision ~ units^1.33",
+    "targeting ~ units^1.44"
+   ]
+  },
+  "render": {
+   "note": "headless Chromium --disable-gpu（CPU 软件光栅，无 GPU），2 个共享 CPU 核：只作提交之间的回退信号，不是真机帧率",
+   "reps": 2,
+   "desktop": {
+    "viewport": "1280x720@1",
+    "frames": [
+     7,
+     5
+    ],
+    "drawImagePerFrame": 466.5,
+    "filteredDrawsPerFrame": 41.5,
+    "units": 203,
+    "unitsAlive": 203,
+    "visible": 275,
+    "dpr": "1/1",
+    "frameP50": 2849.9,
+    "frameP95": 3316.6,
+    "fps": 0.4,
+    "renderP50": 11.6,
+    "renderP95": 145.8,
+    "sceneP50": 10.6,
+    "sceneP95": 145.2,
+    "updateP50": 15.1,
+    "updateP95": 51.4,
+    "runs": [
+     {
+      "frameP50": 2333.2,
+      "frameP95": 2983.2,
+      "renderP50": 9.6,
+      "renderP95": 137.9
+     },
+     {
+      "frameP50": 3366.6,
+      "frameP95": 3649.9,
+      "renderP50": 13.5,
+      "renderP95": 153.6
+     }
+    ],
+    "errors": []
+   },
+   "phone": {
+    "viewport": "393x852@3",
+    "frames": [
+     8,
+     8
+    ],
+    "drawImagePerFrame": 403,
+    "filteredDrawsPerFrame": 41.3,
+    "units": 203,
+    "unitsAlive": 203,
+    "visible": 254,
+    "dpr": "3/1.5",
+    "frameP50": 2266.7,
+    "frameP95": 2591.6,
+    "fps": 0.5,
+    "renderP50": 8.7,
+    "renderP95": 41.5,
+    "sceneP50": 7.4,
+    "sceneP95": 40.9,
+    "updateP50": 12.1,
+    "updateP95": 39.9,
+    "runs": [
+     {
+      "frameP50": 2250,
+      "frameP95": 2683.2,
+      "renderP50": 11.7,
+      "renderP95": 41.7
+     },
+     {
+      "frameP50": 2283.3,
+      "frameP95": 2499.9,
+      "renderP50": 5.7,
+      "renderP95": 41.2
+     }
+    ],
+    "errors": []
+   }
+  },
+  "net": {
+   "reps": 3,
+   "opening": [
+    {
+     "label": "opening t=0s",
+     "units": 27,
+     "cpuMeanMs": 16.6,
+     "cpuP50": 14,
+     "cpuP95": 39.2,
+     "cpuMax": 49.5,
+     "respKB": 37.3,
+     "respGzKB": 9.5,
+     "storedGzKB": 35.1,
+     "firstTickAfterHydrateMs": 1,
+     "firstTickCachedMs": 1.1
+    },
+    {
+     "label": "bot t~60s",
+     "units": 60,
+     "cpuMeanMs": 17.5,
+     "cpuP50": 16.5,
+     "cpuP95": 29.7,
+     "cpuMax": 34.1,
+     "respKB": 54.2,
+     "respGzKB": 6.7,
+     "storedGzKB": 41.3,
+     "firstTickAfterHydrateMs": 40.2,
+     "firstTickCachedMs": 1.9
+    }
+   ],
+   "fourSeats": [
+    {
+     "label": "opening t=0s",
+     "units": 47,
+     "cpuMeanMs": 35.8,
+     "cpuP50": 30.2,
+     "cpuP95": 77.1,
+     "cpuMax": 87.2,
+     "respKB": 17.1,
+     "respGzKB": 4.1,
+     "storedGzKB": 70,
+     "firstTickAfterHydrateMs": 2.1,
+     "firstTickCachedMs": 2.6
+    },
+    {
+     "label": "bot t~60s",
+     "units": 109,
+     "cpuMeanMs": 44.3,
+     "cpuP50": 40.4,
+     "cpuP95": 71.8,
+     "cpuMax": 105.5,
+     "respKB": 28.6,
+     "respGzKB": 5.6,
+     "storedGzKB": 80.7,
+     "firstTickAfterHydrateMs": 111.7,
+     "firstTickCachedMs": 6.1
+    },
+    {
+     "label": "bot t~180s",
+     "units": 190,
+     "cpuMeanMs": 68.1,
+     "cpuP50": 62.1,
+     "cpuP95": 110.6,
+     "cpuMax": 167.3,
+     "respKB": 68,
+     "respGzKB": 8.1,
+     "storedGzKB": 109.5,
+     "firstTickAfterHydrateMs": 171.5,
+     "firstTickCachedMs": 12.5
+    },
+    {
+     "label": "4x140 units, advancing/combat",
+     "units": 571,
+     "cpuMeanMs": 212.2,
+     "cpuP50": 213.3,
+     "cpuP95": 309.1,
+     "cpuMax": 330.9,
+     "respKB": 248.6,
+     "respGzKB": 21.6,
+     "storedGzKB": 156.6,
+     "firstTickAfterHydrateMs": 282,
+     "firstTickCachedMs": 115.1
+    }
+   ],
+   "conflicts": {
+    "rounds": 12,
+    "requests": 48,
+    "lostRaces": 67,
+    "conflictsPerReq": 1.4,
+    "failedRequests": 0,
+    "cpuPerRoundSequentialMs": 136.3,
+    "cpuPerRoundSimultaneousMs": 317.3,
+    "extraCpuPct": 133
+   },
+   "latency": [
+    {
+     "scenario": "2 人开局",
+     "seats": 2,
+     "rttMs": 40,
+     "d1Ms": 20,
+     "cpuMs": 16.6,
+     "conflictsPerReqModel": 0.47,
+     "ackMeanMs": 157,
+     "ackP95Ms": 318,
+     "firstMoveMeanMs": 460,
+     "firstMoveP95Ms": 647,
+     "ownUnitOnScreen": "next frame (local prediction)"
+    },
+    {
+     "scenario": "2 人开局",
+     "seats": 2,
+     "rttMs": 100,
+     "d1Ms": 20,
+     "cpuMs": 16.6,
+     "conflictsPerReqModel": 0.39,
+     "ackMeanMs": 236,
+     "ackP95Ms": 412,
+     "firstMoveMeanMs": 571,
+     "firstMoveP95Ms": 768,
+     "ownUnitOnScreen": "next frame (local prediction)"
+    },
+    {
+     "scenario": "2 人开局",
+     "seats": 2,
+     "rttMs": 200,
+     "d1Ms": 20,
+     "cpuMs": 16.6,
+     "conflictsPerReqModel": 0,
+     "ackMeanMs": 355,
+     "ackP95Ms": 510,
+     "firstMoveMeanMs": 762,
+     "firstMoveP95Ms": 921,
+     "ownUnitOnScreen": "next frame (local prediction)"
+    },
+    {
+     "scenario": "4 人 ~170 单位",
+     "seats": 4,
+     "rttMs": 40,
+     "d1Ms": 20,
+     "cpuMs": 68.1,
+     "conflictsPerReqModel": 0.85,
+     "ackMeanMs": 341,
+     "ackP95Ms": 741,
+     "firstMoveMeanMs": 742,
+     "firstMoveP95Ms": 1200,
+     "ownUnitOnScreen": "next frame (local prediction)"
+    },
+    {
+     "scenario": "4 人 ~170 单位",
+     "seats": 4,
+     "rttMs": 100,
+     "d1Ms": 20,
+     "cpuMs": 68.1,
+     "conflictsPerReqModel": 0.71,
+     "ackMeanMs": 411,
+     "ackP95Ms": 778,
+     "firstMoveMeanMs": 855,
+     "firstMoveP95Ms": 1290,
+     "ownUnitOnScreen": "next frame (local prediction)"
+    },
+    {
+     "scenario": "4 人 ~170 单位",
+     "seats": 4,
+     "rttMs": 200,
+     "d1Ms": 20,
+     "cpuMs": 68.1,
+     "conflictsPerReqModel": 0.74,
+     "ackMeanMs": 576,
+     "ackP95Ms": 962,
+     "firstMoveMeanMs": 1124,
+     "firstMoveP95Ms": 1577,
+     "ownUnitOnScreen": "next frame (local prediction)"
+    },
+    {
+     "scenario": "4 人 ~570 单位对攻",
+     "seats": 4,
+     "rttMs": 40,
+     "d1Ms": 20,
+     "cpuMs": 212.2,
+     "conflictsPerReqModel": 1.61,
+     "ackMeanMs": 996,
+     "ackP95Ms": 1994,
+     "firstMoveMeanMs": 1829,
+     "firstMoveP95Ms": 3111,
+     "ownUnitOnScreen": "next frame (local prediction)"
+    },
+    {
+     "scenario": "4 人 ~570 单位对攻",
+     "seats": 4,
+     "rttMs": 100,
+     "d1Ms": 20,
+     "cpuMs": 212.2,
+     "conflictsPerReqModel": 1.93,
+     "ackMeanMs": 1178,
+     "ackP95Ms": 2236,
+     "firstMoveMeanMs": 2134,
+     "firstMoveP95Ms": 3492,
+     "ownUnitOnScreen": "next frame (local prediction)"
+    },
+    {
+     "scenario": "4 人 ~570 单位对攻",
+     "seats": 4,
+     "rttMs": 200,
+     "d1Ms": 20,
+     "cpuMs": 212.2,
+     "conflictsPerReqModel": 1.63,
+     "ackMeanMs": 1243,
+     "ackP95Ms": 2290,
+     "firstMoveMeanMs": 2242,
+     "firstMoveP95Ms": 3560,
+     "ownUnitOnScreen": "next frame (local prediction)"
+    }
+   ],
+   "assumptions": "RTT 40/100/200 ms 与 D1 往返 20 ms 为假设值；CPU 为本机 Node 实测（内存 SQLite），不是 Cloudflare Worker / D1 实测。"
+  },
+  "calibrationMs": 40.95
+ }
+}

@@ -1,0 +1,2925 @@
+{
+ "generated": "2026-11-11",
+ "tool": "Playwright Chromium (headless, --disable-gpu); CSS px rects [left,top,width,height]",
+ "screenshotsDir": "/tmp/claude-0/-home-claude/3e12cd73-d261-5d16-9dcc-2ff9074b6ac9/scratchpad/final",
+ "rows": [
+  {
+   "viewport": "desktop",
+   "lang": "zh",
+   "state": "enemy",
+   "collapsed": false,
+   "footer": [
+    8,
+    572,
+    1264,
+    148
+   ],
+   "panel": [
+    19,
+    657,
+    339,
+    54
+   ],
+   "minimap": [
+    12,
+    378,
+    196,
+    182
+   ],
+   "touchToolbar": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "shortcuts": [
+    {
+     "id": "select-army",
+     "r": [
+      1111,
+      581,
+      150,
+      40
+     ]
+    },
+    {
+     "id": "select-workers",
+     "r": [
+      1111,
+      671,
+      150,
+      40
+     ]
+    },
+    {
+     "id": "select-fleet",
+     "r": [
+      1111,
+      626,
+      150,
+      40
+     ]
+    }
+   ],
+   "issues": [],
+   "screenshot": "final/desktop-zh-enemy.png"
+  },
+  {
+   "viewport": "desktop",
+   "lang": "zh",
+   "state": "single",
+   "collapsed": false,
+   "footer": [
+    8,
+    572,
+    1264,
+    148
+   ],
+   "panel": [
+    19,
+    677,
+    339,
+    34
+   ],
+   "minimap": [
+    12,
+    378,
+    196,
+    182
+   ],
+   "touchToolbar": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "shortcuts": [
+    {
+     "id": "select-army",
+     "r": [
+      1111,
+      581,
+      150,
+      40
+     ]
+    },
+    {
+     "id": "select-workers",
+     "r": [
+      1111,
+      671,
+      150,
+      40
+     ]
+    },
+    {
+     "id": "select-fleet",
+     "r": [
+      1111,
+      626,
+      150,
+      40
+     ]
+    }
+   ],
+   "issues": [],
+   "screenshot": "final/desktop-zh-single.png"
+  },
+  {
+   "viewport": "desktop",
+   "lang": "zh",
+   "state": "multi",
+   "collapsed": false,
+   "footer": [
+    8,
+    572,
+    1264,
+    148
+   ],
+   "panel": [
+    19,
+    668,
+    339,
+    43
+   ],
+   "minimap": [
+    12,
+    378,
+    196,
+    182
+   ],
+   "touchToolbar": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "shortcuts": [
+    {
+     "id": "select-army",
+     "r": [
+      1111,
+      581,
+      150,
+      40
+     ]
+    },
+    {
+     "id": "select-workers",
+     "r": [
+      1111,
+      671,
+      150,
+      40
+     ]
+    },
+    {
+     "id": "select-fleet",
+     "r": [
+      1111,
+      626,
+      150,
+      40
+     ]
+    }
+   ],
+   "issues": [],
+   "screenshot": "final/desktop-zh-multi.png"
+  },
+  {
+   "viewport": "desktop",
+   "lang": "zh",
+   "state": "multi-focus",
+   "collapsed": false,
+   "footer": [
+    8,
+    572,
+    1264,
+    148
+   ],
+   "panel": [
+    19,
+    647,
+    339,
+    64
+   ],
+   "minimap": [
+    12,
+    378,
+    196,
+    182
+   ],
+   "touchToolbar": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "shortcuts": [
+    {
+     "id": "select-army",
+     "r": [
+      1111,
+      581,
+      150,
+      40
+     ]
+    },
+    {
+     "id": "select-workers",
+     "r": [
+      1111,
+      671,
+      150,
+      40
+     ]
+    },
+    {
+     "id": "select-fleet",
+     "r": [
+      1111,
+      626,
+      150,
+      40
+     ]
+    }
+   ],
+   "issues": [],
+   "screenshot": "final/desktop-zh-multi-focus.png"
+  },
+  {
+   "viewport": "desktop",
+   "lang": "en",
+   "state": "enemy",
+   "collapsed": false,
+   "footer": [
+    8,
+    572,
+    1264,
+    148
+   ],
+   "panel": [
+    19,
+    641,
+    339,
+    70
+   ],
+   "minimap": [
+    12,
+    380,
+    196,
+    180
+   ],
+   "touchToolbar": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "shortcuts": [
+    {
+     "id": "select-army",
+     "r": [
+      1111,
+      581,
+      150,
+      40
+     ]
+    },
+    {
+     "id": "select-workers",
+     "r": [
+      1111,
+      671,
+      150,
+      40
+     ]
+    },
+    {
+     "id": "select-fleet",
+     "r": [
+      1111,
+      626,
+      150,
+      40
+     ]
+    }
+   ],
+   "issues": [],
+   "screenshot": "final/desktop-en-enemy.png"
+  },
+  {
+   "viewport": "desktop",
+   "lang": "en",
+   "state": "single",
+   "collapsed": false,
+   "footer": [
+    8,
+    572,
+    1264,
+    148
+   ],
+   "panel": [
+    19,
+    641,
+    339,
+    70
+   ],
+   "minimap": [
+    12,
+    380,
+    196,
+    180
+   ],
+   "touchToolbar": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "shortcuts": [
+    {
+     "id": "select-army",
+     "r": [
+      1111,
+      581,
+      150,
+      40
+     ]
+    },
+    {
+     "id": "select-workers",
+     "r": [
+      1111,
+      671,
+      150,
+      40
+     ]
+    },
+    {
+     "id": "select-fleet",
+     "r": [
+      1111,
+      626,
+      150,
+      40
+     ]
+    }
+   ],
+   "issues": [],
+   "screenshot": "final/desktop-en-single.png"
+  },
+  {
+   "viewport": "desktop",
+   "lang": "en",
+   "state": "multi",
+   "collapsed": false,
+   "footer": [
+    8,
+    572,
+    1264,
+    148
+   ],
+   "panel": [
+    19,
+    668,
+    339,
+    43
+   ],
+   "minimap": [
+    12,
+    380,
+    196,
+    180
+   ],
+   "touchToolbar": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "shortcuts": [
+    {
+     "id": "select-army",
+     "r": [
+      1111,
+      581,
+      150,
+      40
+     ]
+    },
+    {
+     "id": "select-workers",
+     "r": [
+      1111,
+      671,
+      150,
+      40
+     ]
+    },
+    {
+     "id": "select-fleet",
+     "r": [
+      1111,
+      626,
+      150,
+      40
+     ]
+    }
+   ],
+   "issues": [],
+   "screenshot": "final/desktop-en-multi.png"
+  },
+  {
+   "viewport": "desktop",
+   "lang": "en",
+   "state": "multi-focus",
+   "collapsed": false,
+   "footer": [
+    8,
+    572,
+    1264,
+    148
+   ],
+   "panel": [
+    19,
+    631,
+    339,
+    80
+   ],
+   "minimap": [
+    12,
+    380,
+    196,
+    180
+   ],
+   "touchToolbar": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "shortcuts": [
+    {
+     "id": "select-army",
+     "r": [
+      1111,
+      581,
+      150,
+      40
+     ]
+    },
+    {
+     "id": "select-workers",
+     "r": [
+      1111,
+      671,
+      150,
+      40
+     ]
+    },
+    {
+     "id": "select-fleet",
+     "r": [
+      1111,
+      626,
+      150,
+      40
+     ]
+    }
+   ],
+   "issues": [],
+   "screenshot": "final/desktop-en-multi-focus.png"
+  },
+  {
+   "viewport": "ipad",
+   "lang": "zh",
+   "state": "enemy",
+   "collapsed": true,
+   "footer": [
+    8,
+    744,
+    1164,
+    76
+   ],
+   "panel": [
+    8,
+    679,
+    600,
+    47
+   ],
+   "minimap": [
+    12,
+    489,
+    196,
+    182
+   ],
+   "touchToolbar": [
+    919,
+    618,
+    206,
+    53
+   ],
+   "shortcuts": [
+    {
+     "id": "select-army",
+     "r": [
+      838,
+      753,
+      106,
+      58
+     ]
+    },
+    {
+     "id": "select-workers",
+     "r": [
+      1055,
+      753,
+      106,
+      58
+     ]
+    },
+    {
+     "id": "select-fleet",
+     "r": [
+      946,
+      753,
+      106,
+      58
+     ]
+    }
+   ],
+   "issues": [],
+   "screenshot": "final/ipad-zh-enemy.png"
+  },
+  {
+   "viewport": "ipad",
+   "lang": "zh",
+   "state": "single",
+   "collapsed": true,
+   "footer": [
+    8,
+    744,
+    1164,
+    76
+   ],
+   "panel": [
+    8,
+    679,
+    600,
+    47
+   ],
+   "minimap": [
+    12,
+    489,
+    196,
+    182
+   ],
+   "touchToolbar": [
+    919,
+    618,
+    206,
+    53
+   ],
+   "shortcuts": [
+    {
+     "id": "select-army",
+     "r": [
+      838,
+      753,
+      106,
+      58
+     ]
+    },
+    {
+     "id": "select-workers",
+     "r": [
+      1055,
+      753,
+      106,
+      58
+     ]
+    },
+    {
+     "id": "select-fleet",
+     "r": [
+      946,
+      753,
+      106,
+      58
+     ]
+    }
+   ],
+   "issues": [],
+   "screenshot": "final/ipad-zh-single.png"
+  },
+  {
+   "viewport": "ipad",
+   "lang": "zh",
+   "state": "single-toggled",
+   "collapsed": false,
+   "footer": [
+    8,
+    672,
+    1164,
+    148
+   ],
+   "panel": [
+    19,
+    777,
+    339,
+    34
+   ],
+   "minimap": [
+    12,
+    478,
+    196,
+    182
+   ],
+   "touchToolbar": [
+    919,
+    568,
+    206,
+    53
+   ],
+   "shortcuts": [
+    {
+     "id": "select-army",
+     "r": [
+      1011,
+      681,
+      150,
+      40
+     ]
+    },
+    {
+     "id": "select-workers",
+     "r": [
+      1011,
+      771,
+      150,
+      40
+     ]
+    },
+    {
+     "id": "select-fleet",
+     "r": [
+      1011,
+      726,
+      150,
+      40
+     ]
+    }
+   ],
+   "issues": [],
+   "screenshot": "final/ipad-zh-single-toggled.png"
+  },
+  {
+   "viewport": "ipad",
+   "lang": "zh",
+   "state": "multi",
+   "collapsed": true,
+   "footer": [
+    8,
+    744,
+    1164,
+    76
+   ],
+   "panel": [
+    8,
+    671,
+    600,
+    55
+   ],
+   "minimap": [
+    12,
+    480,
+    196,
+    182
+   ],
+   "touchToolbar": [
+    919,
+    609,
+    206,
+    53
+   ],
+   "shortcuts": [
+    {
+     "id": "select-army",
+     "r": [
+      838,
+      753,
+      106,
+      58
+     ]
+    },
+    {
+     "id": "select-workers",
+     "r": [
+      1055,
+      753,
+      106,
+      58
+     ]
+    },
+    {
+     "id": "select-fleet",
+     "r": [
+      946,
+      753,
+      106,
+      58
+     ]
+    }
+   ],
+   "issues": [],
+   "screenshot": "final/ipad-zh-multi.png"
+  },
+  {
+   "viewport": "ipad",
+   "lang": "zh",
+   "state": "multi-focus",
+   "collapsed": true,
+   "footer": [
+    8,
+    744,
+    1164,
+    76
+   ],
+   "panel": [
+    8,
+    649,
+    600,
+    77
+   ],
+   "minimap": [
+    12,
+    459,
+    196,
+    182
+   ],
+   "touchToolbar": [
+    919,
+    588,
+    206,
+    53
+   ],
+   "shortcuts": [
+    {
+     "id": "select-army",
+     "r": [
+      838,
+      753,
+      106,
+      58
+     ]
+    },
+    {
+     "id": "select-workers",
+     "r": [
+      1055,
+      753,
+      106,
+      58
+     ]
+    },
+    {
+     "id": "select-fleet",
+     "r": [
+      946,
+      753,
+      106,
+      58
+     ]
+    }
+   ],
+   "issues": [],
+   "screenshot": "final/ipad-zh-multi-focus.png"
+  },
+  {
+   "viewport": "ipad",
+   "lang": "en",
+   "state": "enemy",
+   "collapsed": true,
+   "footer": [
+    8,
+    744,
+    1164,
+    76
+   ],
+   "panel": [
+    8,
+    659,
+    600,
+    67
+   ],
+   "minimap": [
+    12,
+    471,
+    196,
+    180
+   ],
+   "touchToolbar": [
+    919,
+    598,
+    206,
+    53
+   ],
+   "shortcuts": [
+    {
+     "id": "select-army",
+     "r": [
+      838,
+      753,
+      106,
+      58
+     ]
+    },
+    {
+     "id": "select-workers",
+     "r": [
+      1055,
+      753,
+      106,
+      58
+     ]
+    },
+    {
+     "id": "select-fleet",
+     "r": [
+      946,
+      753,
+      106,
+      58
+     ]
+    }
+   ],
+   "issues": [],
+   "screenshot": "final/ipad-en-enemy.png"
+  },
+  {
+   "viewport": "ipad",
+   "lang": "en",
+   "state": "single",
+   "collapsed": true,
+   "footer": [
+    8,
+    744,
+    1164,
+    76
+   ],
+   "panel": [
+    8,
+    679,
+    600,
+    47
+   ],
+   "minimap": [
+    12,
+    491,
+    196,
+    180
+   ],
+   "touchToolbar": [
+    919,
+    618,
+    206,
+    53
+   ],
+   "shortcuts": [
+    {
+     "id": "select-army",
+     "r": [
+      838,
+      753,
+      106,
+      58
+     ]
+    },
+    {
+     "id": "select-workers",
+     "r": [
+      1055,
+      753,
+      106,
+      58
+     ]
+    },
+    {
+     "id": "select-fleet",
+     "r": [
+      946,
+      753,
+      106,
+      58
+     ]
+    }
+   ],
+   "issues": [],
+   "screenshot": "final/ipad-en-single.png"
+  },
+  {
+   "viewport": "ipad",
+   "lang": "en",
+   "state": "single-toggled",
+   "collapsed": false,
+   "footer": [
+    8,
+    672,
+    1164,
+    148
+   ],
+   "panel": [
+    19,
+    741,
+    339,
+    70
+   ],
+   "minimap": [
+    12,
+    480,
+    196,
+    180
+   ],
+   "touchToolbar": [
+    919,
+    568,
+    206,
+    53
+   ],
+   "shortcuts": [
+    {
+     "id": "select-army",
+     "r": [
+      1011,
+      681,
+      150,
+      40
+     ]
+    },
+    {
+     "id": "select-workers",
+     "r": [
+      1011,
+      771,
+      150,
+      40
+     ]
+    },
+    {
+     "id": "select-fleet",
+     "r": [
+      1011,
+      726,
+      150,
+      40
+     ]
+    }
+   ],
+   "issues": [],
+   "screenshot": "final/ipad-en-single-toggled.png"
+  },
+  {
+   "viewport": "ipad",
+   "lang": "en",
+   "state": "multi",
+   "collapsed": true,
+   "footer": [
+    8,
+    744,
+    1164,
+    76
+   ],
+   "panel": [
+    8,
+    671,
+    600,
+    55
+   ],
+   "minimap": [
+    12,
+    482,
+    196,
+    180
+   ],
+   "touchToolbar": [
+    919,
+    609,
+    206,
+    53
+   ],
+   "shortcuts": [
+    {
+     "id": "select-army",
+     "r": [
+      838,
+      753,
+      106,
+      58
+     ]
+    },
+    {
+     "id": "select-workers",
+     "r": [
+      1055,
+      753,
+      106,
+      58
+     ]
+    },
+    {
+     "id": "select-fleet",
+     "r": [
+      946,
+      753,
+      106,
+      58
+     ]
+    }
+   ],
+   "issues": [],
+   "screenshot": "final/ipad-en-multi.png"
+  },
+  {
+   "viewport": "ipad",
+   "lang": "en",
+   "state": "multi-focus",
+   "collapsed": true,
+   "footer": [
+    8,
+    744,
+    1164,
+    76
+   ],
+   "panel": [
+    8,
+    649,
+    600,
+    77
+   ],
+   "minimap": [
+    12,
+    461,
+    196,
+    180
+   ],
+   "touchToolbar": [
+    919,
+    588,
+    206,
+    53
+   ],
+   "shortcuts": [
+    {
+     "id": "select-army",
+     "r": [
+      838,
+      753,
+      106,
+      58
+     ]
+    },
+    {
+     "id": "select-workers",
+     "r": [
+      1055,
+      753,
+      106,
+      58
+     ]
+    },
+    {
+     "id": "select-fleet",
+     "r": [
+      946,
+      753,
+      106,
+      58
+     ]
+    }
+   ],
+   "issues": [],
+   "screenshot": "final/ipad-en-multi-focus.png"
+  },
+  {
+   "viewport": "phone",
+   "lang": "zh",
+   "state": "enemy",
+   "collapsed": true,
+   "footer": [
+    8,
+    758,
+    377,
+    94
+   ],
+   "panel": [
+    8,
+    696,
+    377,
+    44
+   ],
+   "minimap": [
+    12,
+    607,
+    106,
+    81
+   ],
+   "touchToolbar": [
+    171,
+    640,
+    167,
+    48
+   ],
+   "shortcuts": [
+    {
+     "id": "select-army",
+     "r": [
+      17,
+      794,
+      118,
+      44
+     ]
+    },
+    {
+     "id": "select-workers",
+     "r": [
+      258,
+      794,
+      118,
+      44
+     ]
+    },
+    {
+     "id": "select-fleet",
+     "r": [
+      137,
+      794,
+      118,
+      44
+     ]
+    }
+   ],
+   "issues": [],
+   "screenshot": "final/phone-zh-enemy.png"
+  },
+  {
+   "viewport": "phone",
+   "lang": "zh",
+   "state": "single",
+   "collapsed": true,
+   "footer": [
+    8,
+    758,
+    377,
+    94
+   ],
+   "panel": [
+    8,
+    696,
+    377,
+    44
+   ],
+   "minimap": [
+    12,
+    607,
+    106,
+    81
+   ],
+   "touchToolbar": [
+    171,
+    640,
+    167,
+    48
+   ],
+   "shortcuts": [
+    {
+     "id": "select-army",
+     "r": [
+      17,
+      794,
+      118,
+      44
+     ]
+    },
+    {
+     "id": "select-workers",
+     "r": [
+      258,
+      794,
+      118,
+      44
+     ]
+    },
+    {
+     "id": "select-fleet",
+     "r": [
+      137,
+      794,
+      118,
+      44
+     ]
+    }
+   ],
+   "issues": [],
+   "screenshot": "final/phone-zh-single.png"
+  },
+  {
+   "viewport": "phone",
+   "lang": "zh",
+   "state": "single-toggled",
+   "collapsed": false,
+   "footer": [
+    8,
+    566,
+    377,
+    286
+   ],
+   "panel": [
+    8,
+    504,
+    377,
+    44
+   ],
+   "minimap": [
+    12,
+    415,
+    106,
+    81
+   ],
+   "touchToolbar": [
+    171,
+    448,
+    167,
+    48
+   ],
+   "shortcuts": [
+    {
+     "id": "select-army",
+     "r": [
+      254,
+      573,
+      122,
+      38
+     ]
+    },
+    {
+     "id": "select-workers",
+     "r": [
+      254,
+      655,
+      122,
+      38
+     ]
+    },
+    {
+     "id": "select-fleet",
+     "r": [
+      254,
+      614,
+      122,
+      38
+     ]
+    }
+   ],
+   "issues": [],
+   "screenshot": "final/phone-zh-single-toggled.png"
+  },
+  {
+   "viewport": "phone",
+   "lang": "zh",
+   "state": "multi",
+   "collapsed": true,
+   "footer": [
+    8,
+    758,
+    377,
+    94
+   ],
+   "panel": [
+    8,
+    687,
+    377,
+    53
+   ],
+   "minimap": [
+    12,
+    597,
+    106,
+    81
+   ],
+   "touchToolbar": [
+    171,
+    630,
+    167,
+    48
+   ],
+   "shortcuts": [
+    {
+     "id": "select-army",
+     "r": [
+      17,
+      794,
+      118,
+      44
+     ]
+    },
+    {
+     "id": "select-workers",
+     "r": [
+      258,
+      794,
+      118,
+      44
+     ]
+    },
+    {
+     "id": "select-fleet",
+     "r": [
+      137,
+      794,
+      118,
+      44
+     ]
+    }
+   ],
+   "issues": [],
+   "screenshot": "final/phone-zh-multi.png"
+  },
+  {
+   "viewport": "phone",
+   "lang": "zh",
+   "state": "multi-focus",
+   "collapsed": true,
+   "footer": [
+    8,
+    758,
+    377,
+    94
+   ],
+   "panel": [
+    8,
+    666,
+    377,
+    74
+   ],
+   "minimap": [
+    12,
+    577,
+    106,
+    81
+   ],
+   "touchToolbar": [
+    171,
+    610,
+    167,
+    48
+   ],
+   "shortcuts": [
+    {
+     "id": "select-army",
+     "r": [
+      17,
+      794,
+      118,
+      44
+     ]
+    },
+    {
+     "id": "select-workers",
+     "r": [
+      258,
+      794,
+      118,
+      44
+     ]
+    },
+    {
+     "id": "select-fleet",
+     "r": [
+      137,
+      794,
+      118,
+      44
+     ]
+    }
+   ],
+   "issues": [],
+   "screenshot": "final/phone-zh-multi-focus.png"
+  },
+  {
+   "viewport": "phone",
+   "lang": "en",
+   "state": "enemy",
+   "collapsed": true,
+   "footer": [
+    8,
+    758,
+    377,
+    94
+   ],
+   "panel": [
+    8,
+    660,
+    377,
+    80
+   ],
+   "minimap": [
+    12,
+    571,
+    106,
+    81
+   ],
+   "touchToolbar": [
+    171,
+    604,
+    167,
+    48
+   ],
+   "shortcuts": [
+    {
+     "id": "select-army",
+     "r": [
+      17,
+      794,
+      118,
+      44
+     ]
+    },
+    {
+     "id": "select-workers",
+     "r": [
+      258,
+      794,
+      118,
+      44
+     ]
+    },
+    {
+     "id": "select-fleet",
+     "r": [
+      137,
+      794,
+      118,
+      44
+     ]
+    }
+   ],
+   "issues": [],
+   "screenshot": "final/phone-en-enemy.png"
+  },
+  {
+   "viewport": "phone",
+   "lang": "en",
+   "state": "single",
+   "collapsed": true,
+   "footer": [
+    8,
+    758,
+    377,
+    94
+   ],
+   "panel": [
+    8,
+    696,
+    377,
+    44
+   ],
+   "minimap": [
+    12,
+    607,
+    106,
+    81
+   ],
+   "touchToolbar": [
+    171,
+    640,
+    167,
+    48
+   ],
+   "shortcuts": [
+    {
+     "id": "select-army",
+     "r": [
+      17,
+      794,
+      118,
+      44
+     ]
+    },
+    {
+     "id": "select-workers",
+     "r": [
+      258,
+      794,
+      118,
+      44
+     ]
+    },
+    {
+     "id": "select-fleet",
+     "r": [
+      137,
+      794,
+      118,
+      44
+     ]
+    }
+   ],
+   "issues": [],
+   "screenshot": "final/phone-en-single.png"
+  },
+  {
+   "viewport": "phone",
+   "lang": "en",
+   "state": "single-toggled",
+   "collapsed": false,
+   "footer": [
+    8,
+    566,
+    377,
+    286
+   ],
+   "panel": [
+    8,
+    504,
+    377,
+    44
+   ],
+   "minimap": [
+    12,
+    415,
+    106,
+    81
+   ],
+   "touchToolbar": [
+    171,
+    448,
+    167,
+    48
+   ],
+   "shortcuts": [
+    {
+     "id": "select-army",
+     "r": [
+      254,
+      573,
+      122,
+      38
+     ]
+    },
+    {
+     "id": "select-workers",
+     "r": [
+      254,
+      655,
+      122,
+      38
+     ]
+    },
+    {
+     "id": "select-fleet",
+     "r": [
+      254,
+      614,
+      122,
+      38
+     ]
+    }
+   ],
+   "issues": [],
+   "screenshot": "final/phone-en-single-toggled.png"
+  },
+  {
+   "viewport": "phone",
+   "lang": "en",
+   "state": "multi",
+   "collapsed": true,
+   "footer": [
+    8,
+    758,
+    377,
+    94
+   ],
+   "panel": [
+    8,
+    687,
+    377,
+    53
+   ],
+   "minimap": [
+    12,
+    597,
+    106,
+    81
+   ],
+   "touchToolbar": [
+    171,
+    630,
+    167,
+    48
+   ],
+   "shortcuts": [
+    {
+     "id": "select-army",
+     "r": [
+      17,
+      794,
+      118,
+      44
+     ]
+    },
+    {
+     "id": "select-workers",
+     "r": [
+      258,
+      794,
+      118,
+      44
+     ]
+    },
+    {
+     "id": "select-fleet",
+     "r": [
+      137,
+      794,
+      118,
+      44
+     ]
+    }
+   ],
+   "issues": [],
+   "screenshot": "final/phone-en-multi.png"
+  },
+  {
+   "viewport": "phone",
+   "lang": "en",
+   "state": "multi-focus",
+   "collapsed": true,
+   "footer": [
+    8,
+    758,
+    377,
+    94
+   ],
+   "panel": [
+    8,
+    666,
+    377,
+    74
+   ],
+   "minimap": [
+    12,
+    577,
+    106,
+    81
+   ],
+   "touchToolbar": [
+    171,
+    610,
+    167,
+    48
+   ],
+   "shortcuts": [
+    {
+     "id": "select-army",
+     "r": [
+      17,
+      794,
+      118,
+      44
+     ]
+    },
+    {
+     "id": "select-workers",
+     "r": [
+      258,
+      794,
+      118,
+      44
+     ]
+    },
+    {
+     "id": "select-fleet",
+     "r": [
+      137,
+      794,
+      118,
+      44
+     ]
+    }
+   ],
+   "issues": [],
+   "screenshot": "final/phone-en-multi-focus.png"
+  },
+  {
+   "viewport": "phoneL",
+   "lang": "zh",
+   "state": "enemy",
+   "collapsed": true,
+   "footer": [
+    8,
+    333,
+    836,
+    60
+   ],
+   "panel": [
+    8,
+    271,
+    560,
+    44
+   ],
+   "minimap": [
+    10,
+    186,
+    102,
+    77
+   ],
+   "touchToolbar": [
+    666,
+    220,
+    174,
+    43
+   ],
+   "shortcuts": [
+    {
+     "id": "select-army",
+     "r": [
+      221,
+      339,
+      203,
+      48
+     ]
+    },
+    {
+     "id": "select-workers",
+     "r": [
+      632,
+      339,
+      203,
+      48
+     ]
+    },
+    {
+     "id": "select-fleet",
+     "r": [
+      426,
+      339,
+      203,
+      48
+     ]
+    }
+   ],
+   "issues": [],
+   "screenshot": "final/phoneL-zh-enemy.png"
+  },
+  {
+   "viewport": "phoneL",
+   "lang": "zh",
+   "state": "single",
+   "collapsed": true,
+   "footer": [
+    8,
+    333,
+    836,
+    60
+   ],
+   "panel": [
+    8,
+    271,
+    560,
+    44
+   ],
+   "minimap": [
+    10,
+    186,
+    102,
+    77
+   ],
+   "touchToolbar": [
+    666,
+    220,
+    174,
+    43
+   ],
+   "shortcuts": [
+    {
+     "id": "select-army",
+     "r": [
+      221,
+      339,
+      203,
+      48
+     ]
+    },
+    {
+     "id": "select-workers",
+     "r": [
+      632,
+      339,
+      203,
+      48
+     ]
+    },
+    {
+     "id": "select-fleet",
+     "r": [
+      426,
+      339,
+      203,
+      48
+     ]
+    }
+   ],
+   "issues": [],
+   "screenshot": "final/phoneL-zh-single.png"
+  },
+  {
+   "viewport": "phoneL",
+   "lang": "zh",
+   "state": "single-toggled",
+   "collapsed": false,
+   "footer": [
+    8,
+    271,
+    836,
+    122
+   ],
+   "panel": [
+    8,
+    209,
+    560,
+    44
+   ],
+   "minimap": [
+    10,
+    124,
+    102,
+    77
+   ],
+   "touchToolbar": [
+    666,
+    158,
+    174,
+    43
+   ],
+   "shortcuts": [
+    {
+     "id": "select-army",
+     "r": [
+      735,
+      277,
+      100,
+      33
+     ]
+    },
+    {
+     "id": "select-workers",
+     "r": [
+      735,
+      354,
+      100,
+      33
+     ]
+    },
+    {
+     "id": "select-fleet",
+     "r": [
+      735,
+      315,
+      100,
+      33
+     ]
+    }
+   ],
+   "issues": [],
+   "screenshot": "final/phoneL-zh-single-toggled.png"
+  },
+  {
+   "viewport": "phoneL",
+   "lang": "zh",
+   "state": "multi",
+   "collapsed": true,
+   "footer": [
+    8,
+    333,
+    836,
+    60
+   ],
+   "panel": [
+    8,
+    262,
+    560,
+    53
+   ],
+   "minimap": [
+    10,
+    176,
+    102,
+    77
+   ],
+   "touchToolbar": [
+    666,
+    210,
+    174,
+    43
+   ],
+   "shortcuts": [
+    {
+     "id": "select-army",
+     "r": [
+      221,
+      339,
+      203,
+      48
+     ]
+    },
+    {
+     "id": "select-workers",
+     "r": [
+      632,
+      339,
+      203,
+      48
+     ]
+    },
+    {
+     "id": "select-fleet",
+     "r": [
+      426,
+      339,
+      203,
+      48
+     ]
+    }
+   ],
+   "issues": [],
+   "screenshot": "final/phoneL-zh-multi.png"
+  },
+  {
+   "viewport": "phoneL",
+   "lang": "zh",
+   "state": "multi-focus",
+   "collapsed": true,
+   "footer": [
+    8,
+    333,
+    836,
+    60
+   ],
+   "panel": [
+    8,
+    241,
+    560,
+    74
+   ],
+   "minimap": [
+    10,
+    156,
+    102,
+    77
+   ],
+   "touchToolbar": [
+    666,
+    190,
+    174,
+    43
+   ],
+   "shortcuts": [
+    {
+     "id": "select-army",
+     "r": [
+      221,
+      339,
+      203,
+      48
+     ]
+    },
+    {
+     "id": "select-workers",
+     "r": [
+      632,
+      339,
+      203,
+      48
+     ]
+    },
+    {
+     "id": "select-fleet",
+     "r": [
+      426,
+      339,
+      203,
+      48
+     ]
+    }
+   ],
+   "issues": [],
+   "screenshot": "final/phoneL-zh-multi-focus.png"
+  },
+  {
+   "viewport": "phoneL",
+   "lang": "en",
+   "state": "enemy",
+   "collapsed": true,
+   "footer": [
+    8,
+    333,
+    836,
+    60
+   ],
+   "panel": [
+    8,
+    271,
+    560,
+    44
+   ],
+   "minimap": [
+    10,
+    186,
+    102,
+    77
+   ],
+   "touchToolbar": [
+    666,
+    220,
+    174,
+    43
+   ],
+   "shortcuts": [
+    {
+     "id": "select-army",
+     "r": [
+      221,
+      339,
+      203,
+      48
+     ]
+    },
+    {
+     "id": "select-workers",
+     "r": [
+      632,
+      339,
+      203,
+      48
+     ]
+    },
+    {
+     "id": "select-fleet",
+     "r": [
+      426,
+      339,
+      203,
+      48
+     ]
+    }
+   ],
+   "issues": [],
+   "screenshot": "final/phoneL-en-enemy.png"
+  },
+  {
+   "viewport": "phoneL",
+   "lang": "en",
+   "state": "single",
+   "collapsed": true,
+   "footer": [
+    8,
+    333,
+    836,
+    60
+   ],
+   "panel": [
+    8,
+    271,
+    560,
+    44
+   ],
+   "minimap": [
+    10,
+    186,
+    102,
+    77
+   ],
+   "touchToolbar": [
+    666,
+    220,
+    174,
+    43
+   ],
+   "shortcuts": [
+    {
+     "id": "select-army",
+     "r": [
+      221,
+      339,
+      203,
+      48
+     ]
+    },
+    {
+     "id": "select-workers",
+     "r": [
+      632,
+      339,
+      203,
+      48
+     ]
+    },
+    {
+     "id": "select-fleet",
+     "r": [
+      426,
+      339,
+      203,
+      48
+     ]
+    }
+   ],
+   "issues": [],
+   "screenshot": "final/phoneL-en-single.png"
+  },
+  {
+   "viewport": "phoneL",
+   "lang": "en",
+   "state": "single-toggled",
+   "collapsed": false,
+   "footer": [
+    8,
+    271,
+    836,
+    122
+   ],
+   "panel": [
+    8,
+    209,
+    560,
+    44
+   ],
+   "minimap": [
+    10,
+    124,
+    102,
+    77
+   ],
+   "touchToolbar": [
+    666,
+    158,
+    174,
+    43
+   ],
+   "shortcuts": [
+    {
+     "id": "select-army",
+     "r": [
+      735,
+      277,
+      100,
+      33
+     ]
+    },
+    {
+     "id": "select-workers",
+     "r": [
+      735,
+      354,
+      100,
+      33
+     ]
+    },
+    {
+     "id": "select-fleet",
+     "r": [
+      735,
+      315,
+      100,
+      33
+     ]
+    }
+   ],
+   "issues": [],
+   "screenshot": "final/phoneL-en-single-toggled.png"
+  },
+  {
+   "viewport": "phoneL",
+   "lang": "en",
+   "state": "multi",
+   "collapsed": true,
+   "footer": [
+    8,
+    333,
+    836,
+    60
+   ],
+   "panel": [
+    8,
+    262,
+    560,
+    53
+   ],
+   "minimap": [
+    10,
+    176,
+    102,
+    77
+   ],
+   "touchToolbar": [
+    666,
+    210,
+    174,
+    43
+   ],
+   "shortcuts": [
+    {
+     "id": "select-army",
+     "r": [
+      221,
+      339,
+      203,
+      48
+     ]
+    },
+    {
+     "id": "select-workers",
+     "r": [
+      632,
+      339,
+      203,
+      48
+     ]
+    },
+    {
+     "id": "select-fleet",
+     "r": [
+      426,
+      339,
+      203,
+      48
+     ]
+    }
+   ],
+   "issues": [],
+   "screenshot": "final/phoneL-en-multi.png"
+  },
+  {
+   "viewport": "phoneL",
+   "lang": "en",
+   "state": "multi-focus",
+   "collapsed": true,
+   "footer": [
+    8,
+    333,
+    836,
+    60
+   ],
+   "panel": [
+    8,
+    241,
+    560,
+    74
+   ],
+   "minimap": [
+    10,
+    156,
+    102,
+    77
+   ],
+   "touchToolbar": [
+    666,
+    190,
+    174,
+    43
+   ],
+   "shortcuts": [
+    {
+     "id": "select-army",
+     "r": [
+      221,
+      339,
+      203,
+      48
+     ]
+    },
+    {
+     "id": "select-workers",
+     "r": [
+      632,
+      339,
+      203,
+      48
+     ]
+    },
+    {
+     "id": "select-fleet",
+     "r": [
+      426,
+      339,
+      203,
+      48
+     ]
+    }
+   ],
+   "issues": [],
+   "screenshot": "final/phoneL-en-multi-focus.png"
+  },
+  {
+   "viewport": "narrow",
+   "lang": "zh",
+   "state": "enemy",
+   "collapsed": false,
+   "footer": [
+    8,
+    494,
+    344,
+    286
+   ],
+   "panel": null,
+   "minimap": [
+    12,
+    401,
+    106,
+    81
+   ],
+   "touchToolbar": [
+    138,
+    395,
+    167,
+    48
+   ],
+   "shortcuts": [
+    {
+     "id": "select-army",
+     "r": [
+      221,
+      501,
+      122,
+      38
+     ]
+    },
+    {
+     "id": "select-workers",
+     "r": [
+      221,
+      583,
+      122,
+      38
+     ]
+    },
+    {
+     "id": "select-fleet",
+     "r": [
+      221,
+      542,
+      122,
+      38
+     ]
+    }
+   ],
+   "issues": [],
+   "screenshot": "final/narrow-zh-enemy.png"
+  },
+  {
+   "viewport": "narrow",
+   "lang": "zh",
+   "state": "single",
+   "collapsed": true,
+   "footer": [
+    8,
+    686,
+    344,
+    94
+   ],
+   "panel": [
+    8,
+    624,
+    344,
+    44
+   ],
+   "minimap": [
+    12,
+    535,
+    106,
+    81
+   ],
+   "touchToolbar": [
+    138,
+    568,
+    167,
+    48
+   ],
+   "shortcuts": [
+    {
+     "id": "select-army",
+     "r": [
+      17,
+      722,
+      107,
+      44
+     ]
+    },
+    {
+     "id": "select-workers",
+     "r": [
+      236,
+      722,
+      107,
+      44
+     ]
+    },
+    {
+     "id": "select-fleet",
+     "r": [
+      126,
+      722,
+      107,
+      44
+     ]
+    }
+   ],
+   "issues": [],
+   "screenshot": "final/narrow-zh-single.png"
+  },
+  {
+   "viewport": "narrow",
+   "lang": "zh",
+   "state": "single-toggled",
+   "collapsed": false,
+   "footer": [
+    8,
+    494,
+    344,
+    286
+   ],
+   "panel": [
+    8,
+    432,
+    344,
+    44
+   ],
+   "minimap": [
+    12,
+    343,
+    106,
+    81
+   ],
+   "touchToolbar": [
+    138,
+    376,
+    167,
+    48
+   ],
+   "shortcuts": [
+    {
+     "id": "select-army",
+     "r": [
+      221,
+      501,
+      122,
+      38
+     ]
+    },
+    {
+     "id": "select-workers",
+     "r": [
+      221,
+      583,
+      122,
+      38
+     ]
+    },
+    {
+     "id": "select-fleet",
+     "r": [
+      221,
+      542,
+      122,
+      38
+     ]
+    }
+   ],
+   "issues": [],
+   "screenshot": "final/narrow-zh-single-toggled.png"
+  },
+  {
+   "viewport": "narrow",
+   "lang": "zh",
+   "state": "multi",
+   "collapsed": true,
+   "footer": [
+    8,
+    686,
+    344,
+    94
+   ],
+   "panel": [
+    8,
+    615,
+    344,
+    53
+   ],
+   "minimap": [
+    12,
+    525,
+    106,
+    81
+   ],
+   "touchToolbar": [
+    138,
+    558,
+    167,
+    48
+   ],
+   "shortcuts": [
+    {
+     "id": "select-army",
+     "r": [
+      17,
+      722,
+      107,
+      44
+     ]
+    },
+    {
+     "id": "select-workers",
+     "r": [
+      236,
+      722,
+      107,
+      44
+     ]
+    },
+    {
+     "id": "select-fleet",
+     "r": [
+      126,
+      722,
+      107,
+      44
+     ]
+    }
+   ],
+   "issues": [],
+   "screenshot": "final/narrow-zh-multi.png"
+  },
+  {
+   "viewport": "narrow",
+   "lang": "zh",
+   "state": "multi-focus",
+   "collapsed": true,
+   "footer": [
+    8,
+    686,
+    344,
+    94
+   ],
+   "panel": [
+    8,
+    594,
+    344,
+    74
+   ],
+   "minimap": [
+    12,
+    505,
+    106,
+    81
+   ],
+   "touchToolbar": [
+    138,
+    538,
+    167,
+    48
+   ],
+   "shortcuts": [
+    {
+     "id": "select-army",
+     "r": [
+      17,
+      722,
+      107,
+      44
+     ]
+    },
+    {
+     "id": "select-workers",
+     "r": [
+      236,
+      722,
+      107,
+      44
+     ]
+    },
+    {
+     "id": "select-fleet",
+     "r": [
+      126,
+      722,
+      107,
+      44
+     ]
+    }
+   ],
+   "issues": [],
+   "screenshot": "final/narrow-zh-multi-focus.png"
+  },
+  {
+   "viewport": "narrow",
+   "lang": "en",
+   "state": "enemy",
+   "collapsed": false,
+   "footer": [
+    8,
+    494,
+    344,
+    286
+   ],
+   "panel": null,
+   "minimap": [
+    12,
+    401,
+    106,
+    81
+   ],
+   "touchToolbar": [
+    138,
+    395,
+    167,
+    48
+   ],
+   "shortcuts": [
+    {
+     "id": "select-army",
+     "r": [
+      221,
+      501,
+      122,
+      38
+     ]
+    },
+    {
+     "id": "select-workers",
+     "r": [
+      221,
+      583,
+      122,
+      38
+     ]
+    },
+    {
+     "id": "select-fleet",
+     "r": [
+      221,
+      542,
+      122,
+      38
+     ]
+    }
+   ],
+   "issues": [],
+   "screenshot": "final/narrow-en-enemy.png"
+  },
+  {
+   "viewport": "narrow",
+   "lang": "en",
+   "state": "single",
+   "collapsed": true,
+   "footer": [
+    8,
+    686,
+    344,
+    94
+   ],
+   "panel": [
+    8,
+    608,
+    344,
+    60
+   ],
+   "minimap": [
+    12,
+    519,
+    106,
+    81
+   ],
+   "touchToolbar": [
+    138,
+    552,
+    167,
+    48
+   ],
+   "shortcuts": [
+    {
+     "id": "select-army",
+     "r": [
+      17,
+      722,
+      107,
+      44
+     ]
+    },
+    {
+     "id": "select-workers",
+     "r": [
+      236,
+      722,
+      107,
+      44
+     ]
+    },
+    {
+     "id": "select-fleet",
+     "r": [
+      126,
+      722,
+      107,
+      44
+     ]
+    }
+   ],
+   "issues": [],
+   "screenshot": "final/narrow-en-single.png"
+  },
+  {
+   "viewport": "narrow",
+   "lang": "en",
+   "state": "single-toggled",
+   "collapsed": false,
+   "footer": [
+    8,
+    494,
+    344,
+    286
+   ],
+   "panel": [
+    8,
+    416,
+    344,
+    60
+   ],
+   "minimap": [
+    12,
+    327,
+    106,
+    81
+   ],
+   "touchToolbar": [
+    138,
+    360,
+    167,
+    48
+   ],
+   "shortcuts": [
+    {
+     "id": "select-army",
+     "r": [
+      221,
+      501,
+      122,
+      38
+     ]
+    },
+    {
+     "id": "select-workers",
+     "r": [
+      221,
+      583,
+      122,
+      38
+     ]
+    },
+    {
+     "id": "select-fleet",
+     "r": [
+      221,
+      542,
+      122,
+      38
+     ]
+    }
+   ],
+   "issues": [],
+   "screenshot": "final/narrow-en-single-toggled.png"
+  },
+  {
+   "viewport": "narrow",
+   "lang": "en",
+   "state": "multi",
+   "collapsed": true,
+   "footer": [
+    8,
+    686,
+    344,
+    94
+   ],
+   "panel": [
+    8,
+    615,
+    344,
+    53
+   ],
+   "minimap": [
+    12,
+    525,
+    106,
+    81
+   ],
+   "touchToolbar": [
+    138,
+    558,
+    167,
+    48
+   ],
+   "shortcuts": [
+    {
+     "id": "select-army",
+     "r": [
+      17,
+      722,
+      107,
+      44
+     ]
+    },
+    {
+     "id": "select-workers",
+     "r": [
+      236,
+      722,
+      107,
+      44
+     ]
+    },
+    {
+     "id": "select-fleet",
+     "r": [
+      126,
+      722,
+      107,
+      44
+     ]
+    }
+   ],
+   "issues": [],
+   "screenshot": "final/narrow-en-multi.png"
+  },
+  {
+   "viewport": "narrow",
+   "lang": "en",
+   "state": "multi-focus",
+   "collapsed": true,
+   "footer": [
+    8,
+    686,
+    344,
+    94
+   ],
+   "panel": [
+    8,
+    578,
+    344,
+    90
+   ],
+   "minimap": [
+    12,
+    489,
+    106,
+    81
+   ],
+   "touchToolbar": [
+    138,
+    522,
+    167,
+    48
+   ],
+   "shortcuts": [
+    {
+     "id": "select-army",
+     "r": [
+      17,
+      722,
+      107,
+      44
+     ]
+    },
+    {
+     "id": "select-workers",
+     "r": [
+      236,
+      722,
+      107,
+      44
+     ]
+    },
+    {
+     "id": "select-fleet",
+     "r": [
+      126,
+      722,
+      107,
+      44
+     ]
+    }
+   ],
+   "issues": [],
+   "screenshot": "final/narrow-en-multi-focus.png"
+  }
+ ]
+}

@@ -212,4 +212,87 @@ V 时代飞艇工场先研发航空工程，再生产侦察热气球、运输飞
 试听动物、人物与城防声音|Preview animal, unit and fortification sounds
 六张地图再次扩展，边长比上一版增加约 35%|All six maps are expanded again, with sides about 35% longer
 确认|Confirm
+战鼓警报：|War drums: 
+正在集结军队，约 | is massing an army, marching in about 
+ 秒后出击| seconds
+发现敌方斥候：|Enemy scout spotted: 
+正在侦察我方营地| is scouting your base
+的军队正在撤退|'s army is retreating
+快攻|Rush
+憋经济|Boom
+龟缩|Turtle
+训练医师，并缓慢治疗附近脱战友军（合并海滨浴场的疗养功能）|Trains healers and slowly heals nearby friendly troops out of combat (absorbs the seaside bath's recovery)
+矿工把黄金与石料运回此处（合并采石场）；靠近矿脉修建可缩短往返路线|Miners return gold and stone here (absorbs the quarry); build near deposits to shorten trips
+重型区域防御，压制成群敌军（合并棱堡炮塔与岸防炮台）；建在海岸时可炮击舰船|Heavy area defense that suppresses massed enemies (absorbs the bastion turret and coastal battery); bombards ships when built on the coast
+该单位已退役，不能再生产|This unit is retired and can no longer be produced
+此建筑已合并，不能再训练|This building has been merged and can no longer train units
+该兵种已并入其他兵种|This unit has been merged into another unit
+此建筑已合并到|This building has been merged into 
+只能训练本国特色兵种|Only your own nation's special units can be trained
+该研究已移除|This research has been removed
+请求超时（12 秒无响应）|Request timed out (no reply in 12 s)
+网络错误：|Network error: 
+超时|timeout
+网络错误|network error
+无回应|no reply
+超过 4 秒没有收到服务器回应（请求仍在等待）|No reply from the server for over 4 s (request still pending)
+错误|error
+点击查看重连原因|Tap to see why it is reconnecting
+最近一次失败|Last failure
+信息|Message
+距上次成功|Since last success
+连续失败次数|Failures in a row
+首次失败|First failure
+最近失败|Latest failure
+房间|Room
+协议|protocol
+游戏时间|Game time
+联机重连诊断|Online reconnect diagnostics
+截图发给开发者即可帮助定位问题。|Send a screenshot of this to the developers to help find the problem.
+复制|Copy
+打开联机房间|Open the online room
+关闭|Close
+已复制|Copied
+全屏游玩|Play full screen
+iPhone 的 Safari 不支持网页全屏。点 Safari 的「分享」→「添加到主屏幕」，之后从主屏幕图标打开即为全屏。|Safari on iPhone cannot make a web page full screen. Tap Share → Add to Home Screen, then open the game from the home-screen icon to play full screen.
+知道了|Got it
+⛶ 全屏|⛶ Full screen
+⛶ 退出全屏|⛶ Exit full screen
+点击展开 / 收起诊断信息|Tap to expand / collapse diagnostics
+III 时代飞艇工场训练侦察热气球：超大视野、炮兵观测（视野内己方火炮射程提高）与地图测绘；研究航空工程后训练双翼轰炸机（只炸建筑）。弓手、火枪与箭塔对空伤害减半，要塞全额。|Age III: the Airship Works trains scout balloons — very large sight, artillery spotting (own guns in its sight gain range) and map survey; after Aeronautics it trains biplane bombers (buildings only). Bows, muskets and towers deal half damage to aircraft; forts deal full damage.
+III 时代，无需研究：无攻击能力，飞越地形提供超大视野。炮兵观测：视野内己方火炮、臼炮与迫击炮舰射程 +15%，并可攻击气球看到的目标。地图测绘：飞过时把 1.35 倍视野内的资源点与遗迹永久标在地图上|Age III, no research needed: unarmed, flies over terrain with a very large sight. Artillery spotting: own cannons, mortars and mortar ships inside its sight get +15% range and may fire at targets the balloon sees. Map survey: as it flies, deposits and relics within 1.35x its sight are marked on the map permanently
+III 时代起训练侦察热气球（视野、炮兵观测、地图测绘）；研究航空工程后训练双翼轰炸机，军机在此补弹|From Age III trains scout balloons (sight, artillery spotting, map survey); after Aeronautics trains biplane bombers, which rearm here
+III 时代起训练侦察热气球；研究航空工程后训练双翼轰炸机；飞行单位能越过水域和山崖|From Age III trains scout balloons; after Aeronautics trains biplane bombers; air units cross water and cliffs
+火炮护甲 +1（攻城炮兵与臼炮线）|Artillery armor +1 (siege cannon and mortar line)
+未知兵种|Unknown unit
+国家地标：每局只能建造一座；每 90 秒免费征召 1 名|National landmark: one per match; every 90 seconds it levies 1 free 
+（受人口上限限制）| (within the population cap)
+；可研究国家学说|; researches the national doctrine
+本国以|Your nation trains 
+替代| instead
+只能建造本国地标|Only your own nation's landmark can be built
+每局只能建造一座国家地标|Only one national landmark per match
+III 时代起训练侦察热气球；研究航空工程后训练双翼轰炸机，军机在此补弹|Trains scout balloons from age III; after Aeronautics it trains biplane bombers, which rearm here
+III 时代，无需研究：无攻击能力，飞越地形提供超大视野；用来侦察敌人的打法和野外据点|Age III, no research needed: unarmed, flies over terrain with very wide sight; use it to scout enemy strategies and wilderness strongholds
+V 时代：只攻击建筑，飞越城墙；每次出击携弹 2 枚，弹尽后自动返航补弹；怕远程防空|Age V: attacks buildings only and flies over walls; carries 2 bombs per sortie and returns to rearm automatically; vulnerable to ranged anti-air
+重型区域防御，压制成群敌军，对空全伤害（合并棱堡炮塔与岸防炮台）；建在海岸时可炮击舰船|Heavy area defense that suppresses massed enemies and deals full damage to aircraft (absorbs the bastion turret and coastal battery); bombards ships when built on the coast
+自动射击附近敌军，可对空（伤害减半）|Automatically shoots nearby enemies and can hit aircraft (half damage)
+训练贸易商队并研究采集效率；不再被动产生黄金，商队路线越长收益越高|Trains trade caravans and researches gathering efficiency; no longer makes passive gold — longer caravan routes earn more
+解锁双翼轰炸机（侦察热气球无需研究）|Unlocks biplane bombers (scout balloons need no research)
+双翼轰炸机|Biplane Bomber
+在铁匠铺研究升级：本线已有与正在训练的兵一起升为下一阶。|Research at the blacksmith: the line's existing and queued soldiers all advance to the next tier.
+在生产该兵种的建筑研究升级（步兵营 / 射击场 / 炮兵工坊）：本线已有与正在训练的兵一起升为下一阶。|Research the upgrade at the building that trains the line (barracks / shooting range / artillery workshop): the line's existing and queued soldiers all advance to the next tier.
+需要先在|Research first at the 
+已研究|Researched
+臼炮线|Mortar line
+长枪线升级|Spear line upgrade
+远程线升级|Ranged line upgrade
+臼炮线升级|Mortar line upgrade
+本线已有与正在训练的兵一起升为下一阶：|Existing and queued soldiers of this line advance to the next tier: 
+（各国特色兵按所替换的阶升级）| (national units upgrade from the tier they replace)
+已升级为|Upgraded to 
+需要在铁匠铺研究|Research at the blacksmith: 
+已达最高阶|Highest tier reached
+训练村民（军械工程师已并入村民）；推进时代，扩展人口与经济|Trains villagers (the ordnance engineer is merged into the villager); advances ages and expands population and economy
+点击射击场，训练一名长弓卫士（英国用它替代弓箭手）。图标右上角 ⓘ 可以查看详细数值和职责。|Select the archery range and train a Longbow Guard (Britain’s replacement for the archer). Use the icon’s upper-right ⓘ to inspect statistics and roles.
 `.trim().split('\n').map(l=>{const i=l.indexOf('|');return[l.slice(0,i),l.slice(i+1)]})));if(typeof module!=='undefined')module.exports=root.KingdomLocaleData})(typeof window==='undefined'?globalThis:window);

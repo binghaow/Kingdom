@@ -1,0 +1,890 @@
+{
+ "p852:welcome": {
+  "W": 393,
+  "H": 852,
+  "overlays": {
+   "diag": null,
+   "debug": {
+    "x": 8,
+    "y": 52,
+    "w": 220,
+    "h": 28
+   },
+   "intel": null,
+   "badge": null,
+   "dialog": {
+    "x": 12,
+    "y": 41,
+    "w": 370,
+    "h": 771
+   },
+   "council": null,
+   "fsguide": null
+  },
+  "hits": {
+   "debug": {
+    "centerPct": 0,
+    "controls": []
+   }
+  },
+  "dialogInView": true,
+  "closeVisible": false
+ },
+ "p852:debug": {
+  "W": 393,
+  "H": 852,
+  "overlays": {
+   "diag": null,
+   "debug": {
+    "x": 8,
+    "y": 52,
+    "w": 220,
+    "h": 28
+   },
+   "intel": null,
+   "badge": null,
+   "dialog": null,
+   "council": null,
+   "fsguide": null
+  },
+  "hits": {
+   "debug": {
+    "centerPct": 0,
+    "controls": []
+   }
+  },
+  "dialogInView": null,
+  "closeVisible": false
+ },
+ "p852:intel": {
+  "W": 393,
+  "H": 852,
+  "overlays": {
+   "diag": null,
+   "debug": {
+    "x": 8,
+    "y": 52,
+    "w": 220,
+    "h": 28
+   },
+   "intel": {
+    "x": 8,
+    "y": 687,
+    "w": 377,
+    "h": 53
+   },
+   "badge": null,
+   "dialog": null,
+   "council": null,
+   "fsguide": null
+  },
+  "hits": {
+   "debug": {
+    "centerPct": 0,
+    "controls": []
+   },
+   "intel": {
+    "centerPct": 0,
+    "controls": []
+   }
+  },
+  "dialogInView": null,
+  "closeVisible": false
+ },
+ "p852:lobby": {
+  "W": 393,
+  "H": 852,
+  "overlays": {
+   "diag": null,
+   "debug": null,
+   "intel": null,
+   "badge": null,
+   "dialog": {
+    "x": 15,
+    "y": 43,
+    "w": 363,
+    "h": 767
+   },
+   "council": null,
+   "fsguide": null
+  },
+  "hits": {},
+  "dialogInView": true,
+  "closeVisible": true
+ },
+ "p852:room": {
+  "W": 393,
+  "H": 852,
+  "overlays": {
+   "diag": null,
+   "debug": null,
+   "intel": null,
+   "badge": null,
+   "dialog": {
+    "x": 15,
+    "y": 64,
+    "w": 363,
+    "h": 724
+   },
+   "council": null,
+   "fsguide": null
+  },
+  "hits": {},
+  "dialogInView": true,
+  "closeVisible": true
+ },
+ "p852:online": {
+  "W": 393,
+  "H": 852,
+  "overlays": {
+   "diag": null,
+   "debug": null,
+   "intel": null,
+   "badge": {
+    "x": 141,
+    "y": 110,
+    "w": 110,
+    "h": 23
+   },
+   "dialog": null,
+   "council": null,
+   "fsguide": null
+  },
+  "hits": {
+   "badge": {
+    "centerPct": 0,
+    "controls": []
+   }
+  },
+  "dialogInView": null,
+  "closeVisible": false
+ },
+ "p852:reconnect": {
+  "W": 393,
+  "H": 852,
+  "overlays": {
+   "diag": null,
+   "debug": null,
+   "intel": null,
+   "badge": {
+    "x": 93,
+    "y": 110,
+    "w": 206,
+    "h": 23
+   },
+   "dialog": null,
+   "council": null,
+   "fsguide": null
+  },
+  "hits": {
+   "badge": {
+    "centerPct": 0,
+    "controls": []
+   }
+  },
+  "dialogInView": null,
+  "closeVisible": false
+ },
+ "p852:diag": {
+  "W": 393,
+  "H": 852,
+  "overlays": {
+   "diag": {
+    "x": 12,
+    "y": 218,
+    "w": 369,
+    "h": 417
+   },
+   "debug": null,
+   "intel": null,
+   "badge": {
+    "x": 91,
+    "y": 110,
+    "w": 210,
+    "h": 23
+   },
+   "dialog": {
+    "x": 12,
+    "y": 218,
+    "w": 369,
+    "h": 417
+   },
+   "council": null,
+   "fsguide": null
+  },
+  "hits": {
+   "badge": {
+    "centerPct": 0,
+    "controls": []
+   }
+  },
+  "dialogInView": true,
+  "closeVisible": false
+ },
+ "l393:welcome": {
+  "W": 852,
+  "H": 393,
+  "overlays": {
+   "diag": null,
+   "debug": {
+    "x": 8,
+    "y": 44,
+    "w": 320,
+    "h": 28
+   },
+   "intel": null,
+   "badge": null,
+   "dialog": {
+    "x": 26,
+    "y": 20,
+    "w": 801,
+    "h": 354
+   },
+   "council": null,
+   "fsguide": null
+  },
+  "hits": {
+   "debug": {
+    "centerPct": 0,
+    "controls": []
+   }
+  },
+  "dialogInView": true,
+  "closeVisible": false
+ },
+ "l393:debug": {
+  "W": 852,
+  "H": 393,
+  "overlays": {
+   "diag": null,
+   "debug": {
+    "x": 8,
+    "y": 44,
+    "w": 320,
+    "h": 28
+   },
+   "intel": null,
+   "badge": null,
+   "dialog": null,
+   "council": null,
+   "fsguide": null
+  },
+  "hits": {
+   "debug": {
+    "centerPct": 0,
+    "controls": []
+   }
+  },
+  "dialogInView": null,
+  "closeVisible": false
+ },
+ "l393:intel": {
+  "W": 852,
+  "H": 393,
+  "overlays": {
+   "diag": null,
+   "debug": {
+    "x": 8,
+    "y": 44,
+    "w": 320,
+    "h": 28
+   },
+   "intel": {
+    "x": 8,
+    "y": 264,
+    "w": 375,
+    "h": 51
+   },
+   "badge": null,
+   "dialog": null,
+   "council": null,
+   "fsguide": null
+  },
+  "hits": {
+   "debug": {
+    "centerPct": 0,
+    "controls": []
+   },
+   "intel": {
+    "centerPct": 3,
+    "controls": []
+   }
+  },
+  "dialogInView": null,
+  "closeVisible": false
+ },
+ "l393:lobby": {
+  "W": 852,
+  "H": 393,
+  "overlays": {
+   "diag": null,
+   "debug": null,
+   "intel": null,
+   "badge": null,
+   "dialog": {
+    "x": 86,
+    "y": 12,
+    "w": 680,
+    "h": 369
+   },
+   "council": null,
+   "fsguide": null
+  },
+  "hits": {},
+  "dialogInView": true,
+  "closeVisible": true
+ },
+ "l393:room": {
+  "W": 852,
+  "H": 393,
+  "overlays": {
+   "diag": null,
+   "debug": null,
+   "intel": null,
+   "badge": null,
+   "dialog": {
+    "x": 86,
+    "y": 12,
+    "w": 680,
+    "h": 369
+   },
+   "council": null,
+   "fsguide": null
+  },
+  "hits": {},
+  "dialogInView": true,
+  "closeVisible": true
+ },
+ "l393:online": {
+  "W": 852,
+  "H": 393,
+  "overlays": {
+   "diag": null,
+   "debug": null,
+   "intel": null,
+   "badge": {
+    "x": 649,
+    "y": 42,
+    "w": 93,
+    "h": 21
+   },
+   "dialog": null,
+   "council": null,
+   "fsguide": null
+  },
+  "hits": {
+   "badge": {
+    "centerPct": 0,
+    "controls": []
+   }
+  },
+  "dialogInView": null,
+  "closeVisible": false
+ },
+ "l393:reconnect": {
+  "W": 852,
+  "H": 393,
+  "overlays": {
+   "diag": null,
+   "debug": null,
+   "intel": null,
+   "badge": {
+    "x": 557,
+    "y": 42,
+    "w": 185,
+    "h": 21
+   },
+   "dialog": null,
+   "council": null,
+   "fsguide": null
+  },
+  "hits": {
+   "badge": {
+    "centerPct": 0,
+    "controls": []
+   }
+  },
+  "dialogInView": null,
+  "closeVisible": false
+ },
+ "l393:diag": {
+  "W": 852,
+  "H": 393,
+  "overlays": {
+   "diag": {
+    "x": 206,
+    "y": 12,
+    "w": 440,
+    "h": 369
+   },
+   "debug": null,
+   "intel": null,
+   "badge": {
+    "x": 555,
+    "y": 42,
+    "w": 187,
+    "h": 21
+   },
+   "dialog": {
+    "x": 206,
+    "y": 12,
+    "w": 440,
+    "h": 369
+   },
+   "council": null,
+   "fsguide": null
+  },
+  "hits": {
+   "badge": {
+    "centerPct": 0,
+    "controls": []
+   }
+  },
+  "dialogInView": true,
+  "closeVisible": false
+ },
+ "p660:welcome": {
+  "W": 393,
+  "H": 660,
+  "overlays": {
+   "diag": null,
+   "debug": {
+    "x": 8,
+    "y": 52,
+    "w": 220,
+    "h": 28
+   },
+   "intel": null,
+   "badge": null,
+   "dialog": {
+    "x": 12,
+    "y": 31,
+    "w": 370,
+    "h": 598
+   },
+   "council": null,
+   "fsguide": null
+  },
+  "hits": {
+   "debug": {
+    "centerPct": 0,
+    "controls": []
+   }
+  },
+  "dialogInView": true,
+  "closeVisible": false
+ },
+ "p660:debug": {
+  "W": 393,
+  "H": 660,
+  "overlays": {
+   "diag": null,
+   "debug": {
+    "x": 8,
+    "y": 52,
+    "w": 220,
+    "h": 28
+   },
+   "intel": null,
+   "badge": null,
+   "dialog": null,
+   "council": null,
+   "fsguide": null
+  },
+  "hits": {
+   "debug": {
+    "centerPct": 0,
+    "controls": []
+   }
+  },
+  "dialogInView": null,
+  "closeVisible": false
+ },
+ "p660:intel": {
+  "W": 393,
+  "H": 660,
+  "overlays": {
+   "diag": null,
+   "debug": {
+    "x": 8,
+    "y": 52,
+    "w": 220,
+    "h": 28
+   },
+   "intel": {
+    "x": 8,
+    "y": 495,
+    "w": 377,
+    "h": 53
+   },
+   "badge": null,
+   "dialog": null,
+   "council": null,
+   "fsguide": null
+  },
+  "hits": {
+   "debug": {
+    "centerPct": 0,
+    "controls": []
+   },
+   "intel": {
+    "centerPct": 0,
+    "controls": []
+   }
+  },
+  "dialogInView": null,
+  "closeVisible": false
+ },
+ "p660:lobby": {
+  "W": 393,
+  "H": 660,
+  "overlays": {
+   "diag": null,
+   "debug": null,
+   "intel": null,
+   "badge": null,
+   "dialog": {
+    "x": 15,
+    "y": 33,
+    "w": 363,
+    "h": 594
+   },
+   "council": null,
+   "fsguide": null
+  },
+  "hits": {},
+  "dialogInView": true,
+  "closeVisible": true
+ },
+ "p660:room": {
+  "W": 393,
+  "H": 660,
+  "overlays": {
+   "diag": null,
+   "debug": null,
+   "intel": null,
+   "badge": null,
+   "dialog": {
+    "x": 15,
+    "y": 33,
+    "w": 363,
+    "h": 594
+   },
+   "council": null,
+   "fsguide": null
+  },
+  "hits": {},
+  "dialogInView": true,
+  "closeVisible": true
+ },
+ "p660:online": {
+  "W": 393,
+  "H": 660,
+  "overlays": {
+   "diag": null,
+   "debug": null,
+   "intel": null,
+   "badge": {
+    "x": 145,
+    "y": 110,
+    "w": 103,
+    "h": 23
+   },
+   "dialog": null,
+   "council": null,
+   "fsguide": null
+  },
+  "hits": {
+   "badge": {
+    "centerPct": 0,
+    "controls": []
+   }
+  },
+  "dialogInView": null,
+  "closeVisible": false
+ },
+ "p660:reconnect": {
+  "W": 393,
+  "H": 660,
+  "overlays": {
+   "diag": null,
+   "debug": null,
+   "intel": null,
+   "badge": {
+    "x": 133,
+    "y": 110,
+    "w": 126,
+    "h": 23
+   },
+   "dialog": null,
+   "council": null,
+   "fsguide": null
+  },
+  "hits": {
+   "badge": {
+    "centerPct": 0,
+    "controls": []
+   }
+  },
+  "dialogInView": null,
+  "closeVisible": false
+ },
+ "p660:diag": {
+  "W": 393,
+  "H": 660,
+  "overlays": {
+   "diag": {
+    "x": 12,
+    "y": 122,
+    "w": 369,
+    "h": 417
+   },
+   "debug": null,
+   "intel": null,
+   "badge": {
+    "x": 133,
+    "y": 110,
+    "w": 126,
+    "h": 23
+   },
+   "dialog": {
+    "x": 12,
+    "y": 122,
+    "w": 369,
+    "h": 417
+   },
+   "council": null,
+   "fsguide": null
+  },
+  "hits": {
+   "badge": {
+    "centerPct": 0,
+    "controls": []
+   }
+  },
+  "dialogInView": true,
+  "closeVisible": false
+ },
+ "l320:welcome": {
+  "W": 852,
+  "H": 320,
+  "overlays": {
+   "diag": null,
+   "debug": {
+    "x": 8,
+    "y": 44,
+    "w": 320,
+    "h": 28
+   },
+   "intel": null,
+   "badge": null,
+   "dialog": {
+    "x": 26,
+    "y": 8,
+    "w": 801,
+    "h": 304
+   },
+   "council": null,
+   "fsguide": null
+  },
+  "hits": {
+   "debug": {
+    "centerPct": 0,
+    "controls": []
+   }
+  },
+  "dialogInView": true,
+  "closeVisible": false
+ },
+ "l320:debug": {
+  "W": 852,
+  "H": 320,
+  "overlays": {
+   "diag": null,
+   "debug": {
+    "x": 8,
+    "y": 44,
+    "w": 320,
+    "h": 28
+   },
+   "intel": null,
+   "badge": null,
+   "dialog": null,
+   "council": null,
+   "fsguide": null
+  },
+  "hits": {
+   "debug": {
+    "centerPct": 0,
+    "controls": []
+   }
+  },
+  "dialogInView": null,
+  "closeVisible": false
+ },
+ "l320:intel": {
+  "W": 852,
+  "H": 320,
+  "overlays": {
+   "diag": null,
+   "debug": {
+    "x": 8,
+    "y": 44,
+    "w": 320,
+    "h": 28
+   },
+   "intel": {
+    "x": 8,
+    "y": 191,
+    "w": 375,
+    "h": 51
+   },
+   "badge": null,
+   "dialog": null,
+   "council": null,
+   "fsguide": null
+  },
+  "hits": {
+   "debug": {
+    "centerPct": 0,
+    "controls": []
+   },
+   "intel": {
+    "centerPct": 10,
+    "controls": []
+   }
+  },
+  "dialogInView": null,
+  "closeVisible": false
+ },
+ "l320:lobby": {
+  "W": 852,
+  "H": 320,
+  "overlays": {
+   "diag": null,
+   "debug": null,
+   "intel": null,
+   "badge": null,
+   "dialog": {
+    "x": 86,
+    "y": 10,
+    "w": 680,
+    "h": 301
+   },
+   "council": null,
+   "fsguide": null
+  },
+  "hits": {},
+  "dialogInView": true,
+  "closeVisible": true
+ },
+ "l320:room": {
+  "W": 852,
+  "H": 320,
+  "overlays": {
+   "diag": null,
+   "debug": null,
+   "intel": null,
+   "badge": null,
+   "dialog": {
+    "x": 86,
+    "y": 10,
+    "w": 680,
+    "h": 301
+   },
+   "council": null,
+   "fsguide": null
+  },
+  "hits": {},
+  "dialogInView": true,
+  "closeVisible": true
+ },
+ "l320:online": {
+  "W": 852,
+  "H": 320,
+  "overlays": {
+   "diag": null,
+   "debug": null,
+   "intel": null,
+   "badge": {
+    "x": 649,
+    "y": 42,
+    "w": 93,
+    "h": 21
+   },
+   "dialog": null,
+   "council": null,
+   "fsguide": null
+  },
+  "hits": {
+   "badge": {
+    "centerPct": 0,
+    "controls": []
+   }
+  },
+  "dialogInView": null,
+  "closeVisible": false
+ },
+ "l320:reconnect": {
+  "W": 852,
+  "H": 320,
+  "overlays": {
+   "diag": null,
+   "debug": null,
+   "intel": null,
+   "badge": {
+    "x": 628,
+    "y": 42,
+    "w": 114,
+    "h": 21
+   },
+   "dialog": null,
+   "council": null,
+   "fsguide": null
+  },
+  "hits": {
+   "badge": {
+    "centerPct": 0,
+    "controls": []
+   }
+  },
+  "dialogInView": null,
+  "closeVisible": false
+ },
+ "l320:diag": {
+  "W": 852,
+  "H": 320,
+  "overlays": {
+   "diag": {
+    "x": 206,
+    "y": 12,
+    "w": 440,
+    "h": 296
+   },
+   "debug": null,
+   "intel": null,
+   "badge": {
+    "x": 628,
+    "y": 42,
+    "w": 114,
+    "h": 21
+   },
+   "dialog": {
+    "x": 206,
+    "y": 12,
+    "w": 440,
+    "h": 296
+   },
+   "council": null,
+   "fsguide": null
+  },
+  "hits": {
+   "badge": {
+    "centerPct": 0,
+    "controls": []
+   }
+  },
+  "dialogInView": true,
+  "closeVisible": false
+ }
+}
