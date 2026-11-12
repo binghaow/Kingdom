@@ -17,9 +17,21 @@
 
 - Fewer, clearer units and buildings: retired units and merged buildings leave the menus but stay loadable from old saves.
 - National units replace one generic unit in the ordinary barracks / range / stable; the ten national buildings are one-per-match landmarks that levy a free national soldier every 90 s.
-- Blacksmith upgrade lines (spear, ranged, mortar) upgrade existing and queued units; the unit information panel shows the line, tier and research costs.
+- Upgrade lines (spear at the barracks, ranged at the shooting range, mortar at the artillery workshop since v40) upgrade existing and queued units; the unit information panel shows the line, tier and research costs.
 - Role counters are x2 and later tiers are stronger per resource and per population (calibrated with `scripts/balance/roster-battles.cjs`).
 - Air plan A: scout balloon from age III without research; bombers attack only buildings; ranged line and towers hit aircraft at half damage, forts at full. Markets no longer make passive gold.
+
+## Gameplay v40 (docs/gameplay-v39.md, section "v40 改动")
+
+- Horizontal and vertical stone walls are both buildable again; the single gate button turns to match the wall it closes.
+- Every research button (all buildings, the Town Center age advance and national landmarks) has an ⓘ with measured effects, affected units, cost, age and a before/after table; `check-tech-intel.cjs` keeps descriptions honest.
+- Research lives where the units are trained; the blacksmith keeps only weapons and armor. The computer researches by doctrine and difficulty.
+- Maps: limited gold and stone at home, equivalent rich sites in the middle and far flanks, a shared middle site, rich islands worth a transport, fair camp rewards (`check-resource-layout.cjs`).
+- Computer frontier: claims outside points with camps, towers and (expert/turtle) walls, takes points near the player after scouting, ferries a party to islands, raids outlying gatherers, sends flanking groups by another lane or by sea, grows its base by age and paces age-ups by difficulty; armies keep growing with difficulty-scaled caps.
+- Scout balloon: artillery spotting (+15% range, fire at what it sees) and permanent map survey of deposits and relics.
+- Move and retreat orders always win over combat; retaliation resumes on arrival; attack-move still fights.
+- Commanders: aura, a national gather bonus while alive, a 60 s attack penalty when they fall, tougher stats, automatic fallback when badly hurt, and computer heroes that stay with their army.
+- Full screen buttons with an iPhone Add-to-Home-Screen guide; diagnostics and panels kept off the battlefield on phones; reconnect badge shows why it is reconnecting.
 
 ## Existing player systems preserved
 
@@ -27,4 +39,4 @@ Ten national identities and units, five eras, four resources, trade, diplomacy, 
 
 ## Known AI limitations
 
-Strategic expansion still follows the existing building list near a town rather than scoring distant resource sites. Research order is rule-based. Raids target known capitals and do not flank or coordinate separate fronts. Retreat decisions, adaptive counters, deliberate neutral-objective assaults and coordinated naval landings remain future phases.
+Since v40 the computer scores outside resource sites, flanks, raids outlying gatherers and lands on islands, but research follows a fixed doctrine-ordered list, outside sites come from fixed per-player slots, it coordinates at most one flanking group per main attack, remote raids are chance-based per difficulty, and deliberate neutral-objective assaults remain a future phase.
