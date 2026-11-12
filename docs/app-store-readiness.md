@@ -33,6 +33,7 @@ Add one row per shipped asset, code package, font, audio track, or other third-p
 | Path / package | Type | Creator / source | License or terms | Attribution required | App redistribution allowed | Evidence / notes |
 | --- | --- | --- | --- | --- | --- | --- |
 | public/assets/carrier-v45.png | Four-view carrier sprite | OpenAI image edit based on existing public/assets/carrier-v34.png; project author supplied the design direction | Generated/edited asset; verify provider terms for redistribution before store release | No known attribution requirement; recheck terms | Unverified for App Store redistribution | Empty-deck carrier hull; source asset retained. Visual alpha/terrain production render not verified in this task |
+| `public/assets/walls-v1.png`, `public/assets/walls-v1.json` | Image (wall/gate sprite sheet) + layout index | Derived offline by `scripts/art/build_walls.py` (rectify, cut, tile, shade, composite; no generative model) from in-repo `public/assets/industry-v2.png` cells 10 (stone wall, incl. its banner with the emblem painted out), 11 (stone gatehouse arch/doors/lanterns) and 13 (palisade-gate closed doors) | Same as `industry-v2.png` (project ImageGen output per ART.md; generation-tool terms still to be registered — see docs/design art audit §5) | Same as source | Same as source (not yet confirmed) | `docs/art-review-walls.md`; rerun the script to reproduce byte-for-byte input→output |
 
 ## Per-feature review note
 
