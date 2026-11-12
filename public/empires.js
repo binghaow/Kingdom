@@ -48,11 +48,15 @@ Object.assign(T,{navigation:{name:'航海术',icon:'⚓',max:2,building:'dock',w
    from the previous inline expression (role counters x1.65, per-unit `bonus` overrides, siege bonus against buildings),
    with two approved changes (2026-11-11): buildings never take unit-role counters (the bastion turret's role 'cannon' only
    describes its own weapon), and an attacker's `bonus.building` applies through structureMultiplier (steam crawler x1.35). */
-const STRUCTURE_HIT=Object.freeze(Object.assign(Object.create(null),{cannon:3,mortar:3,bombketch:2.4,grenadier:2}));
+const STRUCTURE_HIT=Object.freeze(Object.assign(Object.create(null),{cannon:3,mortar:3,howitzer:3,fieldmortar:3,bombketch:2.4,grenadier:2,prussianguard:2}));
 /* Applied later in the damage() chain, not in strike(): howitzer in dynasties.js (reads this table), trebuchet in siege.js
    (literal 2.5 there; check-unit-intel.cjs measures real damage so the two cannot drift apart). */
-const STRUCTURE_FOLLOWUP=Object.freeze(Object.assign(Object.create(null),{howitzer:1.8,trebuchet:2.5}));
-function counterMultiplier(attackerKind,targetKind){const d=D[attackerKind],t=D[targetKind];if(!d||!t||t.building)return 1;const role=t.role;return d.bonus?.[role]||(d.role==='infantry'&&role==='cavalry'?1.65:d.role==='cavalry'&&['archer','skirmisher','musketeer','cannon'].includes(role)?1.65:d.role==='archer'&&role==='infantry'?1.65:d.role==='musketeer'&&role==='cavalry'?1.65:1)}
+const STRUCTURE_FOLLOWUP=Object.freeze(Object.assign(Object.create(null),{trebuchet:2.5}));
+/* v39 (roster-redesign 3.1): role counters are x2 — the spear line (role infantry) beats cavalry, cavalry beats ranged and
+   siege, the ranged line (archer and musketeer roles) beats spear infantry; per-unit `bonus` overrides one role. The mortar
+   line's later tiers share the mortar's x3 against buildings. */
+const COUNTER=2;
+function counterMultiplier(attackerKind,targetKind){const d=D[attackerKind],t=D[targetKind];if(!d||!t||t.building)return 1;const role=t.role;return d.bonus?.[role]||(d.role==='infantry'&&role==='cavalry'?COUNTER:d.role==='cavalry'&&['archer','skirmisher','musketeer','cannon'].includes(role)?COUNTER:(d.role==='archer'||d.role==='musketeer')&&role==='infantry'?COUNTER:1)}
 function structureMultiplier(attackerKind){return (STRUCTURE_HIT[attackerKind]||1)*(D[attackerKind]?.bonus?.building||1)}
 function structureFollowup(attackerKind){return STRUCTURE_FOLLOWUP[attackerKind]||1}
 const bank=()=>({food:450,wood:600,gold:300,stone:220});

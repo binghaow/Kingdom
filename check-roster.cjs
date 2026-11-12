@@ -44,4 +44,10 @@ test('Upgrade lines: blacksmith research upgrades existing and queued units; men
  const b=make('britain','france');assert.deepEqual(b.lineTiers(0,'spear'),['infantry','halberd','eliteguard']);assert.deepEqual(b.lineTiers(0,'mortar'),['mortar','howitzer','fieldmortar']);
  const net=JSON.parse(JSON.stringify(s.s));const back=new K.Sim('normal',net,{});assert.equal(back.lineLevel(0,'ranged'),2);assert(back.s.units.some(u=>u.kind==='rifleguard'))});
 
+test('Numbers: x2 role counters; within each line later tiers are stronger per resource and per population',()=>{
+ assert.equal(K.counterMultiplier('infantry','cavalry'),2);assert.equal(K.counterMultiplier('cavalry','musketeer'),2);assert.equal(K.counterMultiplier('archer','infantry'),2);assert.equal(K.counterMultiplier('musketeer','halberd'),2);assert.equal(K.counterMultiplier('musketeer','cavalry'),1);
+ const cost=k=>['food','wood','gold','stone'].reduce((n,r)=>n+(D[k][r]||0),0),core=k=>Math.sqrt(D[k].hp*D[k].damage/(D[k].cooldown||1));
+ for(const l of [...Object.values(K.rosterLines).map(l=>l.tiers),['hussar','cavalry','dragoon']])for(let i=1;i<l.length;i++){assert(core(l[i])/cost(l[i])>core(l[i-1])/cost(l[i-1]),l[i]+' per resource');assert(core(l[i])/(D[l[i]].pop||1)>core(l[i-1])/(D[l[i-1]].pop||1),l[i]+' per pop');assert(D[l[i]].age>=D[l[i-1]].age)}
+ for(const l of ['spear','ranged','mortar'])for(let i=1;i<3;i++)assert.equal(D[K.rosterLines[l].tiers[i]].pop||1,D[K.rosterLines[l].tiers[0]].pop||1,l+' keeps population per tier')});
+
 console.log('PASS '+done.length+' roster checks:\n'+done.map(n=>'  '+n).join('\n'));

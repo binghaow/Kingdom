@@ -58,6 +58,33 @@ const LINES={
  mortar:{id:'mortar',name:'臼炮线',tiers:['mortar','howitzer','fieldmortar'],cost:[{wood:300,gold:350,time:40},{wood:400,gold:500,stone:150,time:55}]}
 };
 for(const l of Object.values(LINES))T['line_'+l.id]={name:l.name+'升级',icon:'⇪',max:2,building:'blacksmith',age:2,line:l.id,...l.cost[0],description:'本线已有与正在训练的兵一起升为下一阶：'+l.tiers.map(k=>D[k].name).join(' → ')+'（各国特色兵按所替换的阶升级）'};
+/* ---- 5. numbers (2.1 reversed, 3.1) ----
+   Calibrated with scripts/balance/roster-battles.cjs (docs/gameplay-v39.md): inside each line a later tier is stronger per
+   resource and per population, so researching pays off; one population per tier in the spear and ranged lines so an upgrade
+   never overflows the cap. National units sit near the tier they replace. Role counters are x2 (empires.js). */
+const STATS={
+ infantry:{hp:160,damage:19},
+ halberd:{hp:260,damage:28,food:65,wood:15,gold:20,bonus:{cavalry:2.4}},
+ eliteguard:{hp:400,damage:40,food:85,gold:40,pop:1,bonus:{cavalry:2.5}},
+ archer:{hp:100,damage:15},
+ musketeer:{hp:160,damage:42,food:60,gold:45},
+ rifleguard:{hp:230,damage:32,cooldown:.75,food:80,gold:70,pop:1},
+ skirmisher:{hp:120,damage:32,food:50,gold:50,bonus:{archer:2,musketeer:2}},
+ cavalry:{hp:300,damage:32},
+ dragoon:{hp:330,damage:44,cooldown:1,pop:1},
+ howitzer:{hp:300,damage:170,cooldown:5,wood:240,gold:240,pop:3,age:4},
+ fieldmortar:{hp:330,damage:230,cooldown:4.8,wood:240,gold:260,pop:3},
+ longbow:{hp:110,damage:18,wood:50,gold:35},
+ repeater:{hp:100,damage:8,food:0,wood:45,gold:35},
+ samurai:{hp:230,damage:31,cooldown:1.1,food:70,gold:30,bonus:{infantry:2}},
+ tercio:{hp:300,damage:30,food:70,wood:20,gold:20,bonus:{cavalry:2.4}},
+ janissary:{hp:180,damage:51,food:65,gold:55},
+ streltsy:{hp:150,damage:36,food:55,wood:20,gold:20},
+ continental:{hp:165,damage:50,food:65,wood:15,gold:40},
+ cuirassier:{hp:340,damage:35,food:110,gold:70,pop:1},
+ nassau:{food:60,wood:40,gold:20,bonus:{archer:2,musketeer:2}}
+};
+for(const [k,v]of Object.entries(STATS))if(D[k])Object.assign(D[k],v);
 function lineOf(kind){const base=BASE_OF[kind]||kind;for(const l of Object.values(LINES)){const i=l.tiers.indexOf(base);if(i>=0)return{line:l,index:i}}return null}
 if(D.congress){D.congress.retired=false;N.usa.building='congress'}
 for(const n of Object.values(N)){const b=D[n.building];if(!b)continue;b.trains=[];b.landmark=true;b.description='国家地标：每局只能建造一座；每 90 秒免费征召 1 名'+D[n.unique].name+'（受人口上限限制）'+(T['doctrine_'+n.id]?.building===n.building?'；可研究国家学说':'')}
