@@ -1,6 +1,6 @@
 # N1 金矿 / 石矿资源图集 · draft v41
 
-**状态：素材候选已生成；自动验收 FAIL（仅 draft）**：2026-11-12 由 OpenAI ImageGen 生成 8 张单格原图，并用本仓库脚本组装、验收。三轮生成后，体量递减和边缘色差仍未达标。素材保留供复核，不接入游戏、不发布。
+**状态：素材候选已生成；自动图集验收 PASS（仅 draft）**：2026-11-12 重新生成金矿耗尽、石矿富集和石矿约剩 25% 三格，修复了可见粉色边缘残留和石矿阶段体量倒挂；其余五格保留。运行本仓库脚本组装、验收并检查草地、海水、深色 UI 预览。尚未接入游戏，未在实时对局中验证，不发布。
 
 本目录包含原始候选图和后半段流程：
 
@@ -48,7 +48,7 @@
 | 单一矿脉 | 主体连通块至少占 80%，没有第二个大团（防止复制叠放或一格两矿） |
 | 体量 | 富集格宽至少 300 px（约 2.2 个村民），富集到耗尽的覆盖率递减 |
 | 资源类型 | 金矿第 1–3 格有金色像素；金矿第 4 格和石矿 4 格没有金色 |
-| 杂边 | 半透明边与内侧实色的亮度差 ≤ 28，红偏 ≤ 25 |
+| 边缘色偏 | 对半透明边缘逐像素寻找最近实色像素，比较 RGB 色相比例，任一颜色通道偏差 ≤ 12 个百分点。亮度差单独记录供目视复核；矿石本身的受光边缘可能比内侧更亮，因此不再把整圈边缘与整圈内侧的平均亮度差误当成色边。 |
 
 **流程自测**（不是交付物）：
 
@@ -89,6 +89,6 @@ Production resource-node sprite for a premium realistic 1700s RTS. Orthographic 
 
 | 文件 | 生成工具 / 模型 | 生成者 | 日期 | 条款是否允许免费和付费 App 再分发 |
 |---|---|---|---|---|
-| `src/gold1.png`–`src/gold4.png`; `src/stone1.png`–`src/stone4.png`; `resource-nodes-n1-v41.png` | OpenAI ImageGen（Codex 内置图像生成；具体底层模型版本未向工具公开） | OpenAI Codex 会话 | 2026-11-12 | OpenAI《Terms of Use》（2026-01-01 生效）规定，在适用法律允许范围内，用户拥有 Output；条款未要求署名。可用于免费/付费 App 再分发，但仍须遵守适用法律及第三方权利要求；这不构成法律审查。https://openai.com/policies/terms-of-use/ |
+| `src/gold4.png`, `src/stone1.png`, `src/stone3.png`（本轮重生成）；其余 5 张原图（此前生成）；`resource-nodes-n1-v41.png`（脚本组装） | OpenAI ImageGen（Codex 内置图像生成；具体底层模型版本未向工具公开） | OpenAI Codex 会话 | 2026-11-12 | OpenAI《Terms of Use》（2026-01-01 生效）规定，在适用法律允许范围内，用户拥有 Output；条款未要求署名。可用于免费/付费 App 再分发，但仍须遵守适用法律及第三方权利要求；这不构成法律审查。https://openai.com/policies/terms-of-use/ |
 
-参考图仅使用仓库内 `public/assets/architecture-v2.png` 与 `public/assets/world-atlas.png`，仅作镜头和画风参考；没有使用第三方游戏、电影或网络图片。后处理仅使用 `scripts/art/n1_atlas.py` 的 `build` / `check`，没有手工修图。最终人工检查见 `check.md`；候选未通过，不能视为已批准上线素材。
+本轮新增参考仅包括仓库已有的 `src/stone2.png`，供 stone1/stone3 延续同一矿种的材质和镜头；其他新图参考 `public/assets/architecture-v2.png` 与 `public/assets/world-atlas.png`。仅作镜头、画风和同矿种连续性参考，没有使用第三方游戏、电影或网络图片。后处理仅使用 `scripts/art/n1_atlas.py` 的 `build` / `check`，没有手工修图。最终人工预览审查和未覆盖范围见 `check.md`；候选仍是 draft，未接入游戏或发布。

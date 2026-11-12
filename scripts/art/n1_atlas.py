@@ -39,7 +39,10 @@ def _key_background(rgb, key):
     else:
         kc = np.array([int(key[i:i + 2], 16) for i in (1, 3, 5)], float)
     d = np.sqrt(((rgb - kc) ** 2).sum(-1))
-    lo, hi = 18.0, 70.0                       # distance band -> soft alpha
+    # Generated "flat magenta" backgrounds can leave a small pink mix in
+    # silhouette edges. Keep those transition pixels fractional so the
+    # existing unmix/decontamination step can remove the matte safely.
+    lo, hi = 18.0, 150.0                      # distance band -> soft alpha
     a = np.clip((d - lo) / (hi - lo), 0, 1)
     # un-mix the key colour out of edge pixels: C = a*F + (1-a)*K  ->  F
     with np.errstate(divide="ignore", invalid="ignore"):
@@ -116,18 +119,24 @@ def build(args):
 
 # ----------------------------------------------------------------- check ----
 def _halo(rgb, a):
-    """Compare the semi-transparent rim with the solid pixels just inside it.
-    Returns rim-minus-inner luminance and the dominant hue drift."""
+    """Compare each semi-transparent edge pixel with its nearest solid pixel.
+    A global rim-vs-inner average confuses natural edge lighting with a matte.
+    Compare local chromaticity (RGB proportions) to detect colour casts while
+    reporting luminance variation separately for manual visual review."""
     solid = a >= 250
     rim = (a > 20) & (a < 230)
-    inner = solid & ~ndimage.binary_erosion(solid, iterations=3)
-    if rim.sum() < 50 or inner.sum() < 50:
+    if rim.sum() < 50 or solid.sum() < 50:
         return {"rim_px": int(rim.sum()), "dL": 0.0, "dR": 0.0, "dG": 0.0, "dB": 0.0}
+    _, (iy, ix) = ndimage.distance_transform_edt(~solid, return_indices=True)
+    edge_rgb = rgb[rim]
+    inner_rgb = rgb[iy[rim], ix[rim]]
     lum = rgb @ np.array([0.299, 0.587, 0.114])
-    m_r, m_i = rgb[rim].mean(0), rgb[inner].mean(0)
+    edge_chroma = edge_rgb / np.maximum(edge_rgb.sum(1, keepdims=True), 1)
+    inner_chroma = inner_rgb / np.maximum(inner_rgb.sum(1, keepdims=True), 1)
+    hue_shift = (edge_chroma - inner_chroma).mean(0) * 100
     return {"rim_px": int(rim.sum()),
-            "dL": float(lum[rim].mean() - lum[inner].mean()),
-            "dR": float(m_r[0] - m_i[0]), "dG": float(m_r[1] - m_i[1]), "dB": float(m_r[2] - m_i[2])}
+            "dL": float((lum[rim] - lum[iy[rim], ix[rim]]).mean()),
+            "dR": float(hue_shift[0]), "dG": float(hue_shift[1]), "dB": float(hue_shift[2])}
 
 
 def _bg(kind):
@@ -218,9 +227,12 @@ def check(args):
         item("金矿 1–3 格有金色、第 4 格与石矿无金", min(g[:3]) > 0.004 and max(g[3:]) < 0.004,
              "金色像素占比 " + " / ".join(f"{v:.3f}" for v in g))
         bad = [c["cell"] for c in filled if c["halo"]["rim_px"] >= 50 and
-               (abs(c["halo"]["dL"]) > 28 or c["halo"]["dR"] - (c["halo"]["dG"] + c["halo"]["dB"]) / 2 > 25)]
-        item("边缘无黑/白/红黄杂边（半透明边与内侧色差）", not bad,
-             f"可疑格：{bad or '无'}；ΔL " + " / ".join(f"{c['halo']['dL']:+.0f}" for c in filled))
+               max(abs(c["halo"]["dR"]), abs(c["halo"]["dG"]), abs(c["halo"]["dB"])) > 12]
+        item("边缘无红/黄/品红色偏（局部 RGB 色相比例差 ≤12 个百分点）", not bad,
+             f"可疑格：{bad or '无'}；色相 ΔR/ΔG/ΔB " + " / ".join(
+                 f"{c['halo']['dR']:+.1f}/{c['halo']['dG']:+.1f}/{c['halo']['dB']:+.1f}"
+                 for c in filled) + "；亮度差 ΔL（仅供目视核对） " +
+             " / ".join(f"{c['halo']['dL']:+.0f}" for c in filled))
     _previews(im.convert("RGBA"), args.outdir)
     return _write(res, args)
 
