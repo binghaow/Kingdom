@@ -104,7 +104,7 @@ const lessonText=[
 'Select the villager, choose House below and place it on empty ground. Houses increase population capacity.',
 'Select the town center and train a villager. Armies need population; your economy needs more gatherers.',
 'Select the barracks and train an infantry unit. Melee infantry hold the front line; halberdiers counter cavalry.',
-'Select the archery range and train an archer. Use the icon’s upper-right ⓘ to inspect statistics and roles.',
+'Select the archery range and train a Longbow Guard (Britain’s replacement for the archer). Use the icon’s upper-right ⓘ to inspect statistics and roles.',
 'Select the stable and train a hussar. Cavalry are fast and can flank vulnerable ranged troops.',
 'Use two halberdiers to attack the enemy cavalry. Watch the health changes and anti-cavalry damage bonus.',
 'Select the blacksmith and research a weapon upgrade. Select your troops to see their attack increase.',

@@ -16,7 +16,7 @@ if(type==='move'){current.order([worker],{type:'move',x:worker.x+220,y:worker.y}
 if(type==='gather'){const tree=s.nodes.at(-1);current.order([worker],{type:'gather',id:tree.id,resource:'wood'});step(18)}
 if(type==='build'){let result;for(let j=0;j<12;j++){const x=worker.x+100+(j%3)*80,y=worker.y+90+Math.floor(j/3)*65;result=current.construct('house',x,y,[worker]);if(!result.error)break}assert(!result.error,result.error);step(25)}
 if(type==='train-worker'){assert.equal(current.train(home,'villager'),'');step(3)}
-if(['barracks','range','stable'].includes(type)){const b=s.buildings.find(b=>b.kind===type);assert.equal(current.train(b,{barracks:'infantry',range:'archer',stable:'hussar'}[type]),'');step(3)}
+if(['barracks','range','stable'].includes(type)){const b=s.buildings.find(b=>b.kind===type);assert.equal(current.train(b,{barracks:'infantry',range:'longbow',stable:'hussar'}[type]),'');step(3)}
 if(type==='counter'||type==='siege'||type==='air'||type==='victory'){const army=s.units.filter(u=>u.team===0&&K.defs[u.kind].damage>0),target=[...s.units,...s.buildings].find(e=>e.team===1&&K.distance(army[0],e)<600);assert(target,type);current.order(army,{type:'attack',id:target.id});step(type==='air'?8:12)}
 if(type==='research'){const b=s.buildings.find(b=>b.kind==='blacksmith');assert.equal(current.research(b,'weapons'),'');step(3)}
 if(type==='transport'){const ship=s.units.find(u=>u.kind==='transport');assert(ship);current.board(ship,[worker]);step(.3);assert(worker.embarkedOn);UI.update(current,[]);assert(current.unload(ship).includes('卸载'));UI.update(current,[])}

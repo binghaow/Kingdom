@@ -231,6 +231,13 @@ V 时代飞艇工场先研发航空工程，再生产侦察热气球、运输飞
 只能训练本国特色兵种|Only your own nation's special units can be trained
 该研究已移除|This research has been removed
 未知兵种|Unknown unit
+国家地标：每局只能建造一座；每 90 秒免费征召 1 名|National landmark: one per match; every 90 seconds it levies 1 free 
+（受人口上限限制）| (within the population cap)
+；可研究国家学说|; researches the national doctrine
+本国以|Your nation trains 
+替代| instead
+只能建造本国地标|Only your own nation's landmark can be built
+每局只能建造一座国家地标|Only one national landmark per match
 训练村民（军械工程师已并入村民）；推进时代，扩展人口与经济|Trains villagers (the ordnance engineer is merged into the villager); advances ages and expands population and economy
 点击射击场，训练一名长弓卫士（英国用它替代弓箭手）。图标右上角 ⓘ 可以查看详细数值和职责。|Select the archery range and train a Longbow Guard (Britain’s replacement for the archer). Use the icon’s upper-right ⓘ to inspect statistics and roles.
 `.trim().split('\n').map(l=>{const i=l.indexOf('|');return[l.slice(0,i),l.slice(i+1)]})));if(typeof module!=='undefined')module.exports=root.KingdomLocaleData})(typeof window==='undefined'?globalThis:window);
