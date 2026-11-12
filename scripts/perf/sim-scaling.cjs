@@ -5,7 +5,7 @@
    single-player step) and inclusive time of the usual suspects, to show which part grows faster than the unit count.
    usage: node scripts/perf/sim-scaling.cjs [counts=50,100,200,400] [steps=240]
    Node timings are not device evidence (AGENTS.md); use ?perf=1 on the device for frame/render numbers. */
-const path=require('node:path'),ROOT=process.env.KINGDOM_ROOT||path.resolve(__dirname,'../..'),K=require(path.join(ROOT,'public/commander.js'));
+const path=require('node:path'),ROOT=process.env.KINGDOM_ROOT||path.resolve(__dirname,'../..'),K=require(path.join(ROOT,'public/roster.js'));
 const counts=(process.argv[2]||'50,100,200,400').split(',').map(Number),steps=+(process.argv[3]||240),kinds=['infantry','archer','musketeer','cavalry','halberd','cannon'];
 const now=()=>Number(process.hrtime.bigint())/1e6,parts=['separateCrowd','acquireAutoTarget','findPath','updateFog','ai','view'];
 function run(n){const sim=new K.Sim('easy',null,{nations:['britain','france'],mapId:'coast_s',seed:4242}),spent=Object.fromEntries(parts.map(k=>[k,0])),calls=Object.fromEntries(parts.map(k=>[k,0]));let depth=0;

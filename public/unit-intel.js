@@ -16,7 +16,7 @@ const rangeClass=r=>!(r>0)?'—':r<=80?'近':r<=230?'中':'远';
 const speedClass=v=>!(v>0)?'—':v<50?'慢':v<100?'中':'快';
 let trainableCache=null;
 /* Every unit a non-retired building can train (all nations), the roster the checks and counter lists walk. */
-function trainable(){if(trainableCache)return trainableCache;const set=new Set();for(const d of Object.values(D))if(d.building&&!d.retired&&d.trains)for(const k of d.trains)if(D[k])set.add(k);return trainableCache=[...set]}
+function trainable(){if(trainableCache)return trainableCache;const set=new Set();for(const d of Object.values(D))if(d.building&&!d.retired&&d.trains)for(const k of d.trains)if(D[k]&&!D[k].retired)set.add(k);return trainableCache=[...set]}
 /* Attack path: monsters, wildlife and companions have their own strike(); bombers drop bombs that skip strike(). */
 function attackPath(sim,kind){const d=D[kind];if(!(d?.damage>0))return 'none';if(d.monster||d.wildlife||d.companion)return 'special';if(typeof sim?.bomber==='function'&&sim.bomber({kind}))return 'bomb';return 'strike'}
 function multiplier(sim,attacker,target){return attackPath(sim,attacker)==='strike'?K.counterMultiplier(attacker,target):1}

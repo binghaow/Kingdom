@@ -221,4 +221,16 @@ V 时代飞艇工场先研发航空工程，再生产侦察热气球、运输飞
 快攻|Rush
 憋经济|Boom
 龟缩|Turtle
+训练医师，并缓慢治疗附近脱战友军（合并海滨浴场的疗养功能）|Trains healers and slowly heals nearby friendly troops out of combat (absorbs the seaside bath's recovery)
+矿工把黄金与石料运回此处（合并采石场）；靠近矿脉修建可缩短往返路线|Miners return gold and stone here (absorbs the quarry); build near deposits to shorten trips
+重型区域防御，压制成群敌军（合并棱堡炮塔与岸防炮台）；建在海岸时可炮击舰船|Heavy area defense that suppresses massed enemies (absorbs the bastion turret and coastal battery); bombards ships when built on the coast
+该单位已退役，不能再生产|This unit is retired and can no longer be produced
+此建筑已合并，不能再训练|This building has been merged and can no longer train units
+该兵种已并入其他兵种|This unit has been merged into another unit
+此建筑已合并到|This building has been merged into 
+只能训练本国特色兵种|Only your own nation's special units can be trained
+该研究已移除|This research has been removed
+未知兵种|Unknown unit
+训练村民（军械工程师已并入村民）；推进时代，扩展人口与经济|Trains villagers (the ordnance engineer is merged into the villager); advances ages and expands population and economy
+点击射击场，训练一名长弓卫士（英国用它替代弓箭手）。图标右上角 ⓘ 可以查看详细数值和职责。|Select the archery range and train a Longbow Guard (Britain’s replacement for the archer). Use the icon’s upper-right ⓘ to inspect statistics and roles.
 `.trim().split('\n').map(l=>{const i=l.indexOf('|');return[l.slice(0,i),l.slice(i+1)]})));if(typeof module!=='undefined')module.exports=root.KingdomLocaleData})(typeof window==='undefined'?globalThis:window);

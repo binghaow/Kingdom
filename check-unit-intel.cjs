@@ -18,7 +18,7 @@ const kinds=pure.trainable(),num=t=>Number(t.replace('×',''));
 const shown=html=>[...html.matchAll(/<span class="ui-unit" data-kind="([a-z_0-9]+)">[\s\S]*?<b>(×[\d.]+)<\/b><\/span>/g)].map(m=>({kind:m[1],mult:num(m[2])}));
 function split(html){const i=html.indexOf('<div><h4>⚠');assert(i>0,'dialog has the second column');return {good:html.slice(0,i),bad:html.slice(i)}}
 
-test('Roster covers every trainable unit and the rule functions are exported once from the simulation',()=>{assert(kinds.length>=50,'trainable units: '+kinds.length);for(const k of kinds)assert(D[k]&&!D[k].building,k);
+test('Roster covers every trainable unit and the rule functions are exported once from the simulation',()=>{assert(kinds.length>=40,'trainable units: '+kinds.length);for(const k of kinds)assert(!D[k].retired,'retired unit offered: '+k);for(const k of kinds)assert(D[k]&&!D[k].building,k);
  for(const f of ['counterMultiplier','structureMultiplier','structureFollowup'])assert.equal(typeof K[f],'function',f);
  const ui=fs.readFileSync('public/unit-intel.js','utf8');assert(!/1\.65|2\.3|\*\s*3\b/.test(ui.replace(/\/\*[\s\S]*?\*\//g,'')),'the UI must not contain hand-written multipliers')});
 
@@ -45,7 +45,7 @@ test('Displayed multipliers equal the damage of a real strike, against units and
    if(!sim.canTarget||sim.canTarget(u,e)){const before=e.hp;sim.strike(u,e);const lost=before-e.hp,base=sim.stat(u,'damage'),m=D[t].building?pure.structureFactor(sim,a):pure.multiplier(sim,a,t),expect=Math.max(1,base*m-sim.stat(e,'armor'));
     assert(Math.abs(lost-expect)<1e-6*Math.max(1,expect),nation+' '+a+'>'+t+' lost '+lost+' expected '+expect);assert(Math.abs(u.cool-pure.interval(sim,u))<1e-9,nation+' '+a+' attack interval');n++}
    sim.state.units=sim.state.units.filter(x=>x!==u&&x!==e);sim.state.buildings=sim.state.buildings.filter(x=>x!==e)}}
- assert(n>20000,'strikes: '+n)});
+ assert(n>15000,'strikes: '+n)});
 
 test('Panel data is read-only: profiles, technology probes and dialog rendering leave the simulation byte-identical',()=>{const sim=make('ottoman','russia'),p=sim.world.starts[0];sim.state.tech[0].weapons=1;const u=sim.add('janissary',0,p.x+300,p.y),e=sim.add('cavalry',1,p.x+340,p.y);
  const before=sim.serialize();for(const k of kinds){pure.profile(sim,{kind:k,team:0,rank:0});pure.techEffects(sim,{kind:k,team:0,rank:0})}UI.dialog(sim,u);UI.dialog(sim,e);assert.equal(sim.serialize(),before);

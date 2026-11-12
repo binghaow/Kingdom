@@ -10,7 +10,7 @@
    'crowded-at-goal' and not counted as stuck.
    usage: node scripts/release/path-analysis.cjs [--quick] [--json out.json] [--only battle200] */
 const fs=require('node:fs'),path=require('node:path'),{ROOT,now,pct,mean,r1,r2,args}=require('./lib.cjs');
-const K=require(path.join(ROOT,'public/commander.js')),H=require(path.join(ROOT,'scripts/netcode/harness.cjs')),D=K.defs;
+const K=require(path.join(ROOT,'public/roster.js')),H=require(path.join(ROOT,'scripts/netcode/harness.cjs')),D=K.defs;
 const STUCK_SEC=4,STUCK_PX=16,SAMPLE=.5,KINDS=['infantry','archer','musketeer','cavalry','halberd','cannon'];
 const dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
 
