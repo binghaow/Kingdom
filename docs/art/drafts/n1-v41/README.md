@@ -1,8 +1,8 @@
 # N1 金矿 / 石矿资源图集 · draft v41
 
-**状态：未产出成品（BLOCKED）**：本会话（Claude，2026-11-12）的环境里没有图像生成工具，所以本目录里没有矿点美术。按要求，没有用 SVG、色块或代码画图来顶替，也没有接入游戏、没有发布。
+**状态：素材候选已生成；自动验收 FAIL（仅 draft）**：2026-11-12 由 OpenAI ImageGen 生成 8 张单格原图，并用本仓库脚本组装、验收。三轮生成后，体量递减和边缘色差仍未达标。素材保留供复核，不接入游戏、不发布。
 
-本目录提供的是后半段流程：
+本目录包含原始候选图和后半段流程：
 
 - 把任何图像生成器（GPT Image、Midjourney、Imagen 等）的输出处理成合规图集；
 - 自动验收，并出三种背景上的预览图。
@@ -89,4 +89,6 @@ Production resource-node sprite for a premium realistic 1700s RTS. Orthographic 
 
 | 文件 | 生成工具 / 模型 | 生成者 | 日期 | 条款是否允许免费和付费 App 再分发 |
 |---|---|---|---|---|
-| （待生成） | | | | |
+| `src/gold1.png`–`src/gold4.png`; `src/stone1.png`–`src/stone4.png`; `resource-nodes-n1-v41.png` | OpenAI ImageGen（Codex 内置图像生成；具体底层模型版本未向工具公开） | OpenAI Codex 会话 | 2026-11-12 | OpenAI《Terms of Use》（2026-01-01 生效）规定，在适用法律允许范围内，用户拥有 Output；条款未要求署名。可用于免费/付费 App 再分发，但仍须遵守适用法律及第三方权利要求；这不构成法律审查。https://openai.com/policies/terms-of-use/ |
+
+参考图仅使用仓库内 `public/assets/architecture-v2.png` 与 `public/assets/world-atlas.png`，仅作镜头和画风参考；没有使用第三方游戏、电影或网络图片。后处理仅使用 `scripts/art/n1_atlas.py` 的 `build` / `check`，没有手工修图。最终人工检查见 `check.md`；候选未通过，不能视为已批准上线素材。

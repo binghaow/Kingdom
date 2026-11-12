@@ -1,0 +1,305 @@
+{
+ "file": "resource-nodes-n1-v41.png",
+ "format": "PNG",
+ "mode": "RGBA",
+ "size": [
+  2048,
+  1024
+ ],
+ "items": [
+  {
+   "name": "PNG",
+   "pass": true,
+   "detail": "PNG"
+  },
+  {
+   "name": "2048×1024",
+   "pass": true,
+   "detail": "2048×1024"
+  },
+  {
+   "name": "RGBA",
+   "pass": true,
+   "detail": "RGBA"
+  },
+  {
+   "name": "真透明（alpha 最小 0，透明像素 ≥ 40%）",
+   "pass": true,
+   "detail": "透明像素 75.5%，alpha 范围 0–255"
+  },
+  {
+   "name": "四角 alpha=0",
+   "pass": true,
+   "detail": "[0, 0, 0, 0]"
+  },
+  {
+   "name": "格间隔 ≥ 8 px 全透明",
+   "pass": true,
+   "detail": "间隔区最大 alpha 0"
+  },
+  {
+   "name": "8 格都有内容",
+   "pass": true,
+   "detail": "8/8"
+  },
+  {
+   "name": "非棋盘格/非实底（没有整格不透明）",
+   "pass": true,
+   "detail": "无"
+  },
+  {
+   "name": "每格 8% 留白（41 px）",
+   "pass": true,
+   "detail": "越界格：无"
+  },
+  {
+   "name": "接地中心 (256,430) ±12 px",
+   "pass": true,
+   "detail": "偏差格：无；1:+0/+0, 2:+0/+0, 3:+0/+0, 4:+0/+0, 5:+0/+0, 6:+0/+0, 7:+0/+0, 8:+0/+0"
+  },
+  {
+   "name": "每格一团矿脉（主体占 ≥ 80%，无第二个大团）",
+   "pass": true,
+   "detail": "可疑格：无"
+  },
+  {
+   "name": "富集格宽约 2.2 村民（≥ 300 px）",
+   "pass": true,
+   "detail": "金 410 px，石 368 px"
+  },
+  {
+   "name": "富集→耗尽 体量递减",
+   "pass": false,
+   "detail": "覆盖率 0.37 / 0.28 / 0.22 / 0.37 / 0.27 / 0.24 / 0.14 / 0.09"
+  },
+  {
+   "name": "金矿 1–3 格有金色、第 4 格与石矿无金",
+   "pass": true,
+   "detail": "金色像素占比 0.056 / 0.063 / 0.021 / 0.000 / 0.000 / 0.000 / 0.000 / 0.001"
+  },
+  {
+   "name": "边缘无黑/白/红黄杂边（半透明边与内侧色差）",
+   "pass": false,
+   "detail": "可疑格：[1, 2, 3, 4, 5, 6, 7]；ΔL +67 / +65 / +65 / +66 / +45 / +52 / +48 / +19"
+  }
+ ],
+ "cells": [
+  {
+   "cell": 1,
+   "name": "gold_rich",
+   "bbox": [
+    51,
+    88,
+    461,
+    430
+   ],
+   "w": 410,
+   "h": 342,
+   "margin_ok": true,
+   "ground_dx": 0.0,
+   "ground_dy": 0,
+   "coverage": 0.368,
+   "main_share": 1.0,
+   "big_clusters": 1,
+   "opaque_full": false,
+   "halo": {
+    "rim_px": 1098,
+    "dL": 67.0054085557911,
+    "dR": 108.46805674823229,
+    "dG": 34.28160512454778,
+    "dB": 126.75576649087824
+   },
+   "gold_ratio": 0.0558
+  },
+  {
+   "cell": 2,
+   "name": "gold_mid",
+   "bbox": [
+    72,
+    132,
+    440,
+    430
+   ],
+   "w": 368,
+   "h": 298,
+   "margin_ok": true,
+   "ground_dx": 0.0,
+   "ground_dy": 0,
+   "coverage": 0.277,
+   "main_share": 1.0,
+   "big_clusters": 1,
+   "opaque_full": false,
+   "halo": {
+    "rim_px": 976,
+    "dL": 65.31700266067315,
+    "dR": 99.39763882245512,
+    "dG": 35.548574270557026,
+    "dB": 129.2113645258077
+   },
+   "gold_ratio": 0.0627
+  },
+  {
+   "cell": 3,
+   "name": "gold_poor",
+   "bbox": [
+    71,
+    197,
+    442,
+    430
+   ],
+   "w": 371,
+   "h": 233,
+   "margin_ok": true,
+   "ground_dx": 0.5,
+   "ground_dy": 0,
+   "coverage": 0.219,
+   "main_share": 1.0,
+   "big_clusters": 1,
+   "opaque_full": false,
+   "halo": {
+    "rim_px": 888,
+    "dL": 64.7388079286914,
+    "dR": 105.4801629189986,
+    "dG": 31.407246874730305,
+    "dB": 129.51039737231704
+   },
+   "gold_ratio": 0.0212
+  },
+  {
+   "cell": 4,
+   "name": "gold_empty",
+   "bbox": [
+    51,
+    88,
+    461,
+    430
+   ],
+   "w": 410,
+   "h": 342,
+   "margin_ok": true,
+   "ground_dx": 0.0,
+   "ground_dy": 0,
+   "coverage": 0.368,
+   "main_share": 1.0,
+   "big_clusters": 1,
+   "opaque_full": false,
+   "halo": {
+    "rim_px": 1092,
+    "dL": 66.26889020176334,
+    "dR": 107.26695209693138,
+    "dG": 35.84051597509722,
+    "dB": 115.41832146841024
+   },
+   "gold_ratio": 0.0
+  },
+  {
+   "cell": 5,
+   "name": "stone_rich",
+   "bbox": [
+    72,
+    147,
+    440,
+    430
+   ],
+   "w": 368,
+   "h": 283,
+   "margin_ok": true,
+   "ground_dx": 0.0,
+   "ground_dy": 0,
+   "coverage": 0.266,
+   "main_share": 1.0,
+   "big_clusters": 1,
+   "opaque_full": false,
+   "halo": {
+    "rim_px": 1200,
+    "dL": 44.91782530170741,
+    "dR": 87.05166957702755,
+    "dG": 13.410444315095077,
+    "dB": 96.64425688785408
+   },
+   "gold_ratio": 0.0
+  },
+  {
+   "cell": 6,
+   "name": "stone_mid",
+   "bbox": [
+    76,
+    155,
+    437,
+    430
+   ],
+   "w": 361,
+   "h": 275,
+   "margin_ok": true,
+   "ground_dx": 0.5,
+   "ground_dy": 0,
+   "coverage": 0.243,
+   "main_share": 1.0,
+   "big_clusters": 1,
+   "opaque_full": false,
+   "halo": {
+    "rim_px": 1017,
+    "dL": 52.03555608638882,
+    "dR": 77.9557076045528,
+    "dG": 31.292592358932495,
+    "dB": 90.86006840293112
+   },
+   "gold_ratio": 0.0
+  },
+  {
+   "cell": 7,
+   "name": "stone_poor",
+   "bbox": [
+    107,
+    226,
+    405,
+    430
+   ],
+   "w": 298,
+   "h": 204,
+   "margin_ok": true,
+   "ground_dx": 0.0,
+   "ground_dy": 0,
+   "coverage": 0.137,
+   "main_share": 0.997,
+   "big_clusters": 1,
+   "opaque_full": false,
+   "halo": {
+    "rim_px": 874,
+    "dL": 47.70293870713442,
+    "dR": 74.96405915561814,
+    "dG": 25.479772592180353,
+    "dB": 90.6320921753923
+   },
+   "gold_ratio": 0.0
+  },
+  {
+   "cell": 8,
+   "name": "stone_empty",
+   "bbox": [
+    104,
+    297,
+    409,
+    430
+   ],
+   "w": 305,
+   "h": 133,
+   "margin_ok": true,
+   "ground_dx": 0.5,
+   "ground_dy": 0,
+   "coverage": 0.085,
+   "main_share": 0.976,
+   "big_clusters": 1,
+   "opaque_full": false,
+   "halo": {
+    "rim_px": 2477,
+    "dL": 19.308231338503333,
+    "dR": 15.561858718114792,
+    "dG": 20.47576990442522,
+    "dB": 23.122444279731695
+   },
+   "gold_ratio": 0.001
+  }
+ ],
+ "verdict": "FAIL (keep as draft)"
+}
