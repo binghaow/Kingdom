@@ -11,7 +11,7 @@ Object.assign(D,{
  siegeyard:{name:'攻城器械营',icon:'⚒',building:true,hp:1250,r:46,wood:300,gold:180,stone:130,time:38,age:3,trains:['trebuchet','siegewagon'],description:'生产投石机与工程车，用于攻坚与战场施工'},
  trebuchet:{name:'配重投石机',icon:'⚒',hp:210,r:21,speed:24,wood:280,gold:190,stone:90,time:42,age:3,damage:90,range:470,minRange:160,cooldown:6.8,pop:4,structureOnly:true,role:'cannon',description:'仅攻击建筑，超远射程；移动慢，无法攻击近身部队'},
  siegewagon:{name:'重型工程车',icon:'⚙',hp:360,r:20,speed:42,wood:200,gold:140,stone:60,time:34,age:4,damage:12,range:28,cooldown:2.5,pop:3,baseArmor:4,role:'infantry',description:'可建造与修复工事，不采集资源；低攻击力，需要护卫'},
- aerodrome:{name:'飞艇工场',icon:'◉',building:true,hp:1250,r:48,wood:420,gold:360,stone:180,time:60,age:5,trains:['scoutballoon','airtransport','gunship'],description:'研究航空工程后生产热气球与飞艇；飞行单位能越过水域和山崖'},
+ aerodrome:{name:'飞艇工场',icon:'◉',building:true,hp:1250,r:48,wood:420,gold:360,stone:180,time:60,age:5,trains:['scoutballoon','airtransport','gunship'],description:'III 时代起训练侦察热气球；研究航空工程后训练双翼轰炸机；飞行单位能越过水域和山崖'},
  scoutballoon:{name:'侦察热气球',icon:'◉',domain:'air',hp:130,r:18,speed:62,wood:130,gold:140,time:32,age:5,damage:0,pop:2,role:'scout',description:'无攻击能力，提供大范围视野；怕火枪、箭塔与防空炮'},
  airtransport:{name:'运输飞艇',icon:'◉',domain:'air',transport:true,cargoCapacity:8,hp:340,r:24,speed:50,wood:280,gold:300,time:50,age:5,damage:0,pop:4,role:'transport',description:'空运 8 人口陆军，可越山渡海；只能在安全陆地卸载，坠毁损失载员'},
  gunship:{name:'武装运输飞艇',icon:'◉',domain:'air',transport:true,cargoCapacity:6,hp:430,r:26,speed:42,wood:360,gold:420,stone:90,time:65,age:5,damage:27,range:220,cooldown:2.9,pop:6,role:'musketeer',antiAir:true,description:'搭载 6 人口并提供空中火力；昂贵且缓慢，每国最多两艘'},

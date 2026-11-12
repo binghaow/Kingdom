@@ -230,6 +230,10 @@ V 时代飞艇工场先研发航空工程，再生产侦察热气球、运输飞
 此建筑已合并到|This building has been merged into 
 只能训练本国特色兵种|Only your own nation's special units can be trained
 该研究已移除|This research has been removed
+III 时代飞艇工场训练侦察热气球：超大视野、炮兵观测（视野内己方火炮射程提高）与地图测绘；研究航空工程后训练双翼轰炸机（只炸建筑）。弓手、火枪与箭塔对空伤害减半，要塞全额。|Age III: the Airship Works trains scout balloons — very large sight, artillery spotting (own guns in its sight gain range) and map survey; after Aeronautics it trains biplane bombers (buildings only). Bows, muskets and towers deal half damage to aircraft; forts deal full damage.
+III 时代，无需研究：无攻击能力，飞越地形提供超大视野。炮兵观测：视野内己方火炮、臼炮与迫击炮舰射程 +15%，并可攻击气球看到的目标。地图测绘：飞过时把 1.35 倍视野内的资源点与遗迹永久标在地图上|Age III, no research needed: unarmed, flies over terrain with a very large sight. Artillery spotting: own cannons, mortars and mortar ships inside its sight get +15% range and may fire at targets the balloon sees. Map survey: as it flies, deposits and relics within 1.35x its sight are marked on the map permanently
+III 时代起训练侦察热气球（视野、炮兵观测、地图测绘）；研究航空工程后训练双翼轰炸机，军机在此补弹|From Age III trains scout balloons (sight, artillery spotting, map survey); after Aeronautics trains biplane bombers, which rearm here
+III 时代起训练侦察热气球；研究航空工程后训练双翼轰炸机；飞行单位能越过水域和山崖|From Age III trains scout balloons; after Aeronautics trains biplane bombers; air units cross water and cliffs
 火炮护甲 +1（攻城炮兵与臼炮线）|Artillery armor +1 (siege cannon and mortar line)
 未知兵种|Unknown unit
 国家地标：每局只能建造一座；每 90 秒免费征召 1 名|National landmark: one per match; every 90 seconds it levies 1 free 

@@ -51,6 +51,14 @@ const AI_LEVEL={
 /* Doctrine flavour on top (identity unchanged): expansion claims earlier and one more point; turtle walls its points;
    rush holds one point less. */
 const DOCTRINE_FRONTIER={rush:{sites:-1,start:60},boom:{},expand:{sites:1,start:-150,every:-40},turtle:{defend:1}};
+/* ---- 3. scout balloon: artillery spotting and map survey (bombers unchanged) ----
+   Spotting: own cannon-line / mortar-line artillery and mortar ships standing inside an own balloon's sight get +15%
+   range and may pick targets anywhere the team can see within that range. Survey: every half second a balloon records
+   resource deposits and relics within 1.35 × its sight into the team's permanent memory, even beyond its vision. */
+const BALLOON={spotRange:.15,surveyMult:1.35,acquireCap:700};
+const SPOT_ROLES=['cannon','bombship'];
+if(D.scoutballoon)D.scoutballoon.description='III 时代，无需研究：无攻击能力，飞越地形提供超大视野。炮兵观测：视野内己方火炮、臼炮与迫击炮舰射程 +'+Math.round(BALLOON.spotRange*100)+'%，并可攻击气球看到的目标。地图测绘：飞过时把 '+BALLOON.surveyMult+' 倍视野内的资源点与遗迹永久标在地图上';
+if(D.aerodrome)D.aerodrome.description='III 时代起训练侦察热气球（视野、炮兵观测、地图测绘）；研究航空工程后训练双翼轰炸机，军机在此补弹';
 class FrontierV40 extends Base{
  constructor(difficulty,saved,options={}){super(difficulty,saved,options);if(!saved&&!options.keepLayout){this.layoutResources();this.s.resourceLayout=40}}
  layoutResources(){const s=this.s,w=this.world;if(!w?.starts?.length)return;const starts=w.starts.slice(0,s.nations.length);if(starts.length<2)return;const wallCache=[this._wallParts,this._wallSignature,this._wallCheckedAt];
@@ -81,6 +89,16 @@ class FrontierV40 extends Base{
   s.resourceSites=sites.map(x=>({id:x.id,spots:x.spots.map(p=>({x:Math.round(p.x),y:Math.round(p.y)})),owner:x.owner}));
   // leave the navigation/wall caches exactly as an untouched new match has them (placement probing built them early)
   this.grid=this.seaGrid=null;this._gateGrids=null;this._wallParts=wallCache[0];this._wallSignature=wallCache[1];this._wallCheckedAt=wallCache[2]}
+
+ /* ---- 3. balloon ---- */
+ balloons(team){const s=this.s;if(this._balloonAt!==s.time){this._balloonAt=s.time;const m=new Map();for(const u of s.units)if(u.kind==='scoutballoon'&&u.hp>0&&!u.embarkedOn){let list=m.get(u.team);if(!list)m.set(u.team,list=[]);list.push(u)}this._balloonMap=m}return this._balloonMap.get(team)||[]}
+ spotted(e){const d=D[e.kind];if(!d||!SPOT_ROLES.includes(d.role)||e.team<0||e.embarkedOn)return false;if(e.__spotted)return true;for(const b of this.balloons(e.team))if(dist(b,e)<=this.sight(b))return true;return false}
+ stat(e,key){const v=super.stat(e,key);return key==='range'&&this.spotted(e)?v*(1+BALLOON.spotRange):v}
+ autoAcquireRadius(u){const r=super.autoAcquireRadius(u);return this.spotted(u)?Math.max(r,Math.min(BALLOON.acquireCap,this.stat(u,'range')+60)):r}
+ surveyed(team,e){return !!this.s.surveyed?.[team]?.includes(e.id)}
+ survey(){const s=this.s,f=this.fog;if(!f||!s.fogEnabled)return;s.surveyed??=s.nations.map(()=>[]);for(const [team,list]of this._balloonMap||[]){if(team<0)continue;for(const b of list){const r=this.sight(b)*BALLOON.surveyMult;for(let t=0;t<s.nations.length;t++){if(!this.allied(t,team))continue;const mem=f.memory[t];for(const n of s.nodes)if(n.amount>0&&!mem[n.id]&&dist(n,b)<=r){mem[n.id]={...n,remembered:true,surveyed:true};const i=Math.floor(n.y/96)*f.cols+Math.floor(n.x/96);f.explored[t][i]=1}
+     for(const p of s.landmarks||[])if(dist(p,b)<=r&&!s.surveyed[t].includes(p.id)){s.surveyed[t].push(p.id);f.explored[t][Math.floor(p.y/96)*f.cols+Math.floor(p.x/96)]=1;this.emit('surveyed',{team:t,id:p.id,type:p.type})}}}}}
+ tick(dt){super.tick(dt);const s=this.s;if(s.ended)return;const half=Math.floor(s.time*2);if(half!==this._surveyHalf){this._surveyHalf=half;this.balloons(0);this.survey()}}
 
  /* ---- 2. computer frontier: claims, island landings, remote raids, flank groups, pacing ---- */
  aiLevel(team){const base=AI_LEVEL[this.s.aiDifficulties?.[team]||this.s.difficulty]||AI_LEVEL.normal,m=DOCTRINE_FRONTIER[this.s.aiWar?.[team]?.key]||{};return{...base,sites:Math.max(0,base.sites+(base.sites?m.sites||0:0)),start:base.start+(m.start||0),every:Math.max(90,base.every+(m.every||0)),defend:base.defend+(base.sites?m.defend||0:0)}}
@@ -155,6 +173,6 @@ class FrontierV40 extends Base{
   if(N.stage==='board'&&(cargo.length>=Math.min(N.ids.length,4)||s.time-N.since>45&&cargo.length)){N.stage='sail';N.shore=this.aiShore(N.target);if(!N.shore){F.naval=null;return}this.order([ship],{type:'move',x:N.shore.x,y:N.shore.y})}
   else if(N.stage==='sail'&&(dist(ship,N.shore)<150||s.time-N.since>150)){this.unload(ship);const landed=N.ids.map(id=>this.byId(id)).filter(u=>u?.hp>0&&!u.embarkedOn);if(landed.length)this.order(landed,{type:'advance',x:N.target.x,y:N.target.y});F.naval=null}}
 }
-const api={...K,Sim:FrontierV40,landRegions,resourceZones,v40Layout:{CAMP_REWARD,HOME_KEEP,SITES,CENTER,ISLAND_PER_PLAYER,HOME_RADIUS}};
+const api={...K,Sim:FrontierV40,landRegions,resourceZones,v40Balloon:BALLOON,v40Layout:{CAMP_REWARD,HOME_KEEP,SITES,CENTER,ISLAND_PER_PLAYER,HOME_RADIUS}};
 if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.KingdomSim=api;
 })(typeof window==='undefined'?globalThis:window);

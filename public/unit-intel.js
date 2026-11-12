@@ -89,8 +89,10 @@ function techInfo(sim,team,key,focus=[]){const nation=sim.nation?.(team)?.id;
  return{key,name:t.name,description:t.description,building:t.building,age:t.age||1,cost,time:t.time,level,max,done:level>=max,step,steps,compare:rows,nation:t.nation||null}}
 /* Every signed number in a description ("+20%", "−10%", "+2", "+0.2") paired with what one research step measures. */
 function descriptionNumbers(text){return [...String(text||'').matchAll(/([+\-−])\s?(\d+(?:\.\d+)?)\s*(%?)/g)].map(m=>({sign:m[1]==='+'?1:-1,value:+m[2],pct:!!m[3]}))}
+/* v40 balloon (frontier-v40.js): range with and without a spotting balloon, measured through sim.stat. */
+function spotInfo(sim,kind,team=0){const B=K.v40Balloon;if(!B||typeof sim.spotted!=='function')return null;if(kind==='scoutballoon'){const sight=typeof sim.sight==='function'?sim.sight({kind,team}):0;return{balloon:true,sight,survey:sight*B.surveyMult,spot:B.spotRange}}const base=sim.stat({kind,team,rank:0},'range')||0,with_=sim.stat({kind,team,rank:0,__spotted:true},'range')||0;return with_>base+1e-9?{base,spotted:with_}:null}
 const fmt=m=>'×'+(Math.round(m*100)/100);
-const api={techInfo,techStep,descriptionNumbers,UNIT_PROBES,TEAM_PROBES,withTech,UPGRADES_ENABLED,LINES,ROLE_NAMES,roleName,armorClass,rangeClass,speedClass,trainable,attackPath,multiplier,structureFactor,counters,threats,lineOf,interval,profile,techEffects,buildingFor,peers,groups,fmt};
+const api={spotInfo,techInfo,techStep,descriptionNumbers,UNIT_PROBES,TEAM_PROBES,withTech,UPGRADES_ENABLED,LINES,ROLE_NAMES,roleName,armorClass,rangeClass,speedClass,trainable,attackPath,multiplier,structureFactor,counters,threats,lineOf,interval,profile,techEffects,buildingFor,peers,groups,fmt};
 if(typeof module!=='undefined'&&module.exports){module.exports=api;return}
 root.UnitIntel=api;
 
@@ -155,7 +157,9 @@ function techSection(sim,e){const list=techEffects(sim,e);if(!list.length)return
 function dialog(sim,e){const d=D[e.kind];if(!d||d.building)return '';const p=profile(sim,e),enemy=e.team!==0&&(!sim.hostile||sim.hostile(0,e.team));
  const good=p.counters.map(g=>tr(g.name)).slice(0,3),bad=p.threats.map(g=>tr(g.name)).slice(0,3);
  const role='<p class="ui-role">'+(good.length?'<span class="good">'+tr('克')+' '+good.map(esc).join(tr('、'))+'</span>':'<span>'+tr('无克制加成')+'</span>')+'<span class="bad">'+tr(enemy?'对付它':'怕')+' '+(bad.length?bad.map(esc).join(tr('、')):tr('无'))+'</span>'+(p.structure!==1?'<span class="good">'+tr('攻击建筑')+' '+fmt(p.structure)+'</span>':'')+'</p>';
- return {role,body:bars(sim,p)+columns(p,enemy)+lineSection(sim,p)+techSection(sim,e)}}
+ return {role,body:bars(sim,p)+columns(p,enemy)+spotSection(sim,e)+lineSection(sim,p)+techSection(sim,e)}}
+function spotSection(sim,e){const i=spotInfo(sim,e.kind,e.team||0);if(!i)return '';if(i.balloon)return '<section class="ui-techs ui-techfx"><h4>'+tr('空中观测')+'</h4><ul><li><b>'+tr('视野')+' '+r1(i.sight)+'</b><small>'+tr('全游戏最大视野，可飞越水域与山崖')+'</small></li><li><b>'+tr('炮兵观测')+' '+tr('射程')+' +'+Math.round(i.spot*100)+'%</b><small>'+tr('视野内己方火炮、臼炮与迫击炮舰射程提高，并可攻击气球看到的目标')+'</small></li><li><b>'+tr('地图测绘')+' '+r1(i.survey)+'</b><small>'+tr('飞过时把此半径内的资源点与遗迹永久标在地图上')+'</small></li></ul></section>';
+ return '<section class="ui-techs ui-techfx"><h4>'+tr('热气球观测')+'</h4><ul><li><b>'+tr('射程')+' '+r1(i.base)+' → '+r1(i.spotted)+'</b><small>'+tr('站在己方热气球视野内时；可攻击气球看到的目标')+'</small></li></ul></section>'}
 /* Research ⓘ (v40): same dialog (#unit-record) and section styles as the unit ⓘ. `focus` = kinds to compare. */
 const RES={food:'食物',wood:'木材',gold:'黄金',stone:'石料'};
 function costText(c){return Object.entries(c||{}).filter(([k,v])=>RES[k]&&v>0).map(([k,v])=>tr(RES[k])+' '+v).join(' · ')}
