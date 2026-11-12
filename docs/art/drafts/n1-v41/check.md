@@ -29,3 +29,9 @@
 - 已查看 `preview-grass.jpg`、`preview-sea.jpg`、`preview-dark.jpg` 和 `preview-sheet.jpg` 的三种底色及 3× 边缘放大图。
 - 结论：三种底色下未见黑框、白框、粉/紫色溢边或抠图残底；8 格各为单一矿脉；金矿耗尽格仍可读作灰色碎石，且不含金；金、石两组体量均逐阶段递减。
 - 范围限制：此检查只覆盖图集预览，没有接入游戏，也没有在真实对局绘制顺序中截图验证。请在接入前安排独立 OpenAI 复核；当前仍是 draft，不得视为上线批准。
+
+## 接入后状态更新 · 2026-11-12
+
+- 图集已接入 `public/clarity-art.js` 与 `public/precision-picking.js`；四个库存阶段使用各自遮罩缓存。生产预览检查页新增矿脉阶段/拾取画布。
+- 上段“未接入游戏”的状态是生成验收时的历史记录；当前接入详情见 `docs/art/resource-nodes-n1-v41-integration.md`。
+- 仍未完成真实游戏生产绘制顺序截图：本次工作区的本地预览不可由可用浏览器访问，release-check 的渲染部分因未安装 Playwright 而跳过。图集背景预览通过不代替该项检查。
