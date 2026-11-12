@@ -230,6 +230,35 @@ V 时代飞艇工场先研发航空工程，再生产侦察热气球、运输飞
 此建筑已合并到|This building has been merged into 
 只能训练本国特色兵种|Only your own nation's special units can be trained
 该研究已移除|This research has been removed
+请求超时（12 秒无响应）|Request timed out (no reply in 12 s)
+网络错误：|Network error: 
+超时|timeout
+网络错误|network error
+无回应|no reply
+超过 4 秒没有收到服务器回应（请求仍在等待）|No reply from the server for over 4 s (request still pending)
+错误|error
+点击查看重连原因|Tap to see why it is reconnecting
+最近一次失败|Last failure
+信息|Message
+距上次成功|Since last success
+连续失败次数|Failures in a row
+首次失败|First failure
+最近失败|Latest failure
+房间|Room
+协议|protocol
+游戏时间|Game time
+联机重连诊断|Online reconnect diagnostics
+截图发给开发者即可帮助定位问题。|Send a screenshot of this to the developers to help find the problem.
+复制|Copy
+打开联机房间|Open the online room
+关闭|Close
+已复制|Copied
+全屏游玩|Play full screen
+iPhone 的 Safari 不支持网页全屏。点 Safari 的「分享」→「添加到主屏幕」，之后从主屏幕图标打开即为全屏。|Safari on iPhone cannot make a web page full screen. Tap Share → Add to Home Screen, then open the game from the home-screen icon to play full screen.
+知道了|Got it
+⛶ 全屏|⛶ Full screen
+⛶ 退出全屏|⛶ Exit full screen
+点击展开 / 收起诊断信息|Tap to expand / collapse diagnostics
 III 时代飞艇工场训练侦察热气球：超大视野、炮兵观测（视野内己方火炮射程提高）与地图测绘；研究航空工程后训练双翼轰炸机（只炸建筑）。弓手、火枪与箭塔对空伤害减半，要塞全额。|Age III: the Airship Works trains scout balloons — very large sight, artillery spotting (own guns in its sight gain range) and map survey; after Aeronautics it trains biplane bombers (buildings only). Bows, muskets and towers deal half damage to aircraft; forts deal full damage.
 III 时代，无需研究：无攻击能力，飞越地形提供超大视野。炮兵观测：视野内己方火炮、臼炮与迫击炮舰射程 +15%，并可攻击气球看到的目标。地图测绘：飞过时把 1.35 倍视野内的资源点与遗迹永久标在地图上|Age III, no research needed: unarmed, flies over terrain with a very large sight. Artillery spotting: own cannons, mortars and mortar ships inside its sight get +15% range and may fire at targets the balloon sees. Map survey: as it flies, deposits and relics within 1.35x its sight are marked on the map permanently
 III 时代起训练侦察热气球（视野、炮兵观测、地图测绘）；研究航空工程后训练双翼轰炸机，军机在此补弹|From Age III trains scout balloons (sight, artillery spotting, map survey); after Aeronautics trains biplane bombers, which rearm here

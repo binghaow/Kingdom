@@ -110,6 +110,9 @@ class Dynasties extends Base{
  }
  raids(){for(let team=1;team<this.s.nations.length;team++){const s=this.s,p=this.profile(team);if(!p.wave||s.defeated.includes(team)||s.time<p.grace||s.time<(s.nextRaid[team]||0))continue;const town=s.buildings.find(b=>b.team===team&&b.kind==='town'),target=town&&this.nearest(town,s.buildings.filter(b=>b.kind==='town'&&this.hostile(team,b.team)&&!this.protection(team,b.team)));if(!target)continue;const army=s.units.filter(u=>u.team===team&&u.kind!=='villager'&&!this.sea(u)&&D[u.kind].damage>0&&!u.embarkedOn).slice(0,p.wave);if(army.length>=3){this.order(army,{type:'advance',x:target.x,y:target.y});this.emit('raid',{team,target:target.team})}const dock=s.buildings.find(b=>b.team===target.team&&b.kind==='dock'),navy=s.units.filter(u=>u.team===team&&this.sea(u)&&D[u.kind].damage>0).slice(0,Math.max(1,Math.floor(p.wave/3)));if(dock&&navy.length>=2){this.order(navy,{type:'advance',x:dock.x,y:K.coast(dock.x)+150});this.emit('navalRaid',{team,target:target.team})}s.nextRaid[team]=s.time+p.raid}}
  aiExpertExpansion(team,town){
+   /* The authoritative server rebuilds the simulation without its constructor every poll (network-model hydrate), so
+      these per-instance caches can be missing; recreating them keeps the first computer think from throwing. */
+   this.aiExpansionGoals??=new Map();this.aiExpansionReady??=this.s.nations.map(()=>0);
   const s=this.s,workers=s.units.filter(u=>u.team===team&&u.kind==='villager'&&!u.embarkedOn),completed=s.buildings.filter(b=>b.team===team&&b.complete&&b.hp>0),goal=this.aiExpansionGoals.get(team);
   const xp=this.profile(team);if(xp.expansion!==1||s.ages[team]<(xp.expansionAge??2)||s.time<(xp.expansionAt??360)||workers.length<9||s.time<(this.aiExpansionReady[team]||0)||s.buildings.some(b=>b.team===team&&!b.complete))return;
   const abandon=()=>this.aiExpansionGoals.delete(team);
