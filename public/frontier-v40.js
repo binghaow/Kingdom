@@ -56,6 +56,14 @@ const DOCTRINE_FRONTIER={rush:{sites:-1,start:60},boom:{},expand:{sites:1,start:
    doctrine's goal from age II (half in age I); halls: extra barracks/ranges/stables when resources pile up; queue:
    units queued per military building when the bank allows. Composition stays with the doctrine + counter scoring. */
 const ARMY_LEVEL={sandbox:{cap:0,villagers:0,halls:0,queue:1},beginner:{cap:14,villagers:0,halls:0,queue:1},easy:{cap:30,villagers:2,halls:0,queue:1},normal:{cap:60,villagers:6,halls:1,queue:1},hard:{cap:100,villagers:12,halls:2,queue:2},expert:{cap:400,villagers:16,halls:3,queue:2}};
+/* ---- 5. commander (hero) presence ----
+   aura: own non-hero land soldiers within `radius` of a living hero get +damage%, +armor and +speed%.
+   nation: while the hero lives, villagers gather +gather% (generic national bonus, same for every nation for now).
+   fallen: when the hero dies the whole nation's attack drops by mourn% for mournFor seconds; respawn wait unchanged.
+   survival: hero health ×hp and +armor; below retreatAt of health a hero that is not on an explicit move/attack
+   order falls back to the nearest own town or fort (player orders always win). */
+const HERO={radius:320,damage:.08,armor:1,speed:.05,gather:.1,mourn:.05,mournFor:60,hp:1.4,armorBonus:2,retreatAt:.35,respawn:180};
+for(const d of Object.values(D))if(d.hero&&!d.companion&&!d.__v40hero){d.hp=Math.round(d.hp*HERO.hp);d.baseArmor=(d.baseArmor||0)+HERO.armorBonus;d.__v40hero=true}
 /* ---- 3. scout balloon: artillery spotting and map survey (bombers unchanged) ----
    Spotting: own cannon-line / mortar-line artillery and mortar ships standing inside an own balloon's sight get +15%
    range and may pick targets anywhere the team can see within that range. Survey: every half second a balloon records
@@ -98,12 +106,28 @@ class FrontierV40 extends Base{
  /* ---- 3. balloon ---- */
  balloons(team){const s=this.s;if(this._balloonAt!==s.time){this._balloonAt=s.time;const m=new Map();for(const u of s.units)if(u.kind==='scoutballoon'&&u.hp>0&&!u.embarkedOn){let list=m.get(u.team);if(!list)m.set(u.team,list=[]);list.push(u)}this._balloonMap=m}return this._balloonMap.get(team)||[]}
  spotted(e){const d=D[e.kind];if(!d||!SPOT_ROLES.includes(d.role)||e.team<0||e.embarkedOn)return false;if(e.__spotted)return true;for(const b of this.balloons(e.team))if(dist(b,e)<=this.sight(b))return true;return false}
- stat(e,key){const v=super.stat(e,key);return key==='range'&&this.spotted(e)?v*(1+BALLOON.spotRange):v}
+ stat(e,key){let v=super.stat(e,key);if(key==='range'&&this.spotted(e))v*=1+BALLOON.spotRange;if(key==='damage'||key==='armor'||key==='speed'){if(this.inAura(e)){if(key==='damage')v*=1+HERO.damage;else if(key==='armor')v+=HERO.armor;else v*=1+HERO.speed}if(key==='damage'&&this.mourning(e.team))v*=1-HERO.mourn}return v}
+ /* ---- 5. hero ---- */
+ heroes(team){const s=this.s;if(this._heroAt!==s.time){this._heroAt=s.time;const m=new Map();for(const u of s.units)if(D[u.kind]?.hero&&!D[u.kind].companion&&u.hp>0&&!u.embarkedOn)m.set(u.team,u);this._heroMap=m}return this._heroMap.get(team)||null}
+ inAura(e){if(e.__aura)return true;const d=D[e.kind];if(!d||d.hero||d.building||!(d.damage>0)||e.kind==='villager'||e.team<0||e.embarkedOn||this.sea?.(e)||this.air?.(e))return false;const h=this.heroes(e.team);return !!h&&dist(h,e)<=HERO.radius}
+ mourning(team){return (this.s.heroMourning?.[team]||0)>this.s.time}
+ heroRespawnDelay(){return HERO.respawn}
+ gatherRate(u,target){const v=super.gatherRate(u,target);return u.kind==='villager'&&this.heroes(u.team)?v*(1+HERO.gather):v}
  autoAcquireRadius(u){const r=super.autoAcquireRadius(u);return this.spotted(u)?Math.max(r,Math.min(BALLOON.acquireCap,this.stat(u,'range')+60)):r}
  surveyed(team,e){return !!this.s.surveyed?.[team]?.includes(e.id)}
  survey(){const s=this.s,f=this.fog;if(!f||!s.fogEnabled)return;s.surveyed??=s.nations.map(()=>[]);for(const [team,list]of this._balloonMap||[]){if(team<0)continue;for(const b of list){const r=this.sight(b)*BALLOON.surveyMult;for(let t=0;t<s.nations.length;t++){if(!this.allied(t,team))continue;const mem=f.memory[t];for(const n of s.nodes)if(n.amount>0&&!mem[n.id]&&dist(n,b)<=r){mem[n.id]={...n,remembered:true,surveyed:true};const i=Math.floor(n.y/96)*f.cols+Math.floor(n.x/96);f.explored[t][i]=1}
      for(const p of s.landmarks||[])if(dist(p,b)<=r&&!s.surveyed[t].includes(p.id)){s.surveyed[t].push(p.id);f.explored[t][Math.floor(p.y/96)*f.cols+Math.floor(p.x/96)]=1;this.emit('surveyed',{team:t,id:p.id,type:p.type})}}}}}
- tick(dt){super.tick(dt);const s=this.s;if(s.ended)return;const half=Math.floor(s.time*2);if(half!==this._surveyHalf){this._surveyHalf=half;this.balloons(0);this.survey()}}
+ tick(dt){const before=new Map();for(const u of this.s.units)if(D[u.kind]?.hero&&!D[u.kind].companion)before.set(u.id,u.team);super.tick(dt);const s=this.s;
+  for(const [id,team]of before){if(!this.byId(id)){s.heroMourning??=s.nations.map(()=>0);s.heroMourning[team]=s.time+HERO.mournFor;this.emit('heroFallen',{team,until:s.heroMourning[team]})}}
+  if(s.ended)return;this.heroGuard();const half=Math.floor(s.time*2);if(half!==this._surveyHalf){this._surveyHalf=half;this.balloons(0);this.survey()}}
+
+ /* Low-health fallback (player orders win: only heroes idle, holding, or on attack-move fall back) and computer
+    hero discipline: stay with the main army or at home, never charge alone. */
+ heroGuard(){const s=this.s;if(Math.floor(s.time*2)===this._heroGuardHalf)return;this._heroGuardHalf=Math.floor(s.time*2);this.heroes(0);for(const [team,h]of this._heroMap||[]){if(team<0)continue;const safe=s.buildings.filter(b=>b.team===team&&b.hp>0&&b.complete&&['town','fort'].includes(b.kind)).sort((a,b)=>dist(a,h)-dist(b,h))[0];const o=h.order;
+   if(h.hp<h.maxhp*HERO.retreatAt&&safe&&dist(h,safe)>220&&(!o||o.type==='hold'||o.type==='advance')){this.order([h],{type:'move',x:safe.x+60,y:safe.y+60,retreat:true,auto:true});this.emit('heroFallback',{team,id:h.id});continue}
+   if(team>0&&!s.humanTeams?.includes(team)&&this.doctrineActive?.(team)&&!(o?.type==='move'&&o.auto)){const w=s.aiWar?.[team],wave=w?.waves?.find(v=>(v.kind==='main'||v.kind==='flank')&&v.stage!=='retreat'&&v.ids.length>=4);
+    if(wave&&Number.isFinite(wave.x)){const back=Math.atan2(h.y-wave.y,h.x-wave.x),p={x:wave.x+Math.cos(back)*90,y:wave.y+Math.sin(back)*90};if(dist(h,p)>200)this.order([h],{type:'advance',x:p.x,y:p.y})}
+    else if(safe){const near=s.units.filter(u=>u.team===team&&u.id!==h.id&&u.hp>0&&D[u.kind].damage>0&&u.kind!=='villager'&&dist(u,h)<400).length;if(dist(h,safe)>650&&near<4)this.order([h],{type:'move',x:safe.x+70,y:safe.y-50,auto:true})}}}}
 
  /* ---- 2. computer frontier: claims, island landings, remote raids, flank groups, pacing ---- */
  aiLevel(team){const base=AI_LEVEL[this.s.aiDifficulties?.[team]||this.s.difficulty]||AI_LEVEL.normal,m=DOCTRINE_FRONTIER[this.s.aiWar?.[team]?.key]||{};return{...base,sites:Math.max(0,base.sites+(base.sites?m.sites||0:0)),start:base.start+(m.start||0),every:Math.max(90,base.every+(m.every||0)),defend:base.defend+(base.sites?m.defend||0:0)}}
@@ -113,16 +137,16 @@ class FrontierV40 extends Base{
  aiPlayer(team){super.aiPlayer(team);if(this.doctrineActive?.(team)&&!this.s.ended){this.aiFrontier(team);this.aiArmy(team)}}
  armyLevel(team){return ARMY_LEVEL[this.s.aiDifficulties?.[team]||this.s.difficulty]||ARMY_LEVEL.normal}
  profile(team=1){const p=super.profile(team);if(!(team>0)||this.s.humanTeams?.includes(team)||!(p.cap>0))return p;return{...p,cap:this.armyLevel(team).cap}}
- aiArmyGoal(team){const v=super.aiArmyGoal(team);if(!this.doctrineActive?.(team))return v;const w=this.s.aiWar?.[team],d=K.aiDoctrines[w?.key];if(d?.army&&this.s.ages[team]<d.army[0])return v;return Math.max(v,this.armyLevel(team).cap)}
- aiVillagerGoal(team){const v=super.aiVillagerGoal(team);if(!v||!this.doctrineActive?.(team))return v;const extra=this.armyLevel(team).villagers;return v+(this.s.ages[team]>=2?extra:Math.floor(extra/2))+Math.min(6,(this.s.aiFrontier?.[team]?.claims||[]).filter(c=>c.stage==='run').length*2)}
- aiArmy(team){const s=this.s,A=this.armyLevel(team),town=s.buildings.find(b=>b.team===team&&b.kind==='town'&&b.hp>0);if(!town||!A.cap)return;const bank=s.resources[team],age=s.ages[team],army=s.units.filter(u=>u.team===team&&u.hp>0&&!u.embarkedOn&&D[u.kind].damage>0&&u.kind!=='villager'),goal=this.aiArmyGoal(team);if(army.length>=goal)return;
+ aiArmyGoal(team){const v=super.aiArmyGoal(team);if(!this.doctrineActive?.(team))return v;const w=this.s.aiWar?.[team],d=K.aiDoctrines[w?.key];if(d?.army&&this.s.ages[team]<d.army[0])return v;/* counted the way the base trainer counts (every armed unit, villagers included) */const army=this.s.units.filter(u=>u.team===team&&!u.embarkedOn&&D[u.kind].damage>0).length,free=this.capacity(team)-this.population(team);/* keep 4 population free for transports, villagers and a hero */return Math.min(Math.max(v,this.armyLevel(team).cap),army+Math.max(0,free-4))}
+ aiVillagerGoal(team){const v=super.aiVillagerGoal(team);if(!v||!this.doctrineActive?.(team))return v;/* from age II only, and half for the rush doctrine, so the early identities (rush: few villagers, early army) hold */const extra=this.s.ages[team]>=2?Math.round(this.armyLevel(team).villagers*(this.s.aiWar?.[team]?.key==='rush'?.5:1)):0;return v+extra+Math.min(6,(this.s.aiFrontier?.[team]?.claims||[]).filter(c=>c.stage==='run').length*2)}
+ aiArmy(team){const s=this.s,A=this.armyLevel(team),town=s.buildings.find(b=>b.team===team&&b.kind==='town'&&b.hp>0);if(!town||!A.cap)return;const bank=s.resources[team],age=s.ages[team],army=s.units.filter(u=>u.team===team&&u.hp>0&&D[u.kind].damage>0&&u.kind!=='villager'),goal=this.aiArmyGoal(team),gate=K.aiDoctrines?.[s.aiWar?.[team]?.key]?.army,want=army.length<goal&&!(gate&&age<gate[0]);
   // housing ahead of the army (the old trigger waited for capacity-4 and one site at a time)
   const capMax=140+(s.tech[team]?.logistics||0)*20,cap=this.capacity(team),pending=s.buildings.filter(b=>b.team===team&&!b.complete&&b.kind==='house').length;if(cap<capMax&&this.population(team)>=cap-8&&pending<(A.queue>1?2:1)&&(bank.wood||0)>=(this.costFor('house',team).wood||0)+60){const v=this.aiWorkers(team).filter(u=>!['build','repair'].includes(u.order?.type))[pending];if(v){const sp=this.aiBaseSpread(team);for(let i=0;i<16;i++){const a=this.rand(0,Math.PI*2),r=(200+this.rand(0,260))*sp,x=town.x+Math.cos(a)*r,y=town.y+Math.sin(a)*r;if(!this.placementError('house',x,y,team)&&!this.construct('house',x,y,[v],team)?.error)break}}}
   const floating=(bank.food||0)+(bank.wood||0)+(bank.gold||0),depth=A.queue+(floating>3000&&A.halls?1:0);
   // more production when resources pile up
-  const halls=['barracks','range','stable'].filter(k=>D[k]&&(D[k].age||1)<=age),count=k=>s.buildings.filter(b=>b.team===team&&b.kind===k&&b.hp>0).length;if(A.halls&&floating>1100&&!s.buildings.some(b=>b.team===team&&!b.complete&&halls.includes(b.kind))){const k=halls.filter(k=>count(k)>0&&count(k)<1+A.halls).sort((a,b)=>count(a)-count(b))[0],v=this.aiWorkers(team).filter(u=>!['build','repair'].includes(u.order?.type))[0];if(k&&v){const sp=this.aiBaseSpread(team);for(let i=0;i<16;i++){const a=this.rand(0,Math.PI*2),r=(280+this.rand(0,220))*sp,x=town.x+Math.cos(a)*r,y=town.y+Math.sin(a)*r;if(!this.placementError(k,x,y,team)&&!this.construct(k,x,y,[v],team)?.error)break}}}
+  const halls=['barracks','range','stable'].filter(k=>D[k]&&(D[k].age||1)<=age),count=k=>s.buildings.filter(b=>b.team===team&&b.kind===k&&b.hp>0).length;if(want&&A.halls&&floating>1100&&!s.buildings.some(b=>b.team===team&&!b.complete&&halls.includes(b.kind))){/* only once production is saturated (every hall of that kind busy) and the bank covers the hall with room to spare, from age II */const k=age<2?null:halls.filter(k=>count(k)>0&&count(k)<1+A.halls&&s.buildings.filter(b=>b.team===team&&b.kind===k&&b.complete).every(b=>(b.queue||[]).length>0)&&['food','wood','gold','stone'].every(r=>(bank[r]||0)>=(this.costFor(k,team)[r]||0)+250)).sort((a,b)=>count(a)-count(b))[0],v=this.aiWorkers(team).filter(u=>!['build','repair'].includes(u.order?.type))[0];if(k&&v){const sp=this.aiBaseSpread(team);for(let i=0;i<16;i++){const a=this.rand(0,Math.PI*2),r=(280+this.rand(0,220))*sp,x=town.x+Math.cos(a)*r,y=town.y+Math.sin(a)*r;if(!this.placementError(k,x,y,team)&&!this.construct(k,x,y,[v],team)?.error)break}}}
   // deeper queues when the bank allows (the doctrine/counter scoring in train() picks the unit)
-  if(depth>1)for(const b of s.buildings){if(b.team!==team||!b.complete||b.hp<=0||!halls.includes(b.kind)&&b.kind!=='workshop'||(b.queue||[]).length>=depth||(b.queue||[]).some(q=>q.type==='research'))continue;const kind=(D[b.kind].trains||[]).find(k=>!this.unitError(b,k)&&D[k].damage>0);if(!kind)continue;const c=this.costFor(kind,team);if(['food','wood','gold','stone'].some(r=>(bank[r]||0)<(c[r]||0)+150))continue;this.train(b,kind)}}
+  if(want&&depth>1)for(const b of s.buildings){if(b.team!==team||!b.complete||b.hp<=0||!halls.includes(b.kind)&&b.kind!=='workshop'||(b.queue||[]).length>=depth||(b.queue||[]).some(q=>q.type==='research'))continue;const kind=(D[b.kind].trains||[]).find(k=>!this.unitError(b,k)&&D[k].damage>0);if(!kind)continue;const c=this.costFor(kind,team);if(['food','wood','gold','stone'].some(r=>(bank[r]||0)<(c[r]||0)+150))continue;this.train(b,kind)}}
  aiSiteNodes(spot,r=300){return this.s.nodes.filter(n=>n.amount>0&&!n.domain&&dist(n,spot)<r&&['gold','stone','wood'].includes(n.resource))}
  aiFrontier(team){const s=this.s,town=s.buildings.find(b=>b.team===team&&b.kind==='town'&&b.hp>0);if(!town)return;const L=this.aiLevel(team),F=this.aiFrontierState(team);
   // keep claims alive: a claim ends when its camp is gone or its deposits are exhausted
@@ -131,7 +155,8 @@ class FrontierV40 extends Base{
   if(L.sites&&s.time>=L.start&&s.time>=F.next&&F.claims.filter(c=>!c.island).length<L.sites&&s.ages[team]>=1)this.aiClaim(team,town,L,F);
   if(L.island&&s.time>=L.island)this.aiIsland(team,town,L,F);
   if(L.raid&&s.time>=Math.max(F.raidAt,L.start))this.aiRemoteRaid(team,town,L,F)}
- aiWorkers(team){return this.s.units.filter(u=>u.team===team&&u.kind==='villager'&&u.hp>0&&!u.embarkedOn)}
+ /* villagers free for frontier/army chores: never the doctrine scout or a villager already walking out to a claim */
+ aiWorkers(team){const s=this.s,scout=s.aiWar?.[team]?.scout?.id,busy=new Set((s.aiFrontier?.[team]?.claims||[]).filter(c=>c.stage==='go').map(c=>c.workerId));return s.units.filter(u=>u.team===team&&u.kind==='villager'&&u.hp>0&&!u.embarkedOn&&u.id!==scout&&!busy.has(u.id))}
  aiClaim(team,town,L,F){const s=this.s,workers=this.aiWorkers(team);if(workers.length<8){F.next=s.time+30;return}const w=s.aiWar?.[team],enemyKnown=!!w?.enemyBase,taken=new Set(F.claims.map(c=>c.key));F.failed??={};for(const [k,t]of Object.entries(F.failed))if(s.time<t)taken.add(k);
   const spots=[];for(const site of s.resourceSites||[]){if(site.id==='island')continue;site.spots.forEach((p,t)=>{const own=site.spots.length===1||t===team,key=site.id+':'+t;if(taken.has(key))return;if(!own&&!(enemyKnown&&L.raid>=1&&this.explored?.(team,p)))return;const amount=this.aiSiteNodes(p).reduce((n,q)=>n+(q.resource==='wood'?q.amount*.25:q.amount),0);if(amount<1500)return;
    const foes=s.buildings.some(b=>b.hp>0&&b.team>=0&&this.hostile(team,b.team)&&dist(b,p)<500);if(foes)return;spots.push({key,x:p.x,y:p.y,own,score:amount/(dist(town,p)+600)*(own?1:.8)})})}
@@ -190,6 +215,6 @@ class FrontierV40 extends Base{
   if(N.stage==='board'&&(cargo.length>=Math.min(N.ids.length,4)||s.time-N.since>45&&cargo.length)){N.stage='sail';N.shore=this.aiShore(N.target);if(!N.shore){F.naval=null;return}this.order([ship],{type:'move',x:N.shore.x,y:N.shore.y})}
   else if(N.stage==='sail'&&(dist(ship,N.shore)<150||s.time-N.since>150)){this.unload(ship);const landed=N.ids.map(id=>this.byId(id)).filter(u=>u?.hp>0&&!u.embarkedOn);if(landed.length)this.order(landed,{type:'advance',x:N.target.x,y:N.target.y});F.naval=null}}
 }
-const api={...K,Sim:FrontierV40,landRegions,resourceZones,v40Balloon:BALLOON,v40Layout:{CAMP_REWARD,HOME_KEEP,SITES,CENTER,ISLAND_PER_PLAYER,HOME_RADIUS}};
+const api={...K,Sim:FrontierV40,landRegions,resourceZones,v40Balloon:BALLOON,v40Hero:HERO,v40Layout:{CAMP_REWARD,HOME_KEEP,SITES,CENTER,ISLAND_PER_PLAYER,HOME_RADIUS}};
 if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.KingdomSim=api;
 })(typeof window==='undefined'?globalThis:window);
