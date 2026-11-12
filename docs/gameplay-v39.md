@@ -88,7 +88,7 @@
 
 ## 6. 检查
 
-开发中每步 `node check-all.cjs`（逐项）全部通过；`npm run release-check -- --quick --only sim,path`：47 PASS、2 WARN（50/100 单位每步均值 +23–24%）。同机对比改动前代码，50 单位相同（2.87 vs 2.91 ms），100 单位 3.57 vs 4.15 ms，寻路调用次数相同；差异来自 ×2 克制与新数值改变了会战进程和持续时间，以及沙箱机器噪声（改动前代码本身也比基线高 18%）。最终完整检查结果见提交说明和 `docs/release-reports/`。
+开发中每步 `node check-all.cjs`（逐项）全部通过；`npm run release-check -- --quick --only sim,path`：47 PASS、2 WARN（50/100 单位每步均值 +23–24%）。同机对比改动前代码，50 单位相同（2.87 vs 2.91 ms），100 单位 3.57 vs 4.15 ms，寻路调用次数相同；差异来自 ×2 克制与新数值改变了会战进程和持续时间，以及沙箱机器噪声（改动前代码本身也比基线高 18%）。最终（70079e3）：`node check-all.cjs` 通过（含新 `check-roster.cjs`）、`npm run build` 成功、`node check-artifact.cjs` 通过、完整 `npm run release-check` 94 PASS / 0 WARN / 0 FAIL（报告 `docs/release-reports/2026-11-12-70079e3.md`），基线未更新。
 
 ## 7. 未完成 / 未验证
 
