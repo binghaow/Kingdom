@@ -28,6 +28,8 @@ D.miningcamp.description='矿工把黄金与石料运回此处（合并采石场
 for(const k of ['ballistics','logistics','fieldmedicine','masonry','smokeless','telegraph'])if(T[k])T[k].building='blacksmith';
 for(const k of ['shells','rolledsteel'])if(T[k])T[k].building='workshop';
 if(T.carrierflight)T.carrierflight.building='retired';
+/* v40: steam crawlers are retired, so rolled steel only names what it still changes (measured by check-tech-intel.cjs). */
+if(T.rolledsteel)T.rolledsteel.description='火炮护甲 +1（攻城炮兵与臼炮线）';
 
 /* ---- 2. national units and landmarks (3.3, 6) ----
    Each national unit replaces one generic unit in the ordinary barracks / range / stable (table in 3.3). The ten national

@@ -230,6 +230,7 @@ V 时代飞艇工场先研发航空工程，再生产侦察热气球、运输飞
 此建筑已合并到|This building has been merged into 
 只能训练本国特色兵种|Only your own nation's special units can be trained
 该研究已移除|This research has been removed
+火炮护甲 +1（攻城炮兵与臼炮线）|Artillery armor +1 (siege cannon and mortar line)
 未知兵种|Unknown unit
 国家地标：每局只能建造一座；每 90 秒免费征召 1 名|National landmark: one per match; every 90 seconds it levies 1 free 
 （受人口上限限制）| (within the population cap)

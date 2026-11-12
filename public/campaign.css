@@ -53,3 +53,14 @@ footer .selection .eyebrow{display:none}footer .selection h2{font-size:14px;line
 .unit-intel-record .ui-tiers{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.unit-intel-record .ui-tier{display:flex;flex-direction:column;align-items:center;text-align:center;gap:2px;padding:8px;background:#24382f;border:1px solid #6f7b5944;border-radius:6px;font-size:12px;min-width:0}.unit-intel-record .ui-tier.me{border-color:#d9b866;box-shadow:0 0 0 1px #d9b86655 inset}.unit-intel-record .ui-tier img{width:52px;height:52px;object-fit:contain}.unit-intel-record .ui-tier small{color:#b9c4ad;font-size:11px}
 .unit-intel-record .ui-techs ul{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px 12px}.unit-intel-record .ui-techs li{display:grid;grid-template-columns:16px minmax(0,1fr);gap:0 4px;font-size:12px}.unit-intel-record .ui-techs li small{grid-column:2;color:#9eab95;font-size:11px}.unit-intel-record .ui-techs li.done>span{color:#86d98f}
 @media(max-width:700px){.unit-intel-record .ui-columns,.unit-intel-record .ui-techs ul{grid-template-columns:1fr}.unit-intel-record .ui-tiers{gap:4px}.unit-intel-record .ui-tier{padding:5px}.unit-intel-record .ui-tier img{width:40px;height:40px}#unit-record .ui-role{font-size:12px}}
+
+/* v40 research ⓘ */
+.tech-record .ui-techs.ui-techfx li{display:block}
+.tech-record .ui-techfx li>b{margin-right:6px}
+.tech-record .ui-techfx li>small{display:block}
+.ui-compare{overflow-x:auto;max-width:100%}
+.ui-compare table{border-collapse:collapse;font-size:11px;width:100%;min-width:420px}
+.ui-compare th,.ui-compare td{padding:2px 4px;text-align:left;white-space:nowrap;border-bottom:1px solid rgba(255,255,255,.08)}
+.ui-compare td.good b{color:#86d98f}
+.ui-compare td.bad b{color:#e08a7a}
+.inspect-tech{margin-left:4px}

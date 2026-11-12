@@ -46,8 +46,51 @@ function buildingFor(kind){for(const [k,d] of Object.entries(D))if(d.building&&!
 function peers(sim,kind,team=0){const b=buildingFor(kind),nation=sim.nation?.(team)?.id,list=b?D[b].trains.filter(k=>D[k]&&(!D[k].nation||D[k].nation===nation||k===kind)):[kind];if(!list.includes(kind))list.push(kind);return list.map(k=>profile(sim,{kind:k,team,rank:0}))}
 /* Multi-selection summary: count and total health per kind, in selection order. */
 function groups(entities){const map=new Map();for(const e of entities){if(!e||!D[e.kind]||D[e.kind].building)continue;let g=map.get(e.kind);if(!g)map.set(e.kind,g={kind:e.kind,count:0,hp:0,maxhp:0,ids:[]});g.count++;g.hp+=Math.max(0,e.hp||0);g.maxhp+=e.maxhp||0;g.ids.push(e.id)}return [...map.values()]}
+/* ---- Research ⓘ (v40). Every number is measured: the simulation is read through a non-mutating shadow (withTech) at
+   level L and L+1 with stat / attackInterval / sight / capacity / carryingCapacity / gatherRate and the rate methods
+   heroCooldownFactor, heroManaRegen, fieldRegen, tradeBonus. Nothing is written by hand and nothing is mutated. ---- */
+const UNIT_PROBES=[['hp','生命','pct'],['damage','攻击','pct'],['armor','护甲','abs'],['range','射程','pct'],['speed','速度','pct'],['interval','攻击间隔','pct'],['sight','视野','pct'],['loaded','负重移速','pct']];
+const TEAM_PROBES=[
+ ['popcap','人口上限','abs',(f,t)=>{const s=f.s;const houses=[{kind:'town',team:t,complete:true,hp:1}];for(let i=0;i<40;i++)houses.push({kind:'house',team:t,complete:true,hp:1});const g=Object.create(f);const sh=Object.create(s);sh.buildings=houses;Object.defineProperty(g,'s',{value:sh});return typeof g.capacity==='function'?g.capacity(t):0}],
+ ['carry','村民每次背负量','abs',(f,t)=>f.carryingCapacity?.({kind:'villager',team:t})||0],
+ ['gather','村民采集速度（木材）','pct',(f,t)=>f.gatherRate?.({kind:'villager',team:t},{kind:'tree',resource:'wood'})||0],
+ ['heroCooldown','英雄技能冷却','pct',(f,t)=>f.heroCooldownFactor?.(t)??1],
+ ['heroMana','英雄魔力恢复（每秒）','abs',(f,t)=>f.heroManaRegen?.(t)||0],
+ ['regen','脱战陆军回复（生命/秒）','abs',(f,t)=>f.fieldRegen?.(t)||0],
+ ['trade','商队额外收益','pp',(f,t)=>f.tradeBonus?.(t)||0]];
+function probeUnit(f,e,k){try{if(k==='interval')return interval(f,e);if(k==='sight')return typeof f.sight==='function'?f.sight(e):0;if(k==='loaded')return e.kind==='villager'?f.stat({...e,cargo:{resource:'wood',amount:1}},'speed')||0:0;return f.stat(e,k)||0}catch{return 0}}
+function techLevel(sim,team,key){const t=T[key];if(t?.line)return sim.lineLevel?.(team,t.line)??(sim.s.tech[team]?.[key]||0);return sim.s.tech[team]?.[key]||0}
+function techCandidates(sim,team){const nation=sim.nation?.(team)?.id,units=trainable().filter(k=>!D[k].nation||D[k].nation===nation),heroes=Object.keys(D).filter(k=>D[k].hero&&!D[k].retired&&(!D[k].nation||D[k].nation===nation)).slice(0,12),buildings=Object.keys(D).filter(k=>D[k].building&&!D[k].retired&&!D[k].merged&&(!D[k].nation||D[k].nation===nation));return{units:[...units,...heroes.filter(k=>!units.includes(k))],buildings}}
+/* Percentages are relative to the level-0 value ("每级 +20%" = +20% of base each level); integers above 5% absorb hp rounding. */
+function deltaOf(kind,a,b,base=a){if(kind==='abs')return Math.round((b-a)*100)/100;if(kind==='pp')return Math.round((b-a)*1000)/10;if(!base)return 0;const p=(b-a)/base*100;return Math.abs(p)>=5?Math.round(p):Math.round(p*10)/10}
+const signed=v=>(v>0?'+':v<0?'−':'')+Math.abs(v);
+function deltaText(kind,v){return signed(v)+(kind==='abs'?'':'%')}
+/* Effects of one step (level lo → lo+1) for this team. */
+function techStep(sim,team,key,lo){const t=T[key],z=withTech(sim,team,key,0),a=withTech(sim,team,key,lo),b=withTech(sim,team,key,lo+1),c=techCandidates(sim,team),raw=[],add=(probe,label,kind,d,unit)=>{if(d)raw.push({probe,label,kind,d,unit})};
+ for(const k of c.units){const e={kind:k,team,rank:0,x:0,y:0};for(const [p,label,kind]of UNIT_PROBES)add(p,label,kind,deltaOf(kind,probeUnit(a,e,p),probeUnit(b,e,p),probeUnit(z,e,p)),k)}
+ for(const k of c.buildings){const e={kind:k,team,x:0,y:0};add('bhp','建筑生命','pct',deltaOf('pct',a.stat(e,'hp')||0,b.stat(e,'hp')||0,z.stat(e,'hp')||0),k)}
+ for(const [p,label,kind,get]of TEAM_PROBES)add(p,label,kind,deltaOf(kind,get(a,team),get(b,team),get(z,team)),null);
+ /* group per probe around the most common value; values within 1 point of it are rounding noise of the same effect */
+ const groups=new Map();for(const p of new Set(raw.map(r=>r.probe))){const rs=raw.filter(r=>r.probe===p),count={};for(const r of rs)count[r.d]=(count[r.d]||0)+1;const vals=Object.keys(count).map(Number).sort((x,y)=>count[y]-count[x]||Math.abs(y)-Math.abs(x));for(const r of rs){const v=vals.find(v=>v===r.d||(r.kind==='pct'&&Math.abs(v-r.d)<=1&&Math.sign(v)===Math.sign(r.d)))??r.d,id=p+'|'+v;let g=groups.get(id);if(!g)groups.set(id,g={probe:p,label:r.label,kind:r.kind,delta:v,text:deltaText(r.kind,v),kinds:[]});if(r.unit)g.kinds.push(r.unit)}}
+ const unlocks=[];for(const [bk,bd]of Object.entries(D)){if(!bd.building||bd.retired||!bd.trains)continue;for(const k of bd.trains){if(!D[k]||D[k].retired)continue;let ea,eb;try{ea=a.unitError({kind:bk,team,queue:[]},k);eb=b.unitError({kind:bk,team,queue:[]},k)}catch{continue}if(ea&&ea!==eb&&/研究|解锁/.test(ea)&&!/研究.*线/.test(ea))unlocks.push(k)}}
+ let line=null;if(t?.line&&sim.lineKind&&lo<2)line={from:sim.lineKind(team,t.line,lo),to:sim.lineKind(team,t.line,lo+1)};
+ return{effects:[...groups.values()],unlocks:[...new Set(unlocks)],line}}
+/* Full ⓘ data for one research key ('age' = the town centre's age advance). `focus` = unit kinds to compare (selection). */
+function techInfo(sim,team,key,focus=[]){const nation=sim.nation?.(team)?.id;
+ if(key==='age'){const age=sim.s.ages[team]||1,next=Math.min(5,age+1),cost=sim.researchCost?.('age',team)||{},pick=f=>Object.keys(D).filter(k=>f(D[k])&&!D[k].retired&&!D[k].merged&&(D[k].age||1)===next&&(!D[k].nation||D[k].nation===nation));
+  return{key,name:'晋升 '+(K.ageNames?.[next]||next),age:next,cost,level:age,max:5,unlockBuildings:pick(d=>d.building&&!d.landmark&&!d.wild),unlockUnits:pick(d=>!d.building&&!d.hero&&!d.monster&&!d.wildlife&&!d.companion).filter(k=>trainable().includes(k)&&!(sim.trainHidden?.({team,kind:'barracks'},k))),unlockTechs:Object.keys(T).filter(k=>T[k].age===next&&T[k].building!=='retired'&&(!T[k].nation||T[k].nation===nation)),effects:[],steps:[]}}
+ const t=T[key];if(!t||t.building==='retired')return null;const max=t.line?2:(t.max||1),level=Math.min(techLevel(sim,team,key),max),steps=[];
+ for(let lo=0;lo<max;lo++)steps.push(techStep(sim,team,key,lo));
+ const next=Math.min(level,max-1),step=steps[next],cost=sim.researchCost?.(key,team)||{},compare=[];
+ const affected=step.effects.flatMap(g=>g.kinds).filter(k=>trainable().includes(k)),kinds=[...new Set(focus.length?focus:[...affected.filter(k=>k!=='villager'),...affected])].slice(0,4);
+ if(step.line&&!focus.length){compare.push({kind:step.line.from,to:step.line.to})}
+ else for(const k of kinds.slice(0,6)){compare.push({kind:k,to:k})}
+ const a=withTech(sim,team,key,next),b=withTech(sim,team,key,next+1),rows=compare.map(c=>{const ea={kind:c.kind,team,rank:0},eb={kind:c.to,team,rank:0},m=(f,e)=>({hp:probeUnit(f,e,'hp'),damage:probeUnit(f,e,'damage'),armor:probeUnit(f,e,'armor'),range:probeUnit(f,e,'range'),speed:probeUnit(f,e,'speed'),interval:probeUnit(f,e,'interval')});return{kind:c.kind,to:c.to,before:m(a,ea),after:m(b,eb)}});
+ return{key,name:t.name,description:t.description,building:t.building,age:t.age||1,cost,time:t.time,level,max,done:level>=max,step,steps,compare:rows,nation:t.nation||null}}
+/* Every signed number in a description ("+20%", "−10%", "+2", "+0.2") paired with what one research step measures. */
+function descriptionNumbers(text){return [...String(text||'').matchAll(/([+\-−])\s?(\d+(?:\.\d+)?)\s*(%?)/g)].map(m=>({sign:m[1]==='+'?1:-1,value:+m[2],pct:!!m[3]}))}
 const fmt=m=>'×'+(Math.round(m*100)/100);
-const api={UPGRADES_ENABLED,LINES,ROLE_NAMES,roleName,armorClass,rangeClass,speedClass,trainable,attackPath,multiplier,structureFactor,counters,threats,lineOf,interval,profile,techEffects,buildingFor,peers,groups,fmt};
+const api={techInfo,techStep,descriptionNumbers,UNIT_PROBES,TEAM_PROBES,withTech,UPGRADES_ENABLED,LINES,ROLE_NAMES,roleName,armorClass,rangeClass,speedClass,trainable,attackPath,multiplier,structureFactor,counters,threats,lineOf,interval,profile,techEffects,buildingFor,peers,groups,fmt};
 if(typeof module!=='undefined'&&module.exports){module.exports=api;return}
 root.UnitIntel=api;
 
@@ -113,5 +156,23 @@ function dialog(sim,e){const d=D[e.kind];if(!d||d.building)return '';const p=pro
  const good=p.counters.map(g=>tr(g.name)).slice(0,3),bad=p.threats.map(g=>tr(g.name)).slice(0,3);
  const role='<p class="ui-role">'+(good.length?'<span class="good">'+tr('克')+' '+good.map(esc).join(tr('、'))+'</span>':'<span>'+tr('无克制加成')+'</span>')+'<span class="bad">'+tr(enemy?'对付它':'怕')+' '+(bad.length?bad.map(esc).join(tr('、')):tr('无'))+'</span>'+(p.structure!==1?'<span class="good">'+tr('攻击建筑')+' '+fmt(p.structure)+'</span>':'')+'</p>';
  return {role,body:bars(sim,p)+columns(p,enemy)+lineSection(sim,p)+techSection(sim,e)}}
-root.UnitIntelUI={update,dialog,tr,_render:{statRow,counterRow}};
+/* Research ⓘ (v40): same dialog (#unit-record) and section styles as the unit ⓘ. `focus` = kinds to compare. */
+const RES={food:'食物',wood:'木材',gold:'黄金',stone:'石料'};
+function costText(c){return Object.entries(c||{}).filter(([k,v])=>RES[k]&&v>0).map(([k,v])=>tr(RES[k])+' '+v).join(' · ')}
+function namesText(kinds){const n=kinds.map(k=>name(k));return n.length>8?n.slice(0,8).join(tr('、'))+' '+tr('等')+' '+n.length+' '+tr('种'):n.join(tr('、'))}
+function effectList(step){const li=[];if(step.line)li.push('<li><b>'+tr('升阶')+'</b><span>'+esc(name(step.line.from))+' → '+esc(name(step.line.to))+'</span><small>'+tr('本线已有与正在训练的兵一起升阶（保持血量比例）')+'</small></li>');
+ for(const k of step.unlocks)li.push('<li><b>'+tr('解锁')+'</b><span>'+esc(name(k))+'</span><small>'+tr('仍需支付训练费用与人口')+'</small></li>');
+ for(const g of step.effects)li.push('<li><b>'+esc(tr(g.label))+' '+esc(g.text)+'</b><small>'+(g.kinds.length?tr('影响')+'：'+esc(namesText(g.kinds)):tr('全国生效'))+'</small></li>');
+ return li.length?li.join(''):'<li class="ui-none">'+tr('无可测量的数值变化')+'</li>'}
+function compareTable(info){if(!info.compare.length)return '';const keys=[['hp','生命'],['damage','攻击'],['armor','护甲'],['range','射程'],['speed','速度'],['interval','攻击间隔']];
+ return '<section class="ui-compare"><h4>'+tr('研究后对比')+' <small>'+tr(info.focused?'当前选中的单位':'受影响的代表单位')+'</small></h4><table><thead><tr><th></th>'+keys.map(([,l])=>'<th>'+tr(l)+'</th>').join('')+'</tr></thead><tbody>'+info.compare.map(r=>'<tr><th>'+esc(name(r.kind))+(r.to!==r.kind?' → '+esc(name(r.to)):'')+'</th>'+keys.map(([k])=>{const a=r.before[k],b=r.after[k],ch=Math.abs(a-b)>1e-9;return '<td class="'+(ch?(k==='interval'?(b<a?'good':'bad'):(b>a?'good':'bad')):'')+'">'+r1(a)+(ch?' → <b>'+r1(b)+'</b>':'')+'</td>'}).join('')+'</tr>').join('')+'</tbody></table></section>'}
+function techDialog(sim,key,focusIds=[]){const team=0,focus=[...new Set(focusIds.map(id=>sim.byId(id)).filter(e=>e&&e.team===team&&D[e.kind]&&!D[e.kind].building).map(e=>e.kind))];
+ if(key==='age'){const i=techInfo(sim,team,'age'),list=(ks,f)=>ks.length?ks.map(f).join(tr('、')):tr('无');return '<div class="unit-record-head"><div><h3>♜ '+esc(gameName(i.name))+'</h3><p>'+tr('城镇中心研究：推进时代，解锁下列建筑、兵种与研究。')+'</p></div></div><section class="ui-techs ui-techfx"><h4>'+tr('解锁')+'</h4><ul><li><b>'+tr('建筑')+'</b><small>'+esc(list(i.unlockBuildings,k=>name(k)))+'</small></li><li><b>'+tr('兵种')+'</b><small>'+esc(list(i.unlockUnits,k=>name(k)))+'</small></li><li><b>'+tr('研究')+'</b><small>'+esc(list(i.unlockTechs,k=>gameName(T[k].name)))+'</small></li></ul></section><p class="ui-note">'+tr('费用')+'：'+esc(costText(i.cost))+'</p>'}
+ const own={};for(const u of sim.s.units)if(u.team===team&&u.hp>0)own[u.kind]=(own[u.kind]||0)+1;
+ let i=techInfo(sim,team,key,focus);if(!i)return '';if(!focus.length){const step=i.steps[Math.min(i.level,i.max-1)],field=[...new Set(step.effects.flatMap(g=>g.kinds))].filter(k=>own[k]&&k!=='villager').sort((a,b)=>own[b]-own[a]).slice(0,4);if(field.length&&!step.line)i=techInfo(sim,team,key,field)}else i.focused=true;
+ const step=i.steps[Math.min(i.level,i.max-1)],per=i.max>1&&!i.steps[0].line?'<section class="ui-techs"><h4>'+tr('各级')+'</h4><ul>'+i.steps.map((st,n)=>'<li class="'+(n<i.level?'done':'')+'"><span>'+(n<i.level?'✓':'○')+'</span><b>'+tr('第')+' '+(n+1)+' '+tr('级')+'</b><small>'+st.effects.map(g=>esc(tr(g.label)+' '+g.text)).join(' / ')+'</small></li>').join('')+'</ul></section>':'';
+ return '<div class="unit-record-head"><div><h3><i class="ui-glyph" aria-hidden="true">'+esc(T[key].icon||'')+'</i> '+esc(gameName(i.name))+'</h3><p>'+esc(gameName(i.description||''))+'</p></div></div>'+
+  '<p class="ui-note">'+tr('研究建筑')+'：'+esc(gameName(D[i.building]?.name||i.building))+' · '+tr('时代')+' '+esc(gameName(String(K.ageNames?.[i.age]||i.age)))+' · '+tr('费用')+'：'+esc(costText(i.cost))+' · '+(i.time||0)+' '+tr('秒')+' · '+tr('进度')+' '+i.level+'/'+i.max+'</p>'+
+  '<section class="ui-techs ui-techfx"><h4>'+tr(i.done?'已完成：最后一级的作用':'作用（下一级）')+'</h4><ul>'+effectList(step)+'</ul></section>'+per+compareTable(i)+'<p class="ui-legend">'+tr('数值由模拟实时计算（含本国与已研究科技）。')+'</p>'}
+root.UnitIntelUI={update,dialog,techDialog,tr,_render:{statRow,counterRow}};
 })(typeof window!=='undefined'?window:globalThis);
