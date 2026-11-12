@@ -50,4 +50,13 @@ test('Numbers: x2 role counters; within each line later tiers are stronger per r
  for(const l of [...Object.values(K.rosterLines).map(l=>l.tiers),['hussar','cavalry','dragoon']])for(let i=1;i<l.length;i++){assert(core(l[i])/cost(l[i])>core(l[i-1])/cost(l[i-1]),l[i]+' per resource');assert(core(l[i])/(D[l[i]].pop||1)>core(l[i-1])/(D[l[i-1]].pop||1),l[i]+' per pop');assert(D[l[i]].age>=D[l[i-1]].age)}
  for(const l of ['spear','ranged','mortar'])for(let i=1;i<3;i++)assert.equal(D[K.rosterLines[l].tiers[i]].pop||1,D[K.rosterLines[l].tiers[0]].pop||1,l+' keeps population per tier')});
 
+test('Saves and authoritative commands: retired entities load and keep running; lines, landmarks and refusals go through the server path',()=>{
+ const s=make('usa','spain'),p=s.world.starts[0];for(const k of K.rosterRetired.units)s.add(k,0,p.x+300,p.y+300);for(const k of ['university','bath','quarry','cannonturret'])s.add(k,0,p.x-400,p.y+200).complete=true;
+ for(const t of s.s.tech)for(const k of Object.keys(t))if(k.startsWith('line_'))delete t[k];const saved=JSON.parse(s.serialize());const n=new K.Sim(saved.difficulty,saved);for(let i=0;i<300;i++)n.tick(.1);
+ for(const k of ['trebuchet','carrier','gunship'])assert(n.s.units.some(u=>u.kind===k),k+' survives');assert(n.s.buildings.some(b=>b.kind==='university'));assert(n.s.units.every(u=>Number.isFinite(u.hp)));assert.equal(n.lineLevel(0,'spear'),0);
+ const S=require('./server/service.cjs'),net=new K.NetworkSim('normal',null,{nations:['usa','spain'],groups:[1,2],humanTeams:[0,1],fog:false});net.state.ages=[5,5];for(const r of net.state.resources)Object.assign(r,{food:9e3,wood:9e3,gold:9e3,stone:9e3});
+ const q=net.world.starts[0],range=net.add('range',0,q.x+300,q.y+300),smith=net.add('blacksmith',0,q.x+300,q.y-300);range.complete=smith.complete=true;range.queue=[];smith.queue=[];
+ assert.match(S.execute(net,0,{type:'train',args:{id:range.id,kind:'musketeer'}}),/大陆军|替代/);assert.match(S.execute(net,0,{type:'train',args:{id:range.id,kind:'continental'}}),/铁匠铺/);
+ S.execute(net,0,{type:'research',args:{id:smith.id,key:'line_ranged'}});assert.equal(smith.queue[0]?.kind,'line_ranged');smith.queue[0].left=.01;net.tick(.1);assert.equal(net.lineLevel(0,'ranged'),1);assert.match(S.execute(net,0,{type:'train',args:{id:range.id,kind:'continental'}}),/排队/)});
+
 console.log('PASS '+done.length+' roster checks:\n'+done.map(n=>'  '+n).join('\n'));
