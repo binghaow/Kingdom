@@ -115,11 +115,11 @@ class Dynasties extends Base{
    if(dist(worker,goal)<145){const result=this.construct(goal.kind,goal.x,goal.y,[worker],team);if(!result.error){this.aiExpansionReady[team]=s.time+300;abandon()}return}
    if(worker.order?.type!=='move'||Math.hypot((worker.order.x||0)-goal.x,(worker.order.y||0)-goal.y)>24)this.order([worker],{type:'move',x:goal.x,y:goal.y});return
   }
-  const bank=s.resources[team],quarries=completed.filter(b=>b.kind==='quarry').length,camps=completed.filter(b=>b.kind==='lumbercamp').length;
-  let kind=null,resource=null;if(camps<3&&(bank.wood<2200||camps===0&&s.time>=540)){kind='lumbercamp';resource='wood'}else if(quarries<2&&(bank.stone<1350||quarries===0&&s.time>=900)){kind='quarry';resource='stone'}else return;
+  const bank=s.resources[team],stoneKind=D.quarry.retired?'miningcamp':'quarry',quarries=completed.filter(b=>b.kind===stoneKind).length,camps=completed.filter(b=>b.kind==='lumbercamp').length;
+  let kind=null,resource=null;if(camps<3&&(bank.wood<2200||camps===0&&s.time>=540)){kind='lumbercamp';resource='wood'}else if(quarries<2&&(bank.stone<1350||quarries===0&&s.time>=900)){kind=stoneKind;resource='stone'}else return;
   if(!this.canPay(D[kind],team))return;
   const known=this.view(team).nodes.filter(n=>n.amount>0&&n.resource===resource&&this.explored(team,n)&&!n.domain).sort((a,b)=>b.amount-a.amount).slice(0,18),offsets=[[95,0],[-95,0],[0,95],[0,-95],[68,68],[-68,68],[68,-68],[-68,-68]],visible=this.view(team),enemies=[...visible.units,...visible.buildings].filter(e=>e.team!==team&&this.hostile(team,e.team));
-  let best=null,bestScore=-Infinity;for(const node of known){for(const [dx,dy]of offsets){const site={x:node.x+dx,y:node.y+dy,kind};if(dist(site,town)<260||dist(site,town)>980||!completed.some(b=>dist(site,b)<620)||completed.some(b=>b.kind===kind&&dist(site,b)<(kind==='quarry'?560:340))||enemies.some(e=>dist(site,e)<250)||this.placementError(kind,site.x,site.y,team))continue;
+  let best=null,bestScore=-Infinity;for(const node of known){for(const [dx,dy]of offsets){const site={x:node.x+dx,y:node.y+dy,kind};if(dist(site,town)<260||dist(site,town)>980||!completed.some(b=>dist(site,b)<620)||completed.some(b=>b.kind===kind&&dist(site,b)<(kind===stoneKind?560:340))||enemies.some(e=>dist(site,e)<250)||this.placementError(kind,site.x,site.y,team))continue;
     const amount=node.amount/Math.max(1,node.maxAmount||node.amount),score=dist(site,town)*.15+amount*80-enemies.reduce((v,e)=>v+Math.max(0,260-dist(site,e))*.2,0);if(score>bestScore){best=site;bestScore=score}}
   }
   if(!best)return;const worker=workers.filter(u=>!['build','repair','attack'].includes(u.order?.type)).sort((a,b)=>dist(a,best)-dist(b,best))[0];if(!worker)return;best.workerId=worker.id;this.aiExpansionGoals.set(team,best);this.order([worker],{type:'move',x:best.x,y:best.y})

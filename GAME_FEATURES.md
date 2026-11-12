@@ -10,8 +10,16 @@
 - The computer scouts under fog, respects the era restrictions around the KC dragon/demon objective, and uses existing guardian, fortress and reward mechanics. It does not yet deliberately plan a dedicated dragon assault.
 - Phase 1 adds shortage-led worker reallocation with a cooldown and threat-triggered towers near a threatened civic/economic site. Towers only respond to visible threats or recent damage to owned buildings.
 - Expert uses standard economy, unit damage, training speed and age pace; its added challenge comes from the larger army plan, quicker raid interval, stronger reactive defense, resource-site outposts and a higher share of age IV+ units when affordable.
-- Expert outposts reuse existing lumbercamps and quarries, send a villager to an explored and reachable resource area, avoid nearby threats and respect building costs. Goals are transient and reset safely after loading; other difficulty profiles retain their current expansion behavior.
-- The existing age progression and high-tech chain remain in place: the town advances through five ages, the siege layer plans siegeyards and aerodromes, and Dynasty AI builds universities, arsenals, foundries and palaces when their eras unlock.
+- Expert outposts reuse existing lumbercamps and mining camps (quarries are merged into mining camps in v39), send a villager to an explored and reachable resource area, avoid nearby threats and respect building costs. Goals are transient and reset safely after loading; other difficulty profiles retain their current expansion behavior.
+- The existing age progression and high-tech chain remain in place: the town advances through five ages, the siege layer plans aerodromes, and Dynasty AI builds palaces when their eras unlock; buildings merged in v39 (universities, foundries, siege yards, steelworks, signal bureaus) are skipped and their research happens at the blacksmith/workshop.
+
+## Roster v39 (docs/gameplay-v39.md)
+
+- Fewer, clearer units and buildings: retired units and merged buildings leave the menus but stay loadable from old saves.
+- National units replace one generic unit in the ordinary barracks / range / stable; the ten national buildings are one-per-match landmarks that levy a free national soldier every 90 s.
+- Blacksmith upgrade lines (spear, ranged, mortar) upgrade existing and queued units; the unit information panel shows the line, tier and research costs.
+- Role counters are x2 and later tiers are stronger per resource and per population (calibrated with `scripts/balance/roster-battles.cjs`).
+- Air plan A: scout balloon from age III without research; bombers attack only buildings; ranged line and towers hit aircraft at half damage, forts at full. Markets no longer make passive gold.
 
 ## Existing player systems preserved
 
