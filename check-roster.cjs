@@ -34,4 +34,14 @@ test('Approved rules: steam crawler x1.35 against buildings, bastion turret take
  const u=s.add('steamcrawler',0,p.x+900,p.y+300),e=s.add('town',1,p.x+905,p.y+300);e.hp=e.maxhp=1e6;s.strike(u,e);assert(Math.abs(1e6-e.hp-Math.max(1,s.stat(u,'damage')*1.35-s.stat(e,'armor')))<1e-6,'crawler vs town centre');
  const t=make();for(const b of t.s.buildings)if(b.team===0)b.queue=[];const m=t.add('market',0,p.x+300,p.y+300);m.complete=true;t.s.units=t.s.units.filter(u=>u.team!==0);const gold=t.s.resources[0].gold;for(let i=0;i<20;i++)t.tick(.5);assert.equal(t.s.resources[0].gold,gold)});
 
+test('Upgrade lines: blacksmith research upgrades existing and queued units; menus offer only the current tier',()=>{
+ const s=make('russia','france'),p=s.world.starts[0],smith=s.add('blacksmith',0,p.x+300,p.y+300),range=s.add('range',0,p.x+300,p.y+500);smith.complete=range.complete=true;smith.queue=[];range.queue=[];
+ assert.deepEqual(s.lineTiers(0,'ranged'),['archer','streltsy','rifleguard']);assert(offered(s,'range').includes('archer'));assert(!offered(s,'range').includes('streltsy'));assert.match(s.unitError(range,'streltsy'),/铁匠铺/);
+ const a=s.add('archer',0,p.x+500,p.y+300);a.hp=a.maxhp/2;assert.equal(s.train(range,'archer'),'');const gold=s.s.resources[0].gold;
+ assert.equal(s.research(smith,'line_ranged'),'');assert.equal(s.s.resources[0].gold,gold-150);smith.queue[0].left=.01;s.tick(.1);
+ assert.equal(a.kind,'streltsy');assert(Math.abs(a.hp/a.maxhp-.5)<1e-9);assert.equal(range.queue[0].kind,'streltsy');assert(offered(s,'range').includes('streltsy'));assert(!offered(s,'range').includes('archer'));
+ s.s.ages[0]=4;assert.match(s.researchError(smith,'line_ranged'),/V|时代/);s.s.ages[0]=5;assert.equal(s.researchCost('line_ranged',0).gold,420);assert.equal(s.research(smith,'line_ranged'),'');smith.queue[0].left=.01;s.tick(.1);assert.equal(a.kind,'rifleguard');assert.match(s.researchError(smith,'line_ranged'),/最高/);
+ const b=make('britain','france');assert.deepEqual(b.lineTiers(0,'spear'),['infantry','halberd','eliteguard']);assert.deepEqual(b.lineTiers(0,'mortar'),['mortar','howitzer','fieldmortar']);
+ const net=JSON.parse(JSON.stringify(s.s));const back=new K.Sim('normal',net,{});assert.equal(back.lineLevel(0,'ranged'),2);assert(back.s.units.some(u=>u.kind==='rifleguard'))});
+
 console.log('PASS '+done.length+' roster checks:\n'+done.map(n=>'  '+n).join('\n'));

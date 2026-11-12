@@ -47,18 +47,42 @@ Object.assign(D.fort,{antiAir:true,description:'重型区域防御，压制成�
 D.tower.description='自动射击附近敌军，可对空（伤害减半）';
 Object.assign(D.market,{noPassiveGold:true,description:'训练贸易商队并研究采集效率；不再被动产生黄金，商队路线越长收益越高'});
 if(T.aeronautics)T.aeronautics.description='解锁双翼轰炸机（侦察热气球无需研究）';
+
+/* ---- 4. upgrade lines (3.2) ----
+   Three blacksmith research lines. Each tier reuses an existing unit definition (stats and art), so the mortar line's later
+   tiers are the howitzer / long mortar looks. Researching turns the team's existing and queued units of the current tier
+   (including a national unit sitting on that tier) into the next tier; engine applyResearch keeps their health ratio. */
+const LINES={
+ spear:{id:'spear',name:'长枪线',tiers:['infantry','halberd','eliteguard'],cost:[{food:180,gold:120,time:30},{food:420,gold:300,time:45}]},
+ ranged:{id:'ranged',name:'远程线',tiers:['archer','musketeer','rifleguard'],cost:[{wood:150,gold:150,time:30},{wood:300,gold:420,time:45}]},
+ mortar:{id:'mortar',name:'臼炮线',tiers:['mortar','howitzer','fieldmortar'],cost:[{wood:300,gold:350,time:40},{wood:400,gold:500,stone:150,time:55}]}
+};
+for(const l of Object.values(LINES))T['line_'+l.id]={name:l.name+'升级',icon:'⇪',max:2,building:'blacksmith',age:2,line:l.id,...l.cost[0],description:'本线已有与正在训练的兵一起升为下一阶：'+l.tiers.map(k=>D[k].name).join(' → ')+'（各国特色兵按所替换的阶升级）'};
+function lineOf(kind){const base=BASE_OF[kind]||kind;for(const l of Object.values(LINES)){const i=l.tiers.indexOf(base);if(i>=0)return{line:l,index:i}}return null}
 if(D.congress){D.congress.retired=false;N.usa.building='congress'}
 for(const n of Object.values(N)){const b=D[n.building];if(!b)continue;b.trains=[];b.landmark=true;b.description='国家地标：每局只能建造一座；每 90 秒免费征召 1 名'+D[n.unique].name+'（受人口上限限制）'+(T['doctrine_'+n.id]?.building===n.building?'；可研究国家学说':'')}
 
 class Roster extends Base{
  nationId(team){return this.nation?.(team)?.id||this.s.nations?.[team]}
  /* Why a unit is not offered to this team ('' = offered). Affordability, age and population are unitError's job. */
- trainHidden(b,kind){const d=D[kind],nat=this.nationId(b?.team||0);if(!d)return '未知兵种';if(d.retired)return '该兵种已并入其他兵种';if(d.nation&&d.nation!==nat)return '只能训练本国特色兵种';const sub=NATIONAL[nat]?.[kind];if(sub)return '本国以'+D[sub].name+'替代';return ''}
+ trainHidden(b,kind){const d=D[kind],nat=this.nationId(b?.team||0);if(!d)return '未知兵种';if(d.retired)return '该兵种已并入其他兵种';if(d.nation&&d.nation!==nat)return '只能训练本国特色兵种';const sub=NATIONAL[nat]?.[kind];if(sub)return '本国以'+D[sub].name+'替代';
+  const l=lineOf(kind);if(l){const team=b?.team||0,level=this.lineLevel(team,l.line.id);if(l.index!==level)return l.index<level?'已升级为'+D[this.lineKind(team,l.line.id,level)].name:'需要在铁匠铺研究'+T['line_'+l.line.id].name}return ''}
  baseKind(kind){return BASE_OF[kind]||kind}
+ lineLevel(team,id){return this.s.tech[team]?.['line_'+id]||0}
+ lineKind(team,id,i){const base=LINES[id].tiers[i];return NATIONAL[this.nationId(team)]?.[base]||base}
+ lineTiers(team,id){return LINES[id].tiers.map((_,i)=>this.lineKind(team,id,i))}
  trainOptions(b){return (D[b?.kind]?.trains||[]).filter(k=>!this.trainHidden(b,k))}
  unitError(b,kind){if(D[b?.kind]?.retired)return D[b.kind].building?'此建筑已合并，不能再训练':'该单位已退役，不能再生产';if(D[kind]?.hero||D[kind]?.companion)return super.unitError(b,kind);return this.trainHidden(b,kind)||super.unitError(b,kind)}
  placementError(kind,x,y,team=0){if(RETIRED_BUILDINGS[kind]&&D[kind]?.retired)return '此建筑已合并到'+D[RETIRED_BUILDINGS[kind]].name;if(D[kind]?.landmark){if(D[kind].nation&&D[kind].nation!==this.nationId(team))return '只能建造本国地标';if(this.s.buildings.some(b=>b.team===team&&b.hp>0&&D[b.kind]?.landmark))return '每局只能建造一座国家地标'}return super.placementError(kind,x,y,team)}
- researchError(b,key){if(T[key]?.building==='retired')return '该研究已移除';return super.researchError(b,key)}
+ researchCost(key,team){const l=LINES[T[key]?.line];if(l){const c=l.cost[Math.min(1,this.lineLevel(team,l.id))];return{...c}}return super.researchCost(key,team)}
+ researchError(b,key){if(T[key]?.building==='retired')return '该研究已移除';const l=LINES[T[key]?.line];if(l){const team=b?.team||0,level=this.lineLevel(team,l.id);if(level>=2)return '已达最高阶';const next=D[this.lineKind(team,l.id,level+1)];if(next.age>this.s.ages[team])return '需要 '+K.ageNames[next.age]}return super.researchError(b,key)}
+ applyResearch(team,key){const l=LINES[T[key]?.line];if(l){const level=this.lineLevel(team,l.id);if(level<2){const from=[this.lineKind(team,l.id,level),l.tiers[level]],to=this.lineKind(team,l.id,level+1);
+   for(const u of this.s.units)if(u.team===team&&from.includes(u.kind)){u.kind=to;u.upgradedAt=this.s.time}
+   for(const b of this.s.buildings)if(b.team===team)for(const q of b.queue||[])if(q.type==='unit'&&from.includes(q.kind))q.kind=to;
+   this.emit('lineUpgrade',{team,line:l.id,from:from[0],to})}}
+  if(l||T[key])this.s.tech[team][key]??=0;super.applyResearch(team,key)}
+ /* Computer plans and doctrines name base tiers ('halberd', 'archer'); score a line or national unit by its best relative. */
+ aiUnitScore(team,kind,plan,own){const l=lineOf(kind),alts=new Set([kind,BASE_OF[kind]||kind,...(l?l.line.tiers:[])]);let best=-Infinity;for(const k of alts)best=Math.max(best,super.aiUnitScore(team,k,plan,own)-(k===kind?0:(own[kind]||0)*.7-(own[k]||0)*.7));return best}
  canTarget(u,e){if(e&&this.bomber?.(u)&&!D[e.kind]?.building)return false;return super.canTarget(u,e)}
  airShot(source,e){const d=D[source?.kind];return !!(d&&e&&this.air(e)&&!d.monster&&!d.hero&&!d.antiAir&&(['archer','musketeer','skirmisher'].includes(d.role)||source.kind==='tower'))}
  damage(e,amount,source){if(this.airShot(source,e))amount*=AIR_HALF;return super.damage(e,amount,source)}
@@ -71,6 +95,6 @@ class Roster extends Base{
    if(D[b.kind]?.landmark&&b.team>=0){b.levyAt??=s.time+LANDMARK_EVERY;if(s.time>=b.levyAt){b.levyAt=s.time+LANDMARK_EVERY;const kind=N[this.nationId(b.team)]?.unique;
     if(kind&&D[kind]&&this.population(b.team)+(D[kind].pop||1)<=this.capacity(b.team)){const a=this.rand(0,Math.PI*2),u=this.add(kind,b.team,b.x+Math.cos(a)*(D[b.kind].r+60),b.y+Math.sin(a)*(D[b.kind].r+60));this.freeSpawn?.(u);this.rallySpawn?.(u,b);this.emit('trained',{team:b.team,kind,levy:true})}}}}}
 }
-const api={...K,Sim:Roster,rosterRetired:{units:RETIRED_UNITS,buildings:RETIRED_BUILDINGS,merged:MERGED},rosterNational:NATIONAL,rosterLandmarkEvery:LANDMARK_EVERY,rosterAirHalf:AIR_HALF};
+const api={...K,Sim:Roster,rosterRetired:{units:RETIRED_UNITS,buildings:RETIRED_BUILDINGS,merged:MERGED},rosterNational:NATIONAL,rosterLandmarkEvery:LANDMARK_EVERY,rosterAirHalf:AIR_HALF,rosterLines:LINES,rosterLineOf:lineOf};
 if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.KingdomSim=api;
 })(typeof window==='undefined'?globalThis:window);

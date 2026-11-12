@@ -5,10 +5,10 @@
    check-unit-intel.cjs in Node. */
 ((root)=>{'use strict';
 const K=typeof module!=='undefined'&&module.exports?require('./network-model.js'):root.KingdomSim,D=K.defs,T=K.tech;
-/* Planned upgrade lines (roster-redesign.md 3.2). The research mechanism does not exist yet, so the bottom-panel stage
-   tag stays off (UPGRADES_ENABLED) and the ⓘ dialog shows the tiers only as a reference of today's separate units. */
-const UPGRADES_ENABLED=false;
-const LINES=[{id:'spear',name:'长枪线',tiers:['infantry','halberd','eliteguard']},{id:'ranged',name:'远程线',tiers:['archer','musketeer','rifleguard']}];
+/* Upgrade lines (roster-redesign.md 3.2) come from the simulation (roster.js): blacksmith research turns a line's units
+   into the next tier. The bottom panel shows the tier tag and the ⓘ dialog shows the team's tiers with research costs. */
+const UPGRADES_ENABLED=!!K.rosterLines;
+const LINES=K.rosterLines?Object.values(K.rosterLines).map(l=>({id:l.id,name:l.name,tiers:l.tiers})):[{id:'spear',name:'长枪线',tiers:['infantry','halberd','eliteguard']},{id:'ranged',name:'远程线',tiers:['archer','musketeer','rifleguard']}];
 const ROLE_NAMES={infantry:'近战步兵',archer:'弓手',musketeer:'火枪兵',skirmisher:'散兵',cavalry:'骑兵',cannon:'攻城炮兵',grenadier:'掷弹兵',worker:'村民',trader:'商队',healer:'医疗兵',support:'医疗兵',scout:'侦察',bomber:'轰炸机',transport:'运输',lightship:'舰船',warship:'舰船',bombship:'舰船',economyship:'舰船',carrier:'舰船',monster:'巨兽',wildlife:'野兽'};
 const roleName=role=>ROLE_NAMES[role]||'其他';
 function armorClass(kind){const d=D[kind]||{};if(d.building)return '建筑';if(d.domain==='sea')return '舰体';if(d.domain==='air')return '飞行器';if(d.monster)return '巨兽';if(d.wildlife)return '野兽';if(d.companion)return '宠物';if(d.role==='cavalry')return '骑兵甲';if(d.role==='cannon')return '器械';return '步兵甲'}
@@ -27,7 +27,7 @@ const counterCache=new Map();
 function counters(sim,kind){const key='c'+kind+(attackPath(sim,kind));if(counterCache.has(key))return counterCache.get(key);const list=[];for(const t of trainable()){const m=multiplier(sim,kind,t);if(m>1)list.push({kind:t,mult:m})}const r=group(list);counterCache.set(key,r);return r}
 /* What beats this unit: every trainable attacker whose multiplier against it is above 1, grouped by attacker role. */
 function threats(sim,kind){const key='t'+kind;if(counterCache.has(key))return counterCache.get(key);const list=[];for(const a of trainable()){const m=multiplier(sim,a,kind);if(m>1)list.push({kind:a,mult:m})}const r=group(list);counterCache.set(key,r);return r}
-function lineOf(kind){for(const l of LINES){const i=l.tiers.indexOf(kind);if(i>=0)return {id:l.id,name:l.name,index:i,total:l.tiers.length,tiers:l.tiers}}return null}
+function lineOf(kind){const hit=K.rosterLineOf?.(kind),base=hit?hit.line.tiers[hit.index]:kind;for(const l of LINES){const i=l.tiers.indexOf(base);if(i>=0)return {id:l.id,name:l.name,index:i,total:l.tiers.length,tiers:l.tiers}}return null}
 function interval(sim,e){return typeof sim.attackInterval==='function'?sim.attackInterval(e):(D[e.kind].cooldown||1)}
 /* Live values for one entity (or a prototype {kind,team}); all bonuses come from sim.stat exactly as combat uses them. */
 function profile(sim,e){const d=D[e.kind],get=k=>sim.stat(e,k)||0,damage=get('damage'),armor=get('armor'),range=get('range'),speed=get('speed'),gap=interval(sim,e),hpMax=e.maxhp??get('hp');
@@ -104,8 +104,9 @@ function columns(p,enemy){const list=(groups,cls)=>groups.length?groups.map(g=>'
  if(p.attackPath==='bomb')h+='<p class="ui-note">'+tr('炸弹伤害不使用克制倍率。')+'</p>';
  return h+'<p class="ui-note">'+tr('倍率乘在攻击上，再扣除目标护甲；与战场伤害公式相同。')+'</p>'}
 function lineSection(sim,p){const l=p.line;if(!l)return '<section class="ui-line-sec"><h4>'+tr('升级潜力')+'</h4><p class="ui-note">'+tr('此兵种暂无升级线。')+'</p></section>';
- const rows=l.tiers.map(k=>profile(sim,{kind:k,team:p.team,rank:0}));
- return '<section class="ui-line-sec"><h4>'+tr('升级潜力')+' · '+tr(l.name)+'</h4><p class="ui-note">'+tr('升级研究尚未实现：以下为同一条线上现有的独立兵种，仅作参考；研究费用待升级机制完成后显示。')+'</p><div class="ui-tiers">'+rows.map((r,i)=>'<div class="ui-tier'+(r.kind===p.kind?' me':'')+'"><img alt="" src="'+icon(r.kind)+'"><b>'+(i+1)+'. '+esc(name(r.kind))+'</b><small>'+tr('时代')+' '+['','I','II','III','IV','V'][r.age]+' · '+esc(gameName(D[buildingFor(r.kind)]?.name||''))+'</small><small>'+tr('生命')+' '+r0(r.maxhp)+' · '+tr('攻击')+' '+r0(r.damage)+' · '+tr('护甲')+' '+r0(r.armor)+' · '+tr('射程')+' '+r0(r.range)+'</small><small>'+tr('研究费用')+' —</small></div>').join('')+'</div></section>'}
+ const tiers=sim.lineTiers?sim.lineTiers(p.team,l.id):l.tiers,level=sim.lineLevel?sim.lineLevel(p.team,l.id):0,rows=tiers.map(k=>profile(sim,{kind:k,team:p.team,rank:0})),key='line_'+l.id,
+  names={food:'食物',wood:'木材',gold:'黄金',stone:'石料'},price=i=>{if(i<1||!UPGRADES_ENABLED)return '—';if(i<=level)return tr('已研究');const c=K.rosterLines[l.id].cost[i-1];return Object.keys(names).filter(r=>c[r]).map(r=>c[r]+tr(names[r])).join(' / ')};
+ return '<section class="ui-line-sec"><h4>'+tr('升级潜力')+' · '+tr(l.name)+'</h4><p class="ui-note">'+tr(UPGRADES_ENABLED?'在铁匠铺研究升级：本线已有与正在训练的兵一起升为下一阶。':'升级研究尚未实现：以下为同一条线上现有的独立兵种，仅作参考；研究费用待升级机制完成后显示。')+'</p><div class="ui-tiers">'+rows.map((r,i)=>'<div class="ui-tier'+(r.kind===p.kind?' me':'')+'"><img alt="" src="'+icon(r.kind)+'"><b>'+(i+1)+'. '+esc(name(r.kind))+'</b><small>'+tr('时代')+' '+['','I','II','III','IV','V'][r.age]+' · '+esc(gameName(D[buildingFor(r.kind)]?.name||''))+'</small><small>'+tr('生命')+' '+r0(r.maxhp)+' · '+tr('攻击')+' '+r0(r.damage)+' · '+tr('护甲')+' '+r0(r.armor)+' · '+tr('射程')+' '+r0(r.range)+'</small><small>'+tr('研究费用')+' '+esc(price(i))+'</small></div>').join('')+'</div></section>'}
 function techSection(sim,e){const list=techEffects(sim,e);if(!list.length)return '';const label={hp:'生命',damage:'攻击',armor:'护甲',range:'射程',speed:'速度',interval:'间隔'};
  return '<section class="ui-techs"><h4>'+tr('对它生效的科技')+'</h4><ul>'+list.map(t=>'<li class="'+(t.level>=t.max?'done':'')+'"><span>'+(t.level>=t.max?'✓':t.level>0?'◐':'○')+'</span><b>'+esc(gameName(t.name))+'</b><small>'+t.level+'/'+t.max+' · '+esc(gameName(D[t.building]?.name||''))+' · '+Object.entries(t.changes).map(([k,v])=>tr(label[k])+' '+(v>0?'+':'')+r1(v)).join(' / ')+'</small></li>').join('')+'</ul></section>'}
 function dialog(sim,e){const d=D[e.kind];if(!d||d.building)return '';const p=profile(sim,e),enemy=e.team!==0&&(!sim.hostile||sim.hostile(0,e.team));

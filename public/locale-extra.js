@@ -246,6 +246,17 @@ V 时代：只攻击建筑，飞越城墙；每次出击携弹 2 枚，弹尽后
 训练贸易商队并研究采集效率；不再被动产生黄金，商队路线越长收益越高|Trains trade caravans and researches gathering efficiency; no longer makes passive gold — longer caravan routes earn more
 解锁双翼轰炸机（侦察热气球无需研究）|Unlocks biplane bombers (scout balloons need no research)
 双翼轰炸机|Biplane Bomber
+在铁匠铺研究升级：本线已有与正在训练的兵一起升为下一阶。|Research at the blacksmith: the line's existing and queued soldiers all advance to the next tier.
+已研究|Researched
+臼炮线|Mortar line
+长枪线升级|Spear line upgrade
+远程线升级|Ranged line upgrade
+臼炮线升级|Mortar line upgrade
+本线已有与正在训练的兵一起升为下一阶：|Existing and queued soldiers of this line advance to the next tier: 
+（各国特色兵按所替换的阶升级）| (national units upgrade from the tier they replace)
+已升级为|Upgraded to 
+需要在铁匠铺研究|Research at the blacksmith: 
+已达最高阶|Highest tier reached
 训练村民（军械工程师已并入村民）；推进时代，扩展人口与经济|Trains villagers (the ordnance engineer is merged into the villager); advances ages and expands population and economy
 点击射击场，训练一名长弓卫士（英国用它替代弓箭手）。图标右上角 ⓘ 可以查看详细数值和职责。|Select the archery range and train a Longbow Guard (Britain’s replacement for the archer). Use the icon’s upper-right ⓘ to inspect statistics and roles.
 `.trim().split('\n').map(l=>{const i=l.indexOf('|');return[l.slice(0,i),l.slice(i+1)]})));if(typeof module!=='undefined')module.exports=root.KingdomLocaleData})(typeof window==='undefined'?globalThis:window);
