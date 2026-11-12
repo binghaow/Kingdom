@@ -28,6 +28,10 @@ D.miningcamp.description='矿工把黄金与石料运回此处（合并采石场
 for(const k of ['ballistics','logistics','fieldmedicine','masonry','smokeless','telegraph'])if(T[k])T[k].building='blacksmith';
 for(const k of ['shells','rolledsteel'])if(T[k])T[k].building='workshop';
 if(T.carrierflight)T.carrierflight.building='retired';
+/* v40 (科技归位): unit-specific research moves to the building that trains those units; civic research moves to the Town
+   Center / church. Same keys, costs, ages and effects (save and network compatible: tech levels are keyed by research). */
+const TECH_HOME={ballistics:'range',smokeless:'range',fieldmedicine:'church',logistics:'town',masonry:'town',telegraph:'town'};
+for(const [k,b]of Object.entries(TECH_HOME))if(T[k])T[k].building=b;
 /* v40: steam crawlers are retired, so rolled steel only names what it still changes (measured by check-tech-intel.cjs). */
 if(T.rolledsteel)T.rolledsteel.description='火炮护甲 +1（攻城炮兵与臼炮线）';
 
@@ -62,7 +66,9 @@ const LINES={
  ranged:{id:'ranged',name:'远程线',tiers:['archer','musketeer','rifleguard'],cost:[{wood:150,gold:150,time:30},{wood:300,gold:420,time:45}]},
  mortar:{id:'mortar',name:'臼炮线',tiers:['mortar','howitzer','fieldmortar'],cost:[{wood:300,gold:350,time:40},{wood:400,gold:500,stone:150,time:55}]}
 };
-for(const l of Object.values(LINES))T['line_'+l.id]={name:l.name+'升级',icon:'⇪',max:2,building:'blacksmith',age:2,line:l.id,...l.cost[0],description:'本线已有与正在训练的兵一起升为下一阶：'+l.tiers.map(k=>D[k].name).join(' → ')+'（各国特色兵按所替换的阶升级）'};
+/* v40 (科技归位): each line is researched at the building that trains it; the blacksmith keeps only generic attack/armor. */
+const LINE_HOME={spear:'barracks',ranged:'range',mortar:'workshop'};
+for(const l of Object.values(LINES))T['line_'+l.id]={name:l.name+'升级',icon:'⇪',max:2,building:LINE_HOME[l.id],age:2,line:l.id,...l.cost[0],description:'本线已有与正在训练的兵一起升为下一阶：'+l.tiers.map(k=>D[k].name).join(' → ')+'（各国特色兵按所替换的阶升级）'};
 /* ---- 5. numbers (2.1 reversed, 3.1) ----
    Calibrated with scripts/balance/roster-battles.cjs (docs/gameplay-v39.md): inside each line a later tier is stronger per
    resource and per population, so researching pays off; one population per tier in the spear and ranged lines so an upgrade
@@ -94,11 +100,14 @@ function lineOf(kind){const base=BASE_OF[kind]||kind;for(const l of Object.value
 if(D.congress){D.congress.retired=false;N.usa.building='congress'}
 for(const n of Object.values(N)){const b=D[n.building];if(!b)continue;b.trains=[];b.landmark=true;b.description='国家地标：每局只能建造一座；每 90 秒免费征召 1 名'+D[n.unique].name+'（受人口上限限制）'+(T['doctrine_'+n.id]?.building===n.building?'；可研究国家学说':'')}
 
+const AI_RESEARCH_ORDER=['weapons','line_spear','line_ranged','armor','carrying','gather','ballistics','hauling','line_mortar','smokeless','navigation','shells','logistics','hulls','telegraph','fieldmedicine','masonry','rolledsteel','leadership'];
+const AI_RESEARCH_FIRST={rush:['weapons','line_spear','line_ranged'],boom:['carrying','gather','hauling'],expand:['carrying','hauling','gather','navigation'],turtle:['armor','masonry','line_mortar','ballistics']};
+const AI_RESEARCH_LEVEL={beginner:{first:540,every:200,reserve:350,depth:1,only:['weapons','armor','line_spear','line_ranged','carrying']},easy:{first:420,every:120,reserve:280,depth:1},normal:{first:300,every:70,reserve:180,depth:2},hard:{first:220,every:45,reserve:120,depth:3},expert:{first:180,every:35,reserve:100,depth:3}};
 class Roster extends Base{
  nationId(team){return this.nation?.(team)?.id||this.s.nations?.[team]}
  /* Why a unit is not offered to this team ('' = offered). Affordability, age and population are unitError's job. */
  trainHidden(b,kind){const d=D[kind],nat=this.nationId(b?.team||0);if(!d)return '未知兵种';if(d.retired)return '该兵种已并入其他兵种';if(d.nation&&d.nation!==nat)return '只能训练本国特色兵种';const sub=NATIONAL[nat]?.[kind];if(sub)return '本国以'+D[sub].name+'替代';
-  const l=lineOf(kind);if(l){const team=b?.team||0,level=this.lineLevel(team,l.line.id);if(l.index!==level)return l.index<level?'已升级为'+D[this.lineKind(team,l.line.id,level)].name:'需要在铁匠铺研究'+T['line_'+l.line.id].name}return ''}
+  const l=lineOf(kind);if(l){const team=b?.team||0,level=this.lineLevel(team,l.line.id);if(l.index!==level)return l.index<level?'已升级为'+D[this.lineKind(team,l.line.id,level)].name:'需要先在'+D[T['line_'+l.line.id].building].name+'研究'+T['line_'+l.line.id].name}return ''}
  baseKind(kind){return BASE_OF[kind]||kind}
  lineLevel(team,id){return this.s.tech[team]?.['line_'+id]||0}
  lineKind(team,id,i){const base=LINES[id].tiers[i];return NATIONAL[this.nationId(team)]?.[base]||base}
@@ -118,6 +127,15 @@ class Roster extends Base{
  canTarget(u,e){if(e&&this.bomber?.(u)&&!D[e.kind]?.building)return false;return super.canTarget(u,e)}
  airShot(source,e){const d=D[source?.kind];return !!(d&&e&&this.air(e)&&!d.monster&&!d.hero&&!d.antiAir&&(['archer','musketeer','skirmisher'].includes(d.role)||source.kind==='tower'))}
  damage(e,amount,source){if(this.airShot(source,e))amount*=AIR_HALF;return super.damage(e,amount,source)}
+ /* v40: computer research follows the relocated homes (科技归位). One research start per interval, only from spare
+   resources above a reserve, ordered by the hidden doctrine; difficulty sets the interval, reserve and how deep it goes. */
+ aiPlayer(team){super.aiPlayer(team);this.aiResearch(team)}
+ aiResearch(team){const s=this.s;if(!(team>0)||s.humanTeams?.includes(team)||s.defeated?.includes(team)||!this.doctrineActive?.(team))return;const lv=AI_RESEARCH_LEVEL[s.difficulty]||AI_RESEARCH_LEVEL.normal;s.aiResearchAt??={};if(s.time<(s.aiResearchAt[team]??lv.first))return;
+  const key=s.aiWar?.[team]?.key,order=[...(AI_RESEARCH_FIRST[key]||[]),...AI_RESEARCH_ORDER].filter((k,i,a)=>a.indexOf(k)===i&&T[k]&&(!lv.only||lv.only.includes(k))),bank=s.resources[team];
+  if(s.ages[team]<5&&s.buildings.some(b=>b.team===team&&b.kind==='town'&&b.queue?.some(q=>q.kind==='age')))return;
+  for(const k of order){const t=T[k];if((this.s.tech[team]?.[k]||0)>=Math.min(t.line?2:(t.max||1),lv.depth))continue;const b=s.buildings.find(b=>b.team===team&&b.kind===t.building&&b.complete&&b.hp>0&&!(b.queue||[]).length);if(!b||this.researchError(b,k))continue;const c=this.researchCost(k,team);if(['food','wood','gold','stone'].some(r=>(c[r]||0)>0&&(bank[r]||0)<(c[r]||0)+lv.reserve))continue;
+   if(!this.research(b,k)){s.aiResearchAt[team]=s.time+lv.every;this.emit('aiResearch',{team,key:k});return}}
+  s.aiResearchAt[team]=s.time+8}
  aiChooseUnit(team,choices,counts,reserve){return super.aiChooseUnit(team,choices.filter(k=>!this.trainHidden({team},k)),counts,reserve)}
  tick(dt){super.tick(dt);const s=this.s;if(s.ended)return;
   // The church absorbs the seaside bath's healing (no passive gold).
@@ -127,6 +145,6 @@ class Roster extends Base{
    if(D[b.kind]?.landmark&&b.team>=0){b.levyAt??=s.time+LANDMARK_EVERY;if(s.time>=b.levyAt){b.levyAt=s.time+LANDMARK_EVERY;const kind=N[this.nationId(b.team)]?.unique;
     if(kind&&D[kind]&&this.population(b.team)+(D[kind].pop||1)<=this.capacity(b.team)){const a=this.rand(0,Math.PI*2),u=this.add(kind,b.team,b.x+Math.cos(a)*(D[b.kind].r+60),b.y+Math.sin(a)*(D[b.kind].r+60));this.freeSpawn?.(u);this.rallySpawn?.(u,b);this.emit('trained',{team:b.team,kind,levy:true})}}}}}
 }
-const api={...K,Sim:Roster,rosterRetired:{units:RETIRED_UNITS,buildings:RETIRED_BUILDINGS,merged:MERGED},rosterNational:NATIONAL,rosterLandmarkEvery:LANDMARK_EVERY,rosterAirHalf:AIR_HALF,rosterLines:LINES,rosterLineOf:lineOf};
+const api={rosterTechHome:TECH_HOME,rosterLineHome:LINE_HOME,...K,Sim:Roster,rosterRetired:{units:RETIRED_UNITS,buildings:RETIRED_BUILDINGS,merged:MERGED},rosterNational:NATIONAL,rosterLandmarkEvery:LANDMARK_EVERY,rosterAirHalf:AIR_HALF,rosterLines:LINES,rosterLineOf:lineOf};
 if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.KingdomSim=api;
 })(typeof window==='undefined'?globalThis:window);

@@ -7,7 +7,7 @@ const offered=(s,kind,team=0)=>{const b=s.add(kind,team,s.world.starts[team].x+2
 test('Retired units and merged buildings stay defined but leave the menus',()=>{const s=make();
  for(const k of K.rosterRetired.units){assert(D[k],k);assert(D[k].retired,k);for(const b of ['barracks','range','stable','workshop','dock','aerodrome','town'])assert(!offered(s,b).includes(k),b+' offers '+k)}
  for(const k of Object.keys(K.rosterRetired.buildings)){assert(D[k]?.retired,k);assert.match(s.placementError(k,s.world.starts[0].x+300,s.world.starts[0].y),/合并/)}
- for(const k of ['ballistics','masonry','telegraph'])assert.equal(T[k].building,'blacksmith');for(const k of ['shells','rolledsteel'])assert.equal(T[k].building,'workshop')});
+ for(const [k,b]of Object.entries({ballistics:'range',smokeless:'range',masonry:'town',telegraph:'town',logistics:'town',fieldmedicine:'church',line_spear:'barracks',line_ranged:'range',line_mortar:'workshop',weapons:'blacksmith',armor:'blacksmith'}))assert.equal(T[k].building,b,k);assert.deepEqual(Object.keys(T).filter(k=>T[k].building==='blacksmith').sort(),['armor','weapons'],'blacksmith keeps only generic attack/armor');for(const k of ['shells','rolledsteel'])assert.equal(T[k].building,'workshop')});
 
 test('National units replace one generic unit in the ordinary buildings',()=>{
  const expect={britain:['range','longbow','archer'],china:['range','repeater','archer'],japan:['barracks','samurai','infantry'],france:['stable','cuirassier','cavalry'],netherlands:['range','nassau','skirmisher'],prussia:['barracks','prussianguard','grenadier']};
@@ -34,9 +34,9 @@ test('Approved rules: steam crawler x1.35 against buildings, bastion turret take
  const u=s.add('steamcrawler',0,p.x+900,p.y+300),e=s.add('town',1,p.x+905,p.y+300);e.hp=e.maxhp=1e6;s.strike(u,e);assert(Math.abs(1e6-e.hp-Math.max(1,s.stat(u,'damage')*1.35-s.stat(e,'armor')))<1e-6,'crawler vs town centre');
  const t=make();for(const b of t.s.buildings)if(b.team===0)b.queue=[];const m=t.add('market',0,p.x+300,p.y+300);m.complete=true;t.s.units=t.s.units.filter(u=>u.team!==0);const gold=t.s.resources[0].gold;for(let i=0;i<20;i++)t.tick(.5);assert.equal(t.s.resources[0].gold,gold)});
 
-test('Upgrade lines: blacksmith research upgrades existing and queued units; menus offer only the current tier',()=>{
- const s=make('russia','france'),p=s.world.starts[0],smith=s.add('blacksmith',0,p.x+300,p.y+300),range=s.add('range',0,p.x+300,p.y+500);smith.complete=range.complete=true;smith.queue=[];range.queue=[];
- assert.deepEqual(s.lineTiers(0,'ranged'),['archer','streltsy','rifleguard']);assert(offered(s,'range').includes('archer'));assert(!offered(s,'range').includes('streltsy'));assert.match(s.unitError(range,'streltsy'),/铁匠铺/);
+test('Upgrade lines: research at the producing building upgrades existing and queued units; menus offer only the current tier',()=>{
+ const s=make('russia','france'),p=s.world.starts[0],smith=s.add('range',0,p.x+300,p.y+300),range=s.add('range',0,p.x+300,p.y+500);smith.complete=range.complete=true;smith.queue=[];range.queue=[];
+ assert.deepEqual(s.lineTiers(0,'ranged'),['archer','streltsy','rifleguard']);assert(offered(s,'range').includes('archer'));assert(!offered(s,'range').includes('streltsy'));assert.match(s.unitError(range,'streltsy'),/射击场/);
  const a=s.add('archer',0,p.x+500,p.y+300);a.hp=a.maxhp/2;assert.equal(s.train(range,'archer'),'');const gold=s.s.resources[0].gold;
  assert.equal(s.research(smith,'line_ranged'),'');assert.equal(s.s.resources[0].gold,gold-150);smith.queue[0].left=.01;s.tick(.1);
  assert.equal(a.kind,'streltsy');assert(Math.abs(a.hp/a.maxhp-.5)<1e-9);assert.equal(range.queue[0].kind,'streltsy');assert(offered(s,'range').includes('streltsy'));assert(!offered(s,'range').includes('archer'));
@@ -55,8 +55,8 @@ test('Saves and authoritative commands: retired entities load and keep running; 
  for(const t of s.s.tech)for(const k of Object.keys(t))if(k.startsWith('line_'))delete t[k];const saved=JSON.parse(s.serialize());const n=new K.Sim(saved.difficulty,saved);for(let i=0;i<300;i++)n.tick(.1);
  for(const k of ['trebuchet','carrier','gunship'])assert(n.s.units.some(u=>u.kind===k),k+' survives');assert(n.s.buildings.some(b=>b.kind==='university'));assert(n.s.units.every(u=>Number.isFinite(u.hp)));assert.equal(n.lineLevel(0,'spear'),0);
  const S=require('./server/service.cjs'),net=new K.NetworkSim('normal',null,{nations:['usa','spain'],groups:[1,2],humanTeams:[0,1],fog:false});net.state.ages=[5,5];for(const r of net.state.resources)Object.assign(r,{food:9e3,wood:9e3,gold:9e3,stone:9e3});
- const q=net.world.starts[0],range=net.add('range',0,q.x+300,q.y+300),smith=net.add('blacksmith',0,q.x+300,q.y-300);range.complete=smith.complete=true;range.queue=[];smith.queue=[];
- assert.match(S.execute(net,0,{type:'train',args:{id:range.id,kind:'musketeer'}}),/大陆军|替代/);assert.match(S.execute(net,0,{type:'train',args:{id:range.id,kind:'continental'}}),/铁匠铺/);
+ const q=net.world.starts[0],range=net.add('range',0,q.x+300,q.y+300),smith=net.add('range',0,q.x+300,q.y-300);range.complete=smith.complete=true;range.queue=[];smith.queue=[];
+ assert.match(S.execute(net,0,{type:'train',args:{id:range.id,kind:'musketeer'}}),/大陆军|替代/);assert.match(S.execute(net,0,{type:'train',args:{id:range.id,kind:'continental'}}),/射击场/);
  S.execute(net,0,{type:'research',args:{id:smith.id,key:'line_ranged'}});assert.equal(smith.queue[0]?.kind,'line_ranged');smith.queue[0].left=.01;net.tick(.1);assert.equal(net.lineLevel(0,'ranged'),1);assert.match(S.execute(net,0,{type:'train',args:{id:range.id,kind:'continental'}}),/排队/)});
 
 console.log('PASS '+done.length+' roster checks:\n'+done.map(n=>'  '+n).join('\n'));

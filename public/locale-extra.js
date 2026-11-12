@@ -248,6 +248,8 @@ V 时代：只攻击建筑，飞越城墙；每次出击携弹 2 枚，弹尽后
 解锁双翼轰炸机（侦察热气球无需研究）|Unlocks biplane bombers (scout balloons need no research)
 双翼轰炸机|Biplane Bomber
 在铁匠铺研究升级：本线已有与正在训练的兵一起升为下一阶。|Research at the blacksmith: the line's existing and queued soldiers all advance to the next tier.
+在生产该兵种的建筑研究升级（步兵营 / 射击场 / 炮兵工坊）：本线已有与正在训练的兵一起升为下一阶。|Research the upgrade at the building that trains the line (barracks / shooting range / artillery workshop): the line's existing and queued soldiers all advance to the next tier.
+需要先在|Research first at the 
 已研究|Researched
 臼炮线|Mortar line
 长枪线升级|Spear line upgrade
