@@ -51,6 +51,11 @@ const AI_LEVEL={
 /* Doctrine flavour on top (identity unchanged): expansion claims earlier and one more point; turtle walls its points;
    rush holds one point less. */
 const DOCTRINE_FRONTIER={rush:{sites:-1,start:60},boom:{},expand:{sites:1,start:-150,every:-40},turtle:{defend:1}};
+/* ---- 4. computer army size (difficulty-scaled; replaces the old flat 45-unit goal and 14–60 military-pop caps) ----
+   cap: military population cap (expert: only the population cap limits it); villagers: extra villagers on top of the
+   doctrine's goal from age II (half in age I); halls: extra barracks/ranges/stables when resources pile up; queue:
+   units queued per military building when the bank allows. Composition stays with the doctrine + counter scoring. */
+const ARMY_LEVEL={sandbox:{cap:0,villagers:0,halls:0,queue:1},beginner:{cap:14,villagers:0,halls:0,queue:1},easy:{cap:30,villagers:2,halls:0,queue:1},normal:{cap:60,villagers:6,halls:1,queue:1},hard:{cap:100,villagers:12,halls:2,queue:2},expert:{cap:400,villagers:16,halls:3,queue:2}};
 /* ---- 3. scout balloon: artillery spotting and map survey (bombers unchanged) ----
    Spotting: own cannon-line / mortar-line artillery and mortar ships standing inside an own balloon's sight get +15%
    range and may pick targets anywhere the team can see within that range. Survey: every half second a balloon records
@@ -105,7 +110,19 @@ class FrontierV40 extends Base{
  aiFrontierState(team){const s=this.s;s.aiFrontier??={};return s.aiFrontier[team]??={claims:[],next:0,raidAt:0,stats:{claims:0,towers:0,walls:0,islandAt:null,islandTries:0,flanks:0,naval:0,remote:0,enemySites:0}}}
  aiAgeDeadline(team){const v=super.aiAgeDeadline(team);if(v===undefined||!this.doctrineActive?.(team))return v;return v*this.aiLevel(team).agePace}
  aiBaseSpread(team){return 1+(this.s.ages[team]-1)*(this.aiLevel(team).spread||0)}
- aiPlayer(team){super.aiPlayer(team);if(this.doctrineActive?.(team)&&!this.s.ended)this.aiFrontier(team)}
+ aiPlayer(team){super.aiPlayer(team);if(this.doctrineActive?.(team)&&!this.s.ended){this.aiFrontier(team);this.aiArmy(team)}}
+ armyLevel(team){return ARMY_LEVEL[this.s.aiDifficulties?.[team]||this.s.difficulty]||ARMY_LEVEL.normal}
+ profile(team=1){const p=super.profile(team);if(!(team>0)||this.s.humanTeams?.includes(team)||!(p.cap>0))return p;return{...p,cap:this.armyLevel(team).cap}}
+ aiArmyGoal(team){const v=super.aiArmyGoal(team);if(!this.doctrineActive?.(team))return v;const w=this.s.aiWar?.[team],d=K.aiDoctrines[w?.key];if(d?.army&&this.s.ages[team]<d.army[0])return v;return Math.max(v,this.armyLevel(team).cap)}
+ aiVillagerGoal(team){const v=super.aiVillagerGoal(team);if(!v||!this.doctrineActive?.(team))return v;const extra=this.armyLevel(team).villagers;return v+(this.s.ages[team]>=2?extra:Math.floor(extra/2))+Math.min(6,(this.s.aiFrontier?.[team]?.claims||[]).filter(c=>c.stage==='run').length*2)}
+ aiArmy(team){const s=this.s,A=this.armyLevel(team),town=s.buildings.find(b=>b.team===team&&b.kind==='town'&&b.hp>0);if(!town||!A.cap)return;const bank=s.resources[team],age=s.ages[team],army=s.units.filter(u=>u.team===team&&u.hp>0&&!u.embarkedOn&&D[u.kind].damage>0&&u.kind!=='villager'),goal=this.aiArmyGoal(team);if(army.length>=goal)return;
+  // housing ahead of the army (the old trigger waited for capacity-4 and one site at a time)
+  const capMax=140+(s.tech[team]?.logistics||0)*20,cap=this.capacity(team),pending=s.buildings.filter(b=>b.team===team&&!b.complete&&b.kind==='house').length;if(cap<capMax&&this.population(team)>=cap-8&&pending<(A.queue>1?2:1)&&(bank.wood||0)>=(this.costFor('house',team).wood||0)+60){const v=this.aiWorkers(team).filter(u=>!['build','repair'].includes(u.order?.type))[pending];if(v){const sp=this.aiBaseSpread(team);for(let i=0;i<16;i++){const a=this.rand(0,Math.PI*2),r=(200+this.rand(0,260))*sp,x=town.x+Math.cos(a)*r,y=town.y+Math.sin(a)*r;if(!this.placementError('house',x,y,team)&&!this.construct('house',x,y,[v],team)?.error)break}}}
+  const floating=(bank.food||0)+(bank.wood||0)+(bank.gold||0),depth=A.queue+(floating>3000&&A.halls?1:0);
+  // more production when resources pile up
+  const halls=['barracks','range','stable'].filter(k=>D[k]&&(D[k].age||1)<=age),count=k=>s.buildings.filter(b=>b.team===team&&b.kind===k&&b.hp>0).length;if(A.halls&&floating>1100&&!s.buildings.some(b=>b.team===team&&!b.complete&&halls.includes(b.kind))){const k=halls.filter(k=>count(k)>0&&count(k)<1+A.halls).sort((a,b)=>count(a)-count(b))[0],v=this.aiWorkers(team).filter(u=>!['build','repair'].includes(u.order?.type))[0];if(k&&v){const sp=this.aiBaseSpread(team);for(let i=0;i<16;i++){const a=this.rand(0,Math.PI*2),r=(280+this.rand(0,220))*sp,x=town.x+Math.cos(a)*r,y=town.y+Math.sin(a)*r;if(!this.placementError(k,x,y,team)&&!this.construct(k,x,y,[v],team)?.error)break}}}
+  // deeper queues when the bank allows (the doctrine/counter scoring in train() picks the unit)
+  if(depth>1)for(const b of s.buildings){if(b.team!==team||!b.complete||b.hp<=0||!halls.includes(b.kind)&&b.kind!=='workshop'||(b.queue||[]).length>=depth||(b.queue||[]).some(q=>q.type==='research'))continue;const kind=(D[b.kind].trains||[]).find(k=>!this.unitError(b,k)&&D[k].damage>0);if(!kind)continue;const c=this.costFor(kind,team);if(['food','wood','gold','stone'].some(r=>(bank[r]||0)<(c[r]||0)+150))continue;this.train(b,kind)}}
  aiSiteNodes(spot,r=300){return this.s.nodes.filter(n=>n.amount>0&&!n.domain&&dist(n,spot)<r&&['gold','stone','wood'].includes(n.resource))}
  aiFrontier(team){const s=this.s,town=s.buildings.find(b=>b.team===team&&b.kind==='town'&&b.hp>0);if(!town)return;const L=this.aiLevel(team),F=this.aiFrontierState(team);
   // keep claims alive: a claim ends when its camp is gone or its deposits are exhausted
