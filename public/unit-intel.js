@@ -19,7 +19,7 @@ let trainableCache=null;
 function trainable(){if(trainableCache)return trainableCache;const set=new Set();for(const d of Object.values(D))if(d.building&&!d.retired&&d.trains)for(const k of d.trains)if(D[k]&&!D[k].retired)set.add(k);return trainableCache=[...set]}
 /* Attack path: monsters, wildlife and companions have their own strike(); bombers drop bombs that skip strike(). */
 function attackPath(sim,kind){const d=D[kind];if(!(d?.damage>0))return 'none';if(d.monster||d.wildlife||d.companion)return 'special';if(typeof sim?.bomber==='function'&&sim.bomber({kind}))return 'bomb';return 'strike'}
-function multiplier(sim,attacker,target){return attackPath(sim,attacker)==='strike'?K.counterMultiplier(attacker,target):1}
+function multiplier(sim,attacker,target){return (attackPath(sim,attacker)==='strike'?K.counterMultiplier(attacker,target):1)*(sim.airShot?.({kind:attacker},{kind:target})?K.rosterAirHalf:1)}
 function structureFactor(sim,kind){const path=attackPath(sim,kind);if(path==='none'||path==='special')return 1;return (path==='strike'?K.structureMultiplier(kind):1)*K.structureFollowup(kind)}
 function group(list){const map=new Map();for(const x of list){const key=D[x.kind].role||'other';let g=map.get(key);if(!g)map.set(key,g={role:key,name:roleName(key),max:0,min:Infinity,kinds:[]});g.kinds.push(x);g.max=Math.max(g.max,x.mult);g.min=Math.min(g.min,x.mult)}return [...map.values()].sort((a,b)=>b.max-a.max||a.name.localeCompare(b.name))}
 const counterCache=new Map();

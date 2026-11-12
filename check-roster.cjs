@@ -20,4 +20,18 @@ test('Ten national landmarks: one per match, own nation only, periodic free nati
  assert.match(s.placementError('ridingacademy',spot.x,spot.y,0),/本国/);const b=s.add('dojo',0,spot.x,spot.y);b.complete=true;assert.match(s.placementError('dojo',spot.x+600,spot.y,0),/一座/);
  const before=s.s.units.filter(u=>u.team===0&&u.kind==='samurai').length;for(let t=0;t<K.rosterLandmarkEvery+1;t+=.5)s.tick(.5);assert.equal(s.s.units.filter(u=>u.team===0&&u.kind==='samurai').length,before+1)});
 
+test('Air plan A: early cheap balloon, bombers hit only buildings, ranged/towers shoot air at half, forts at full',()=>{const s=make(),p=s.world.starts[0];
+ assert.equal(D.scoutballoon.age,3);assert.equal(D.aerodrome.age,3);assert(D.scoutballoon.wood+D.scoutballoon.gold<200);s.s.ages=[3,3];s.s.tech[0].aeronautics=0;const field=s.add('aerodrome',0,p.x+400,p.y);field.complete=true;assert.equal(s.unitError(field,'scoutballoon'),'');assert.match(s.unitError(field,'bomber'),/航空工程|时代/);
+ for(const k of ['airtransport','gunship','carrier','airwing'])assert(D[k].retired,k);
+ const bomber=s.add('bomber',0,p.x+900,p.y+300),foot=s.add('infantry',1,p.x+905,p.y+300),house=s.add('house',1,p.x+930,p.y+300);assert.equal(s.canTarget(bomber,foot),false);assert.equal(s.canTarget(bomber,house),true);
+ const hit=(a,t)=>{const u=s.add(a,0,p.x+900,p.y+600),e=s.add(t,1,p.x+905,p.y+600);e.hp=e.maxhp=1e6;s.strike(u,e);const lost=1e6-e.hp;s.s.units=s.s.units.filter(x=>x!==u&&x!==e);s.s.buildings=s.s.buildings.filter(x=>x!==u&&x!==e);return lost};
+ const dmg=(k,t)=>Math.max(1,s.stat({kind:k,team:0},'damage')*K.counterMultiplier(k,t)-s.stat({kind:t,team:1},'armor'));
+ for(const a of ['archer','musketeer','tower'])assert(Math.abs(hit(a,'scoutballoon')-dmg(a,'scoutballoon')*.5)<1e-6,a+' vs air is halved');
+ assert(Math.abs(hit('fort','scoutballoon')-dmg('fort','scoutballoon'))<1e-6,'fort vs air is full');assert.equal(s.canTarget(s.add('infantry',0,p.x,p.y),bomber),false)});
+
+test('Approved rules: steam crawler x1.35 against buildings, bastion turret takes no unit counters, market makes no passive gold',()=>{const s=make(),p=s.world.starts[0];
+ assert.equal(K.structureMultiplier('steamcrawler'),1.35);assert.equal(K.counterMultiplier('cavalry','cannonturret'),1);assert(K.counterMultiplier('cavalry','cannon')>1);for(const [k,d]of Object.entries(D))if(d.building)assert.equal(K.counterMultiplier('cavalry',k),1,k);
+ const u=s.add('steamcrawler',0,p.x+900,p.y+300),e=s.add('town',1,p.x+905,p.y+300);e.hp=e.maxhp=1e6;s.strike(u,e);assert(Math.abs(1e6-e.hp-Math.max(1,s.stat(u,'damage')*1.35-s.stat(e,'armor')))<1e-6,'crawler vs town centre');
+ const t=make();for(const b of t.s.buildings)if(b.team===0)b.queue=[];const m=t.add('market',0,p.x+300,p.y+300);m.complete=true;t.s.units=t.s.units.filter(u=>u.team!==0);const gold=t.s.resources[0].gold;for(let i=0;i<20;i++)t.tick(.5);assert.equal(t.s.resources[0].gold,gold)});
+
 console.log('PASS '+done.length+' roster checks:\n'+done.map(n=>'  '+n).join('\n'));

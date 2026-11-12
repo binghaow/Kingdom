@@ -238,6 +238,14 @@ V 时代飞艇工场先研发航空工程，再生产侦察热气球、运输飞
 替代| instead
 只能建造本国地标|Only your own nation's landmark can be built
 每局只能建造一座国家地标|Only one national landmark per match
+III 时代起训练侦察热气球；研究航空工程后训练双翼轰炸机，军机在此补弹|Trains scout balloons from age III; after Aeronautics it trains biplane bombers, which rearm here
+III 时代，无需研究：无攻击能力，飞越地形提供超大视野；用来侦察敌人的打法和野外据点|Age III, no research needed: unarmed, flies over terrain with very wide sight; use it to scout enemy strategies and wilderness strongholds
+V 时代：只攻击建筑，飞越城墙；每次出击携弹 2 枚，弹尽后自动返航补弹；怕远程防空|Age V: attacks buildings only and flies over walls; carries 2 bombs per sortie and returns to rearm automatically; vulnerable to ranged anti-air
+重型区域防御，压制成群敌军，对空全伤害（合并棱堡炮塔与岸防炮台）；建在海岸时可炮击舰船|Heavy area defense that suppresses massed enemies and deals full damage to aircraft (absorbs the bastion turret and coastal battery); bombards ships when built on the coast
+自动射击附近敌军，可对空（伤害减半）|Automatically shoots nearby enemies and can hit aircraft (half damage)
+训练贸易商队并研究采集效率；不再被动产生黄金，商队路线越长收益越高|Trains trade caravans and researches gathering efficiency; no longer makes passive gold — longer caravan routes earn more
+解锁双翼轰炸机（侦察热气球无需研究）|Unlocks biplane bombers (scout balloons need no research)
+双翼轰炸机|Biplane Bomber
 训练村民（军械工程师已并入村民）；推进时代，扩展人口与经济|Trains villagers (the ordnance engineer is merged into the villager); advances ages and expands population and economy
 点击射击场，训练一名长弓卫士（英国用它替代弓箭手）。图标右上角 ⓘ 可以查看详细数值和职责。|Select the archery range and train a Longbow Guard (Britain’s replacement for the archer). Use the icon’s upper-right ⓘ to inspect statistics and roles.
 `.trim().split('\n').map(l=>{const i=l.indexOf('|');return[l.slice(0,i),l.slice(i+1)]})));if(typeof module!=='undefined')module.exports=root.KingdomLocaleData})(typeof window==='undefined'?globalThis:window);

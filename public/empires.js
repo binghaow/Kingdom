@@ -45,13 +45,15 @@ D.barracks.trains=['infantry','halberd','grenadier'];D.range.trains=['archer','m
 Object.assign(T,{navigation:{name:'航海术',icon:'⚓',max:2,building:'dock',wood:120,gold:120,time:26,description:'舰船航速每级 +7%'},hulls:{name:'加固船体',icon:'⬡',max:2,building:'shipyard',wood:150,stone:60,gold:100,time:30,description:'舰船生命每级 +10%'}});
 /* Combat multiplier rules: the single source for the damage calculation (strike below) and the unit information UI
    (public/unit-intel.js). Pure functions of definition IDs; they never read or write simulation state. Values are unchanged
-   from the previous inline expression (role counters x1.65, per-unit `bonus` overrides, siege bonus against buildings). */
+   from the previous inline expression (role counters x1.65, per-unit `bonus` overrides, siege bonus against buildings),
+   with two approved changes (2026-11-11): buildings never take unit-role counters (the bastion turret's role 'cannon' only
+   describes its own weapon), and an attacker's `bonus.building` applies through structureMultiplier (steam crawler x1.35). */
 const STRUCTURE_HIT=Object.freeze(Object.assign(Object.create(null),{cannon:3,mortar:3,bombketch:2.4,grenadier:2}));
 /* Applied later in the damage() chain, not in strike(): howitzer in dynasties.js (reads this table), trebuchet in siege.js
    (literal 2.5 there; check-unit-intel.cjs measures real damage so the two cannot drift apart). */
 const STRUCTURE_FOLLOWUP=Object.freeze(Object.assign(Object.create(null),{howitzer:1.8,trebuchet:2.5}));
-function counterMultiplier(attackerKind,targetKind){const d=D[attackerKind],role=D[targetKind].role;return d.bonus?.[role]||(d.role==='infantry'&&role==='cavalry'?1.65:d.role==='cavalry'&&['archer','skirmisher','musketeer','cannon'].includes(role)?1.65:d.role==='archer'&&role==='infantry'?1.65:d.role==='musketeer'&&role==='cavalry'?1.65:1)}
-function structureMultiplier(attackerKind){return STRUCTURE_HIT[attackerKind]||1}
+function counterMultiplier(attackerKind,targetKind){const d=D[attackerKind],t=D[targetKind];if(!d||!t||t.building)return 1;const role=t.role;return d.bonus?.[role]||(d.role==='infantry'&&role==='cavalry'?1.65:d.role==='cavalry'&&['archer','skirmisher','musketeer','cannon'].includes(role)?1.65:d.role==='archer'&&role==='infantry'?1.65:d.role==='musketeer'&&role==='cavalry'?1.65:1)}
+function structureMultiplier(attackerKind){return (STRUCTURE_HIT[attackerKind]||1)*(D[attackerKind]?.bonus?.building||1)}
 function structureFollowup(attackerKind){return STRUCTURE_FOLLOWUP[attackerKind]||1}
 const bank=()=>({food:450,wood:600,gold:300,stone:220});
 class Empires extends Base{
