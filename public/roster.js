@@ -8,7 +8,10 @@ const K=typeof module!=='undefined'&&module.exports?require('./commander.js'):ro
 /* ---- 1. retire and merge ---- */
 const RETIRED_UNITS=['trebuchet','siegewagon','steamcrawler','combatmedic','engineer','airtransport','gunship','carrier','airwing'];
 const RETIRED_BUILDINGS={university:'blacksmith',foundry:'workshop',siegeyard:'workshop',steelworks:'workshop',signalbureau:'blacksmith',cannonturret:'fort',coastbattery:'fort',quarry:'miningcamp',bath:'church'};
-const MERGED={wallvertical:'wall',gatevertical:'gate'};
+/* v40: only the two gate orientations are merged (the gate turns to match adjacent walls); horizontal and vertical
+   wall segments are both kept as build buttons. */
+const MERGED={gatevertical:'gate'};
+if(D.wallvertical)delete D.wallvertical.merged;
 for(const k of RETIRED_UNITS)if(D[k])D[k].retired=true;
 for(const k of Object.keys(RETIRED_BUILDINGS))if(D[k])D[k].retired=true;
 for(const [k,to]of Object.entries(MERGED))if(D[k])D[k].merged=to;

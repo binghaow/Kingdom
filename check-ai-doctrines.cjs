@@ -26,7 +26,7 @@ test('four doctrines produce different openings within ten minutes',()=>{const {
  assert(boom.s.s.ages[1]>=3&&L('boom').some(e=>e[1]==='age'&&e[0]<560),'boom reaches age III early');
  assert(boom.s.s.units.filter(u=>u.team===1&&u.kind==='villager').length>rush.s.s.units.filter(u=>u.team===1&&u.kind==='villager').length,'boom out-builds rush economically');
  const before=(k,t)=>L(k).filter(e=>e[1]==='train'&&e[0]<t).length;assert(before('rush',300)>before('boom',300)*2,'rush trains far more early military than boom');
- assert(L('turtle').filter(e=>e[1]==='build'&&e[2]==='tower').length>=2&&L('turtle').some(e=>e[1]==='build'&&e[2]==='wall'),'turtle fortifies with towers and walls');
+ assert(L('turtle').filter(e=>e[1]==='build'&&e[2]==='tower').length>=2&&L('turtle').some(e=>e[1]==='build'&&['wall','wallvertical'].includes(e[2])),'turtle fortifies with towers and walls');
  const drops=k=>out[k].s.s.buildings.filter(b=>b.team===1&&['lumbercamp','miningcamp','quarry'].includes(b.kind)).length;assert(drops('expand')>drops('rush'),'expand builds more drop sites');
  for(const k of Object.keys(out))assert(first(L(k),'scout')<150,k+' scouts early')});
 test('every main attack is announced by a war-drum warning before it marches',()=>{for(const [k,r]of Object.entries(out)){const w=r.log.filter(e=>e[1]==='warning').map(e=>e[0]),a=r.log.filter(e=>e[1]==='attack'&&e[2]==='main').map(e=>e[0]);for(const t of a)assert(w.some(x=>x<=t&&t-x<=45),k+' main attack at '+t+' without warning')}});
