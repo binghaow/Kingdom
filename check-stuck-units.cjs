@@ -2,7 +2,9 @@
    "2026-11-11 卡住单位修复"): first leg grazing an obstacle, head-on deadlock, and attacking a target sealed by walls.
    Real simulation (network-model.js, the production class), no rendering, a few seconds of CPU. */
 const assert=require('node:assert/strict'),K=require('./public/network-model.js'),D=K.defs,dist=K.distance;
-function sandbox(){const s=new K.Sim('sandbox',null,{nations:['britain','france'],groups:[1,2],mapId:'lake_s',fog:false,seed:7});s.ai=()=>{};s.raids=()=>{};s.s.units=[];s.s.buildings=[];s.s.nodes=[];s.pathFailures.clear();s.pathGoals.clear();s.grid=s.seaGrid=null;return s}
+/* keepLayout: this sandbox removes every resource node, so the v40 resource layout is skipped; it would only shift entity
+   ids, and the sealed-wall test below is sensitive to id order (noted in docs/gameplay-v39.md v40). */
+function sandbox(){const s=new K.Sim('sandbox',null,{nations:['britain','france'],groups:[1,2],mapId:'lake_s',fog:false,seed:7,keepLayout:true});s.ai=()=>{};s.raids=()=>{};s.s.units=[];s.s.buildings=[];s.s.nodes=[];s.pathFailures.clear();s.pathGoals.clear();s.grid=s.seaGrid=null;return s}
 function test(name,fn){fn();console.log('PASS '+name)}
 function open(s,cx,cy,r){for(let y=cy-r;y<=cy+r;y+=24)for(let x=cx-r;x<=cx+r;x+=24)if(s.blocked(x,y))return false;return true}
 function clearing(s,r){const w=s.world,far=(x,y)=>![...s.s.units,...s.s.buildings].some(e=>Math.hypot(e.x-x,e.y-y)<r+250);for(let y=400;y<w.height-400;y+=96)for(let x=400;x<w.width-400;x+=96)if(far(x,y)&&open(s,x,y,r))return {x:Math.floor(x/96)*96,y:Math.floor(y/96)*96};throw Error('no open clearing on lake_s')}
