@@ -37,6 +37,7 @@ The AI is extended through the existing class chain rather than a parallel subsy
 - Fixed worker-to-resource assignment did not respond to stockpile shortages. Workers now rebalance when a resource is surplus and another is scarce, while preserving active construction/repair and adding a 45-second retask cooldown.
 - Military production selected randomly from eligible units and could repeatedly choose an unaffordable option. It now selects affordable, age/nation-legal units by the current role deficit and counts queued units in that balance.
 - No threat-driven defensive building existed. Difficulty profiles now configure a small tower cap; a tower is considered only when a known hostile unit threatens an important owned building or that building was recently damaged. Placement still uses existing terrain, resource and building validation.
+- The age-I tower's durability is data-driven in `engine.js`; `roster.js` applies a 0.7 damage multiplier only when the incoming unit has the `archer` role. This leaves dedicated musketeers, siege and the heavy fort unchanged.
 - Expert previously received +22% gathering, +6% damage, faster training and faster age pacing. Those four bonuses are normalized to standard values; its raid interval, formation size and reactive defense remain stronger.
 
 ### Limits and constraints

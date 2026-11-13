@@ -53,7 +53,7 @@ Object.assign(D.aerodrome,{age:3,wood:260,gold:160,stone:60,description:'III 时
 Object.assign(D.scoutballoon,{age:3,wood:80,gold:60,pop:1,noAeronautics:true,description:'III 时代，无需研究：无攻击能力，飞越地形提供超大视野；用来侦察敌人的打法和野外据点'});
 D.bomber.description='V 时代：只攻击建筑，飞越城墙；每次出击携弹 2 枚，弹尽后自动返航补弹；怕远程防空';
 Object.assign(D.fort,{antiAir:true,description:'重型区域防御，压制成群敌军，对空全伤害（合并棱堡炮塔与岸防炮台）；建在海岸时可炮击舰船'});
-D.tower.description='自动射击附近敌军，可对空（伤害减半）';
+D.tower.description='自动射击附近敌军；对弓箭手伤害有30%抗性，可对空（伤害减半）';
 Object.assign(D.market,{noPassiveGold:true,description:'训练贸易商队并研究采集效率；不再被动产生黄金，商队路线越长收益越高'});
 if(T.aeronautics)T.aeronautics.description='解锁双翼轰炸机（侦察热气球无需研究）';
 

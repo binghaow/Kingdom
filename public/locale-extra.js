@@ -277,6 +277,8 @@ III 时代，无需研究：无攻击能力，飞越地形提供超大视野；�
 V 时代：只攻击建筑，飞越城墙；每次出击携弹 2 枚，弹尽后自动返航补弹；怕远程防空|Age V: attacks buildings only and flies over walls; carries 2 bombs per sortie and returns to rearm automatically; vulnerable to ranged anti-air
 重型区域防御，压制成群敌军，对空全伤害（合并棱堡炮塔与岸防炮台）；建在海岸时可炮击舰船|Heavy area defense that suppresses massed enemies and deals full damage to aircraft (absorbs the bastion turret and coastal battery); bombards ships when built on the coast
 自动射击附近敌军，可对空（伤害减半）|Automatically shoots nearby enemies and can hit aircraft (half damage)
+自动射击附近敌军；对弓箭手伤害有30%抗性，可对空（伤害减半）|Automatically shoots nearby enemies; takes 30% less damage from archers and can hit aircraft (half damage)
+自动射击附近敌军；对弓箭手伤害有30%抗性|Automatically shoots nearby enemies; takes 30% less damage from archers
 训练贸易商队并研究采集效率；不再被动产生黄金，商队路线越长收益越高|Trains trade caravans and researches gathering efficiency; no longer makes passive gold — longer caravan routes earn more
 解锁双翼轰炸机（侦察热气球无需研究）|Unlocks biplane bombers (scout balloons need no research)
 双翼轰炸机|Biplane Bomber
