@@ -39,7 +39,11 @@
 
 ## 联机
 
-本地全栈服务 `node preview.cjs`（8765）：4 席位房间、`fillAI`（1 人 + 3 电脑），专家 75 秒、困难 240 秒持续轮询（每 0.4 秒一次，夹带聊天命令），全部 HTTP 200、无 503/异常（结果见提交说明/交付报告）。
+本地全栈服务 `node preview.cjs`（8765）：4 席位房间、`fillAI`（1 人 + 3 电脑），专家 75 秒、困难 240 秒持续轮询（每 0.4 秒一次，夹带聊天命令），全部 HTTP 200、无 503/异常（专家 172 次、困难 541 次轮询；最终代码重测专家 75 秒 170 次全部 200）。
+
+## 交付检查（61d1601）
+
+`node check-all.cjs` 通过（含新 `check-ai-humanlike.cjs`）、`npm run build` 成功、`node check-artifact.cjs` 通过、完整 `npm run release-check` 94 PASS / 0 WARN / 0 FAIL（`docs/release-reports/2026-11-13-61d1601.md`），基线未更新。
 
 ## 需人工试玩确认
 
