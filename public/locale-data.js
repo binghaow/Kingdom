@@ -538,6 +538,8 @@ KC 火焰伤害|KC fire damage
 四类资源|Four Resources
 选择舰队|Select Fleet
 确认建造|Confirm Build
+再建一个|Build Another
+继续点地图放下一个，取消结束|tap the map to place the next one, Cancel to finish
 全屏游玩|Fullscreen
 音频状态|Audio Status
 需要恢复|Restore Needed
