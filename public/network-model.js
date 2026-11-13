@@ -1,5 +1,5 @@
 /* Shared authoritative multiplayer rules. The browser receives a filtered view only. */
-((root)=>{'use strict';const K=typeof module!=='undefined'&&module.exports?require('./frontier-v40.js'):root.KingdomSim,Base=K.Sim,D=K.defs;
+((root)=>{'use strict';const K=typeof module!=='undefined'&&module.exports?require('./ai-humanlike.js'):root.KingdomSim,Base=K.Sim,D=K.defs;
 /* Navigation-grid cache. Grids describe static terrain plus completed/standing buildings (AGENTS.md); a hydrate must not throw them
    away. Entries live in this module (one Worker isolate), are keyed by room id + world signature + static-obstacle signature, and
    a miss always rebuilds from the saved state, so isolate recycling or a different room can only cost time, never correctness. */
