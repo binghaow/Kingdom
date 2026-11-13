@@ -31,7 +31,7 @@ A.drawShadows=(c,list,t,alpha=1)=>{
  unitPath=new Path2D();unitCore=new Path2D();airPath=new Path2D();let units=0,air=0;
  c.save();c.imageSmoothingEnabled=true;
  for(const {e,type}of list){
-  if(type==='unit'){const d=D[e.kind];if(!d||d.domain==='sea'||e.embarkedOn)continue;const u=A.renderUnit?.(e,alpha)||e,m=A.measure(u.kind)||{width:60,height:70},w=Math.min(150,m.width||60);
+  if(type==='unit'){const d=D[e.kind];if(!d||d.domain==='sea'||e.embarkedOn)continue;const u=A.renderUnit?.(e,alpha)||e,m=A.measure(u.kind)||{width:60,height:70},w=Math.min(150,m.width||60)*(A.unitScale?.(u.kind)||1);
    if(d.domain==='air'){const lift=Math.min(70,(m.height||90)*.45);oval(airPath,u.x+lift*.55,u.y+lift*.5,w*.3,w*.1);air++;continue}
    const cx=u.x+w*.13,cy=u.y+7;oval(unitPath,cx,cy,w*.38,w*.13);oval(unitCore,cx-w*.05,cy-1,w*.23,w*.075);units++;continue}
   if(!castsShadow(e))continue;const s=shadowFor(e);if(!s)continue;c.globalAlpha=(type==='building'?ALPHA_BUILDING:ALPHA_NODE)*(e.remembered?.65:1)*(D[e.kind]?.building&&!e.complete?.6:1);c.drawImage(s.img,e.x+s.dx,e.y+s.dy,s.w,s.h)}
