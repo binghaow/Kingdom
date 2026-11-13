@@ -32,8 +32,9 @@ class HumanlikeAI extends Base{
  aiSkill(team){return SKILL[this.s.aiDifficulties?.[team]||this.s.difficulty]||SKILL.normal}
  aiH(team){const s=this.s;s.aiHuman??={};let h=s.aiHuman[team];if(!h){h=s.aiHuman[team]={seen:{},ep:0,tokens:4,tokAt:s.time,microAt:0,alert:-1,flee:{},eco:{},rebuild:[],harassAt:-1,wait:-1,
    stats:{orders:0,skipped:0,counterHalls:0,counterTrains:0,musterWaits:0,postponed:0,retreats:0,focus:0,kites:0,escorts:0,harass:0,harassBack:0,flees:0,returns:0,answers:0,rebuilt:0,mistakes:0}}}return h}
- aiAct(team){this.aiH(team).stats.orders++;return true}
- aiMiss(){return false}
+ /* token bucket: one token per order call (a group order is one action, like one click) */
+ aiAct(team,cost=1){const h=this.aiH(team),k=this.aiSkill(team),t=this.s.time;h.tokens=Math.min(k.apm*4+1,h.tokens+(t-h.tokAt)*k.apm);h.tokAt=t;if(h.tokens<cost){h.stats.skipped++;return false}h.tokens-=cost;h.stats.orders++;return true}
+ aiMiss(team){const k=this.aiSkill(team);if(k.miss>0&&this.rand(0,1)<k.miss){this.aiH(team).stats.mistakes++;return true}return false}
  aiHostileArmed(team,e){return e.hp>0&&e.team>=0&&this.hostile(team,e.team)&&D[e.kind]?.damage>0&&e.kind!=='villager'&&(!this.canSee||!this.s.fogEnabled||this.canSee(team,e))}
  aiCur(u){const id=u.combatTarget||(u.order?.type==='attack'?u.order.id:null);return id?this.byId(id):null}
  aiFree(team){const w=this.s.aiWar?.[team],busy=new Set(w?w.waves.flatMap(v=>v.ids):[]);if(w?.scout)busy.add(w.scout.id);return this.armyFor(team).filter(u=>!busy.has(u.id)&&!D[u.kind].hero)}
