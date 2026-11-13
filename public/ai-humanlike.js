@@ -118,8 +118,33 @@ class HumanlikeAI extends Base{
   const v={id:(w.serial=(w.serial||0)+1),kind:'harass',human:1,ids:fast.map(u=>u.id),target,via:null,lane:0,stage:'march',start:s.time,launch:s.time,at:s.time,x:c.x,y:c.y};w.waves.push(v);this.order(fast,{type:'advance',x:target.x,y:target.y});this.aiTagHarass(fast,town);h.stats.harass++;this.emit('aiHarass',{team,target:target.team,size:fast.length,withMain:mainOut});this.emit('raid',{team,target:target.team,wave:'harass'})}
  aiCampaign(team){super.aiCampaign(team);if(!this.aiHumanOn(team)||this.s.cooperation?.[team]?.until>this.s.time)return;const town=this.s.buildings.find(b=>b.team===team&&b.kind==='town');if(town)this.aiHarass(team,town)}
 
+ /* ---- 4. defense: flee, answer outlying alarms, rebuild ---- */
+ aiDefend(team,town){const s=this.s,h=this.aiH(team),k=this.aiSkill(team),view=this.view(team),foes=view.units.filter(e=>this.aiHostileArmed(team,e)&&!this.air?.(e));
+  const workers=s.units.filter(u=>u.team===team&&u.kind==='villager'&&u.hp>0&&!u.embarkedOn),eco=s.buildings.filter(b=>b.team===team&&b.hp>0&&ECO.includes(b.kind));
+  const threatened=foes.length?workers.filter(u=>foes.some(e=>dist(e,u)<300)):[],hitEco=foes.length?eco.filter(b=>foes.some(e=>dist(e,b)<320)):[];
+  if(threatened.length||hitEco.length){if(h.alert<0)h.alert=s.time}else h.alert=-1;
+  if(h.alert>=0&&s.time-h.alert>=k.react&&!this.aiMiss(team)){
+   const spot=this.aiCentroid(threatened.length?threatened:hitEco),local=foes.filter(e=>dist(e,spot)<450),enemy=local.reduce((n,e)=>n+this.aiPower(e),0);
+   const guards=this.armyFor(team).filter(u=>dist(u,spot)<450).reduce((n,u)=>n+this.aiPower(u),0);
+   /* villagers run to the town centre when the local defenders cannot hold */
+   if(k.flee>0&&guards<enemy*1.2&&dist(spot,town)>200){const run=threatened.filter(u=>!h.flee[u.id]&&u.order?.type!=='build'&&this.rand(0,1)<k.flee);if(run.length&&this.aiAct(team)){for(const u of run)h.flee[u.id]={n:u.order?.type==='gather'?u.order.id:0,r:u.order?.resource||'',x:Math.round(u.x),y:Math.round(u.y),at:s.time};const safe=this.aiSafePoint(team,spot,town);this.order(run,{type:'move',x:safe.x+this.rand(-50,50),y:safe.y+this.rand(-50,50),retreat:true});h.stats.flees+=run.length}}
+   /* nearby free troops answer an outlying alarm (the town itself is covered by aiHomeDefense) */
+   if(dist(spot,town)>350&&enemy>0){const free=this.aiFree(team).filter(u=>!(u.order?.type==='advance'&&Math.hypot((u.order.x||0)-spot.x,(u.order.y||0)-spot.y)<120)).sort((a,b)=>dist(a,spot)-dist(b,spot));const send=[];let p=0;for(const u of free){if(p>=enemy*1.4||dist(u,spot)>1500)break;send.push(u);p+=this.aiPower(u)}if(send.length&&p>=enemy*.8&&this.aiAct(team)){this.order(send,{type:'advance',x:spot.x,y:spot.y});h.stats.answers++}}}
+  /* fled villagers go back to work once their spot is quiet */
+  for(const [id,f]of Object.entries(h.flee)){const u=this.byId(+id);if(!u||u.hp<=0||u.team!==team){delete h.flee[id];continue}if(s.time-f.at<15)continue;if((foes.some(e=>dist(e,f)<600)||foes.some(e=>dist(e,u)<300))&&s.time-f.at<120)continue;if(u.order&&u.order.type!=='move'){delete h.flee[id];h.stats.returns++;continue}const node=f.n&&this.byId(f.n);if(!this.aiAct(team))break;if(node&&node.amount>0)this.order([u],{type:'gather',id:node.id,resource:f.r||node.resource});else u.order=null;delete h.flee[id];h.stats.returns++}
+  /* rebuild destroyed economy buildings */
+  if(!k.rebuild)return;const live=new Set();for(const b of eco){live.add(String(b.id));if(b.complete&&!h.eco[b.id])h.eco[b.id]={k:b.kind,x:Math.round(b.x),y:Math.round(b.y)}}
+  for(const id of Object.keys(h.eco))if(!live.has(id)){const e=h.eco[id];delete h.eco[id];if(this.rand(0,1)<k.rebuild&&h.rebuild.length<4)h.rebuild.push({...e,at:s.time,tries:0})}
+  if(!h.rebuild.length)return;const job=h.rebuild[0];if(s.time-job.at>300||job.tries>6){h.rebuild.shift();return}if(foes.some(e=>dist(e,job)<480))return;
+  if(CAMP_RES[job.k]&&!s.nodes.some(n=>n.amount>0&&CAMP_RES[job.k].includes(n.resource)&&dist(n,job)<320)){h.rebuild.shift();return}
+  if(s.buildings.some(b=>b.team===team&&b.kind===job.k&&b.hp>0&&dist(b,job)<200)){h.rebuild.shift();return}
+  if(!this.canPay(this.costFor(job.k,team),team))return;const v=this.nearest(job,this.aiWorkers(team).filter(u=>!['build','repair'].includes(u.order?.type)&&!h.flee[u.id]));if(!v||!this.aiAct(team))return;job.tries++;
+  for(let i=0;i<8;i++){const a=i*Math.PI/4,r=i?40:0,x=job.x+Math.cos(a)*r,y=job.y+Math.sin(a)*r;if(!this.placementError(job.k,x,y,team)&&!this.construct(job.k,x,y,[v],team)?.error){h.rebuild.shift();h.stats.rebuilt++;this.emit('aiRebuild',{team,kind:job.k});return}}}
+
  aiPlayer(team){super.aiPlayer(team);if(!this.aiHumanOn(team)||this.s.ended)return;const town=this.s.buildings.find(b=>b.team===team&&b.kind==='town'&&b.hp>0);if(!town)return;this.aiH(team);if(this.s.cooperation?.[team]?.until>this.s.time)return;this.aiCounterHall(team,town)}
  tick(dt){super.tick(dt);const s=this.s;if(s.ended||!s.aiHuman)return;for(const key of Object.keys(s.aiHuman)){const team=+key;if(!this.aiHumanOn(team))continue;const h=s.aiHuman[key];const k=this.aiSkill(team);
+  /* alarms are checked on the reaction cadence of the difficulty (not the 7 s think), the battle micro on its own cadence */
+  if(s.time>=(h.defendAt||0)){h.defendAt=s.time+Math.max(1.5,k.react);const town=s.buildings.find(b=>b.team===team&&b.kind==='town'&&b.hp>0);if(town)this.aiDefend(team,town)}
   if(s.time<(h.microAt||0))continue;h.microAt=s.time+k.micro;this.aiMicro(team)}}
 }
 const api={...K,Sim:HumanlikeAI,aiHumanSkill:SKILL};
