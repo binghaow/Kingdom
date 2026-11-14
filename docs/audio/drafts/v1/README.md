@@ -17,6 +17,7 @@ Each listed stem has `.ogg` (Vorbis q5) and `.m4a` (AAC 160 kbps) versions, mono
 | `arrow_flyby_01`–`arrow_flyby_03` | CC0 recorded arrow approach, pass and passby | Draft candidates |
 | `building_hit_wood_01`–`building_hit_wood_04` | Four CC0 recorded wood impact Foley takes | Candidate timber building hits |
 | `wall_hit_stone_01`–`wall_hit_stone_04` | CC0 recorded rock break / boulder impacts and two layered combinations | Foley candidates, not recordings made against a masonry wall |
+| `cannonball_hit_wall_01` | One CC0 recording described as a cannonball striking a fortification | Single candidate only; the other two prompt variations are not duplicated from this take |
 | `collapse_wood_01`–`collapse_wood_02` | Recorded tree creak, timber falling and timber slam Foley | Montage studies only; no full building-collapse recording was available |
 | `collapse_stone_01`–`collapse_stone_02` | CC0 rock break and boulder-drop Foley montage | Montage studies only; no full stone-building collapse recording was available |
 | `collapse_rubble_tail_01`–`collapse_rubble_tail_02` | CC0 boulder-drop and rock-break recordings sequenced | Draft rubble tails |

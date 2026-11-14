@@ -109,3 +109,7 @@ Encode-Filter 'collapse_rubble_tail_02' $tailFilter 1.1 @((Join-Path $root 'rock
 # 6–10 s orchestral completion scores; the missing drum/performance remains documented.
 Single-Clip 'age_up_horn_study_01' 'public/audio/charge-horn-a.wav' 0.00 2.50
 Single-Clip 'age_up_horn_study_02' 'public/audio/charge-horn-b.wav' 0.00 2.50
+
+# One licensed cannonball impact against a fortification. The remaining two prompt
+# variations are not claimed; this one source is not duplicated to pretend otherwise.
+Single-Clip 'cannonball_hit_wall_01' 'cannon_hit_wall.ogg' 0.00 1.50

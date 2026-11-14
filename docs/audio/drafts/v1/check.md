@@ -2,17 +2,17 @@
 
 ## Result
 
-This is an **incomplete P0 recording-based draft set**, not a final audio approval. There are 41 stems / 82 files (OGG + M4A), about 0.26 MB total. The existing sources were edited with FFmpeg 9.0.2. No runtime mapping, game code or live audio was changed.
+This is an **incomplete P0 recording-based draft set**, not a final audio approval. There are 42 stems / 84 files (OGG + M4A), about 0.27 MB total. The existing sources were edited with FFmpeg 9.0.2. No runtime mapping, game code or live audio was changed.
 
 ## Technical checks
 
 | Check | Result |
 |---|---|
-| File decode / stream metadata | Pass: all 82 outputs probe as playable audio |
+| File decode / stream metadata | Pass: all 84 outputs probe as playable audio |
 | Sample format | Pass: all outputs mono, 48 kHz |
 | Codecs | Pass: OGG Vorbis q5 and M4A/AAC 160 kbps, set by the processing script |
-| Peak ceiling | Pass: `volumedetect` on all 82 files found no measured peak above the −1 dBFS limiter ceiling |
-| Draft package size | Pass: 261,599 bytes, below the 3 MB SFX package target |
+| Peak ceiling | Pass: `volumedetect` on all 84 files found no measured peak above the −1 dBFS limiter ceiling |
+| Draft package size | Pass: 268,352 bytes, below the 3 MB SFX package target |
 | Prompt duration | Pass for sourced SFX in target ranges: chop, mining, tree fall, rubble, bow release/flyby, wood building hit, stone wall candidates, and collapse montages. Horn studies are intentionally out-of-spec references, not finished age-up music. |
 | Listening / device speaker review | **Unverified**: Codex has no human listening sign-off in this review. Every montage requires headphone and phone/tablet speaker audition before integration. |
 
@@ -31,7 +31,7 @@ This is an **incomplete P0 recording-based draft set**, not a final audio approv
 | Arrow hits: wood, shield, stone, flesh ×3 each | **Not included** | No suitable licensed, realistic impact source set was available. In particular, no flesh hit was fabricated. |
 | Timber building hits ×4 | Candidate | Four recorded wood impacts; listening review required for suitability as heavy building hits. |
 | Stone wall hits ×4 | Candidate only | Rock/boulder impacts are foley candidates, not masonry-wall recordings. |
-| Cannonball vs. stone wall ×3 | **Not included** | No verified source recording was added; do not treat generic rock impacts as cannon impacts. |
+| Cannonball vs. stone wall ×3 | Partial | One 1.5-second CC0 cannonball/fortification impact candidate; two more distinct recordings are still needed. |
 | Wood collapse ×2 | Montage study | Real creak/fall/impact Foley assembled; no actual building-collapse takes. |
 | Stone collapse ×2 | Montage study | Rock/boulder Foley assembled; no actual stone-structure collapse takes. |
 | Collapse rubble tails ×2 | Draft | Two recorded rock/boulder sequences. |
