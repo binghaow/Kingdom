@@ -570,6 +570,9 @@ KC 火焰伤害|KC fire damage
 发展你的王国|Grow Your Kingdom
 点击战场选择|Select on the Battlefield
 资源不足|Not enough resources
+每方最多 3 座城镇中心|At most 3 town centres per side
+离己方城镇中心太近|Too close to one of your town centres
+电脑建立了新的城镇中心|The computer founded a new town centre
 超出地图|Outside the map
 船舱已满|Transport full
 队列已满|Queue full
