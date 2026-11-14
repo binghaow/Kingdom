@@ -10,6 +10,7 @@ All sound effects in the active game use audio files, not oscillators or procedu
 * jcpmcdonald — Skippy Fish Water Sound Collection, CC0. `water.mp3`, `swim.mp3`, recorded water Foley. https://opengameart.org/content/skippy-fish-water-sound-collection
 * artisticdude — RPG Sound Pack, CC0. `chain.wav`, `ring.wav`, `swing.wav`, `growl.wav` (performed/processed giant vocal). https://opengameart.org/content/rpg-sound-pack
 * RandomMind — The Bard's Tale, CC0, `bards-tale.mp3`, prerecorded fantasy/medieval background music. https://opengameart.org/content/medieval-the-bards-tale
+* Project author, generated with Google Gemini (Lyria music model), 2026-11-14 — `music/kings-orchard.mp3` (The King's Orchard), `music/sunlight-orchard.mp3` (Sunlight on the Orchard), `music/cobblestone-celebration.mp3` (Cobblestone Celebration), `music/unseen-gambit.mp3` (The Unseen Gambit). Untouched originals are kept in the repository's `music/` library; in-game versions are trimmed, loudness-normalised and re-encoded by `scripts/prepare-music.py`. Tracks carry Google's inaudible SynthID watermark. **License/redistribution terms not yet verified** against Google's terms for app distribution — see docs/app-store-readiness.md.
 
 CC0: https://creativecommons.org/publicdomain/zero/1.0/
 
