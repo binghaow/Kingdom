@@ -40,3 +40,19 @@ Jackal: Shajiarikkad, Jackal.ogg (24 May 2012), own field recording of a jackal 
 - Pablo BERGEL / BigSoundBank, Anvil #1 (3589), recorded blacksmith hammering an anvil, CC0: https://bigsoundbank.com/anvil-1-s3589.html . building-forge.wav, 1.5-second excerpt.
 - nemaavla / Freesound, Tibetan monks.wav (344683), a human vocal performance recorded at home, CC0: https://freesound.org/people/nemaavla/sounds/344683/ . Public HQ preview; building-chant.wav, 2.1-second excerpt, not an actual monastery recording.
 All four are mono PCM16 with normalization and endpoint fades only, original pitch/speed. Reproduce via scripts/prepare-building-audio.py. Existing CC0 physical Foley supplies the other building-specific recipes.
+
+## Draft SFX batch (2026-11-13; not wired into runtime)
+
+The unintegrated files in `docs/audio/drafts/v1/` were edited with FFmpeg 9.0.2 from these recordings. Each draft has OGG Vorbis q5 and M4A/AAC 160 kbps versions; mono 48 kHz, limiter ceiling −1 dBFS, 5 ms fade-in and 20 ms fade-out. No new generative model was used. No game, film, or television recording was sampled.
+
+* Kenney, RPG Audio, CC0 1.0, `chop.ogg` (the project’s existing licensed real-foley axe chop): https://kenney.nl/assets/rpg-audio . Used as the common axe-chop component in `chop_01`–`chop_05`; those are layered variations using the distinct timber takes below, not five separate recorded axe swings.
+* rubberduck, “100 CC0 metal and wood SFX”, CC0 1.0: https://opengameart.org/content/100-cc0-metal-and-wood-sfx . Recorded `wood_hit`, `wood_breaking`, `wood_cracking`, `wood_falling`, `wood_slam` and `metal_hit` samples used in chop, mine-gold, structure-hit and collapse Foley studies.
+* qubodup / Independent.nu, “35 wooden cracks/hits/destructions”, CC0 1.0: https://opengameart.org/content/35-wooden-crackshitsdestructions . `impactwood01`–`impactwood04` provide the four wooden-impact candidates.
+* spookymodem, “Mining Pick”, CC BY 3.0: https://opengameart.org/content/mining-pick . Four isolated pick strikes are used by `mine_stone_01`–`mine_stone_04` and layered gold candidates. Attribution is required; commercial redistribution and adaptation are permitted by CC BY 3.0 subject to its attribution terms.
+* themightyglider, “Breaking Rock” and “Moving Boulder”, CC0 1.0: https://opengameart.org/content/breaking-rock and https://opengameart.org/content/moving-boulder . Used in rock-break, rubble, stone-wall impact and collapse Foley candidates.
+* kheetor, “Tree chop fall thud”, CC0 1.0: https://opengameart.org/content/tree-chop-fall-thud . `tree_fall_01`.
+* Department64 / AntumDeluge, “Tree Creaking”, CC0 1.0: https://opengameart.org/content/tree-creaking . Used in the tree-fall and structural-collapse montage studies.
+* Ben Jaszczak and Brian Nelson / Still North Media, “Medieval sound effects - Weapon Textures”, CC0 1.0: https://opengameart.org/content/medieval-sound-effects-weapon-textures . Recorded longbow, recurve, crossbow and arrow-pass samples used in bow and flyby drafts. Three distinct release recordings are present; the fourth bow file is a different crop from the same English Longbow recording.
+* Joseph SARDIN / BigSoundBank, recorded human-blown traditional horns #2520 and #2521, CC0 1.0: https://bigsoundbank.com/horn-1-s2520.html and https://bigsoundbank.com/trompe-ou-corne-2-s2521.html . `age_up_horn_study_01` and `_02` are short existing horn excerpts only; they are not new orchestral age-up scores.
+
+Draft audio-source details, stem-to-file map, date and per-license commercial-use notes are in `public/audio/sources.json`. These entries document drafts and do not change runtime sound mappings.
