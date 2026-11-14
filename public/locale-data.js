@@ -181,6 +181,7 @@
 附近没有受伤的陆军|No wounded land units nearby
 需要远离建筑与资源|Keep clear of buildings and resources
 需要远离建筑和资源|Keep clear of buildings and resources
+训练村民，推进时代；驻守民兵用火枪齐射附近敌军|Train villagers and advance ages; garrisoned militia fire musket volleys at nearby enemies
 训练村民，推进时代|Train villagers and advance ages
 训练弓箭手与火枪兵|Trains archers and musketeers
 研究武器与护甲科技|Researches weapons and armor

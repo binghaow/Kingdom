@@ -3,7 +3,7 @@
 'use strict';
 const MAP={width:3600,height:2400,cell:48,bridges:[520,1250,2020]};
 const D={
- town:{name:'城镇中心',icon:'♜',building:true,hp:2200,r:58,wood:275,stone:100,time:50,age:2,description:'训练村民，推进时代',trains:['villager']},
+ town:{name:'城镇中心',icon:'♜',building:true,hp:2200,r:58,wood:275,stone:100,time:50,age:2,range:200,damage:16,cooldown:1.4,description:'训练村民，推进时代；驻守民兵用火枪齐射附近敌军',trains:['villager']},
  house:{name:'房屋',icon:'⌂',building:true,hp:480,r:34,wood:70,time:12,age:1,description:'增加 10 人口'},
  barracks:{name:'步兵营',icon:'⚑',building:true,hp:950,r:43,wood:150,time:18,age:1,description:'训练步兵与掷弹兵',trains:['infantry','grenadier']},
  range:{name:'射击场',icon:'➶',building:true,hp:800,r:40,wood:140,time:18,age:1,description:'训练弓箭手与火枪兵',trains:['archer','musketeer']},
