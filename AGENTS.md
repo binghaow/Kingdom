@@ -15,7 +15,7 @@ For each feature, use this order: clarify the player outcome and acceptance crit
 
 ## Architecture (required reading)
 
-Before any change that affects performance, multiplayer, simulation data structures or rendering, read `docs/architecture/scale-target.md` (target: 8 players, 1000 units, 10–90 minute matches) and keep to its budgets, principles and phase order.
+Before any change that affects performance, multiplayer, simulation data structures or rendering, read `docs/architecture/scale-target.md` (target: 8 players, 1000 units, 10–90 minute matches) and `docs/architecture/redesign-plan.md` (phases, migration rules, "stop doing" list), and keep to their budgets, principles and phase order.
 
 ## App Store release-compliance gate
 
