@@ -13,6 +13,10 @@ Use these roles as a repeatable review workflow for future feature work. The coo
 
 For each feature, use this order: clarify the player outcome and acceptance criteria → inspect current behavior and dependencies → agree on a minimal implementation plan → implement → run relevant checks → review regressions and platform/compliance effects → update the relevant documentation. For small safe changes this can be a concise checklist in the task notes; do not create ceremony or extra files without a reason.
 
+## Architecture (required reading)
+
+Before any change that affects performance, multiplayer, simulation data structures or rendering, read `docs/architecture/scale-target.md` (target: 8 players, 1000 units, 10–90 minute matches) and keep to its budgets, principles and phase order.
+
 ## App Store release-compliance gate
 
 The intended product path includes iPhone/iPad distribution through TestFlight and the Apple App Store. Treat this as an engineering constraint during feature design, not as a last-minute packaging step. Track project-wide release gaps in [docs/app-store-readiness.md](docs/app-store-readiness.md). This gate is a risk review, not a legal opinion or a guarantee of App Review approval.
