@@ -15,12 +15,14 @@ const fs=require('node:fs'),path=require('node:path'),{spawnSync}=require('node:
 const ROOT=path.resolve(__dirname,'../..'),SRC=path.join(ROOT,'public/assets'),OUT=path.join(SRC,'sized'),MANIFEST=path.join(OUT,'manifest.json');
 const DESIGN_ZOOM=2,DESIGN_DPR=2,QUALITY=92,MARGIN=1.05;
 /* Never resized/converted: app icons (manifest/apple-touch), CSS-only use stays on the PNG too (imperial.css world-atlas). */
+const CSS_COPIES=['world-atlas.png'];
 const SKIP=new Set(['app-180.png','app-192.png','app-512.png']);
 /* Not referenced by any code (superseded); kept in the repo as source, not deployed. */
 const UNREFERENCED=new Set(['carrier-v34.png']);
 /* Paths the tracer cannot see, sized by reading the code (reason kept in the manifest). */
 const MANUAL={
   'meadow.jpg':{scale:520/1254,why:'visuals.js art.terrain draws it once into a 520x520 pattern tile'},
+  'terrain-materials-v2.png':{scale:192/(1774/4),why:'architecture-art.js resamples each 443 px material cell to a 192 px canvas before using it as a pattern'},
   'livestock.png':{scale:112/(1774/4),why:'world-art.js cut() resamples each 443 px cell to a fixed 112 px frame'},
 };
 /* Atlases the tracer saw only through icons/offscreen caches (k = 0). A k = 0 result alone is not trusted (a 1:1 path the zoo
@@ -51,11 +53,14 @@ function run({force=false,check=false}={}){const items=plan(),old=fs.existsSync(
   const hashes=py({mode:'hash',files:items.map(i=>path.join(SRC,i.file))}),jobs=[],stale=[];
   for(const it of items){it.hash=hashes[path.join(SRC,it.file)];it.out=it.file.replace(/\.(png|jpg)$/,'.webp');const prev=old.assets[it.file];
     if(force||!prev||prev.hash!==it.hash||prev.scale!==it.scale||prev.quality!==QUALITY||!fs.existsSync(path.join(OUT,it.out))){stale.push(it.file);jobs.push({src:path.join(SRC,it.file),dst:path.join(OUT,it.out),scale:it.scale,quality:QUALITY})}}
-  if(check)return {stale};
+  /* full-size WebP copies for CSS that shows an atlas cell larger than the game does (imperial.css welcome art: 315 px CSS, cell 443 px) */
+  const css=CSS_COPIES.map(f=>({src:path.join(SRC,f),dst:path.join(OUT,f.replace(/\.(png|jpg)$/,'.full.webp')),scale:1,quality:QUALITY})).filter(j=>force||!fs.existsSync(j.dst)||fs.statSync(j.dst).mtimeMs<fs.statSync(j.src).mtimeMs);
+  if(check)return {stale:[...stale,...css.map(j=>path.basename(j.dst))]};
+  if(css.length)py({mode:'resize',jobs:css});
   const done=jobs.length?py({mode:'resize',jobs}):[],byDst=new Map(done.map(d=>[d.dst,d]));
   const assets={};for(const it of items){const d=byDst.get(path.join(OUT,it.out)),prev=old.assets[it.file];const info=d?{w:d.w,h:d.h,bytes:d.bytes,srcW:d.srcW,srcH:d.srcH,srcBytes:d.srcBytes}:{w:prev.w,h:prev.h,bytes:prev.bytes,srcW:prev.srcW,srcH:prev.srcH,srcBytes:prev.srcBytes};
     assets[it.file]={out:'sized/'+it.out,scale:it.scale,raw:it.raw,why:it.why,hash:it.hash,quality:QUALITY,...info}}
-  for(const f of fs.readdirSync(OUT))if(f.endsWith('.webp')&&!items.some(i=>i.out===f))fs.rmSync(path.join(OUT,f));
+  for(const f of fs.readdirSync(OUT))if(f.endsWith('.webp')&&!f.endsWith('.full.webp')&&!items.some(i=>i.out===f))fs.rmSync(path.join(OUT,f));
   const manifest={generated:'scripts/art/size-assets.cjs',design:{zoom:DESIGN_ZOOM,dpr:DESIGN_DPR,quality:QUALITY,margin:MARGIN},unreferenced:[...UNREFERENCED],assets};
   fs.writeFileSync(MANIFEST,JSON.stringify(manifest,null,1)+'\n');
   /* the runtime table (scale per atlas) lives in visuals.js so every art module can call KingdomArt.src() synchronously */
