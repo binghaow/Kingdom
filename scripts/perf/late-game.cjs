@@ -2,7 +2,7 @@
 'use strict';
 /* Late-game simulation cost + determinism fingerprint (Node, no rendering). Four nations on a large map, about 110 units each
    (mixed kinds, villagers included), AI on; part of every army is ordered to advance on the map centre so armies meet and fight.
-   Prints ms per 0.05 s step (median/p95/max) and a state fingerprint every `every` steps (unit positions/hp, building hp,
+   Prints ms per 0.05 s step (mean/p50/p95/max, steps over 40 ms and over 25 ms) and a state fingerprint every `every` steps (unit positions/hp, building hp,
    resources, node amounts). Two code versions given the same seed and command list must print the same fingerprints.
    usage: node scripts/perf/late-game.cjs [steps=600] [out.json] [--per 110] [--seed 9090] [--map coast_l]
    KINGDOM_ROOT=<other checkout> runs another version of the engine (used for the before/after determinism comparison). */
@@ -32,9 +32,12 @@ function commands(sim,step,mid){const s=sim.s,army=t=>s.units.filter(u=>u.team==
   if(step===300){const a=army(0),e=s.units.filter(u=>u.team!==0&&u.hp>0).sort((x,y)=>Math.hypot(x.x-mid.x,x.y-mid.y)-Math.hypot(y.x-mid.x,y.y-mid.y)||x.id-y.id)[0];if(a.length&&e)sim.order(a.filter(u=>!u.order),{type:'attack',id:e.id})}
   if(step===600){const a=army(1),home=sim.townOf(1);if(home)sim.order(a.filter((_,i)=>i%2===0),{type:'move',x:home.x,y:home.y+120,retreat:true})}
   if(step===900){const a=army(2),t=sim.townOf(3);if(t)sim.order(a,{type:'advance',x:t.x,y:t.y})}}
-const {sim,towns,mid}=setup();sim.getGrid?.(null);
+const {sim,towns,mid}=setup();
+/* Warm the navigation grids the way the game does on load (expansion.js warmNavigation: one land unit's grid + one ship's grid), so step 1
+   measures a simulation step, not the first grid builds. */
+{const land=sim.s.units.find(u=>!sim.sea?.(u)&&!sim.air?.(u)),ship=sim.s.units.find(u=>sim.sea?.(u));sim.getGrid?.(null);if(land)sim.getGrid?.(land);if(ship)sim.getGrid?.(ship)}
 const ticks=[],prints=[];for(let i=1;i<=steps;i++){commands(sim,i,mid);const t=now();sim.tick(.05);ticks.push(now()-t);if(i%every===0)prints.push({step:i,...fingerprint(sim.s)})}
 const sorted=[...ticks].sort((a,b)=>a-b),res={root:ROOT,seed,mapId,towns,steps,units:sim.s.units.length,alive:sim.s.units.filter(u=>u.hp>0).length,
-  meanMs:+(ticks.reduce((a,b)=>a+b,0)/steps).toFixed(2),p50:+sorted[steps>>1].toFixed(2),p95:+sorted[Math.floor(steps*.95)].toFixed(2),max:+sorted.at(-1).toFixed(1),prints};
+  meanMs:+(ticks.reduce((a,b)=>a+b,0)/steps).toFixed(2),p50:+sorted[steps>>1].toFixed(2),p95:+sorted[Math.floor(steps*.95)].toFixed(2),max:+sorted.at(-1).toFixed(1),over40:ticks.filter(t=>t>40).length,over25:ticks.filter(t=>t>25).length,prints};
 if(out)fs.writeFileSync(out,JSON.stringify(res,null,1));
 console.log(JSON.stringify({...res,prints:res.prints.map(p=>`${p.step}:${p.alive}/${p.units}:${p.hash}`)},null,0));
