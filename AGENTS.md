@@ -78,6 +78,10 @@ For changes to HUD, responsive layout, touch input, selection, camera, sprites o
 
 ## 发布前常规检查（必须）
 
+**快速发布通道（先跑这个）：** `node scripts/release/release-gate.cjs`。如果 `docs/release-reports/` 里已有一份针对**代码完全相同**的提交的完整 release-check 报告且 0 FAIL（通常由 Claude 在合并到 main 前跑过），重型检查就不用重跑：脚本只做构建、产物检查、语法检查，几分钟内给出 PASS，即可直接发布并附上那份报告。只有脚本提示“没有匹配的报告”时，才需要按下面的完整流程跑。
+
+**换机器的计时 FAIL：** 基线是在 Claude 的云端机器上测的。在另一台机器（如 Windows 电脑）上，计时类门槛容易误报。遇到计时类 FAIL，只重跑那一节（`npm run release-check -- --only <节>`）；重跑不复现的视为噪声，可以发布，并在发布说明里写明。不要为此在旧提交上重建整套基线。正确性检查（check-all、check-artifact、联机冒烟）任何失败都不能发布。
+
 每次发布（包括部署预览链接、TestFlight 构建、合并到发布分支）之前，都必须按顺序运行并全部通过：
 
 1. `node check-all.cjs` —— 单机与联机回归。
