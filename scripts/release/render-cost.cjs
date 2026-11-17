@@ -42,5 +42,5 @@ async function run({quick=false,shots}={}){let chromium;try{({chromium}=require(
       const m=k=>r1(median(runs.map(r=>r[k]))),h=(k,j)=>r1(median(runs.map(r=>r[k][j]).filter(Number.isFinite)));
       out[name]={viewport:runs[0].viewport,frames:runs.map(r=>r.frames),drawImagePerFrame:m('drawImagePerFrame'),filteredDrawsPerFrame:m('filteredDrawsPerFrame'),units:runs[0].unitsSpawned,unitsAlive:m('unitsAlive'),visible:runs[0].visible,dpr:runs[0].dpr,frameP50:m('frameP50'),frameP95:m('frameP95'),fps:m('fps'),renderP50:h('hudRender',0),renderP95:h('hudRender',1),sceneP50:h('hudScene',0),sceneP95:h('hudScene',1),updateP50:h('hudUpdate',0),updateP95:h('hudUpdate',1),runs:runs.map(r=>({frameP50:r.frameP50,frameP95:r.frameP95,renderP50:r.hudRender[0],renderP95:r.hudRender[1]})),errors:[...new Set(runs.flatMap(r=>r.errors))]}}}
   finally{await browser.close();server.close()}return out}
-module.exports={run};
+module.exports={run,serve};
 if(require.main===module){const a=args();run({quick:!!a.quick,shots:a.shots}).then(r=>{if(a.json)fs.writeFileSync(a.json,JSON.stringify(r,null,1));console.log(JSON.stringify(r,null,1))}).catch(e=>{console.error(e);process.exit(1)})}
