@@ -1592,6 +1592,48 @@
    "srcH": 887,
    "srcBytes": 2600793
   },
+  "panda-attack-v1.png": {
+   "out": "sized/panda-attack-v1.webp",
+   "scale": 1,
+   "raw": 1,
+   "why": "unreached by the tracer: full size, format only",
+   "hash": "e4e290c4ee7a",
+   "quality": 92,
+   "w": 887,
+   "h": 1774,
+   "bytes": 215728,
+   "srcW": 887,
+   "srcH": 1774,
+   "srcBytes": 1403015
+  },
+  "panda-idle-v1.png": {
+   "out": "sized/panda-idle-v1.webp",
+   "scale": 1,
+   "raw": 1,
+   "why": "unreached by the tracer: full size, format only",
+   "hash": "83a83bd5b882",
+   "quality": 92,
+   "w": 887,
+   "h": 1774,
+   "bytes": 197490,
+   "srcW": 887,
+   "srcH": 1774,
+   "srcBytes": 1355608
+  },
+  "panda-walk-v1.png": {
+   "out": "sized/panda-walk-v1.webp",
+   "scale": 1,
+   "raw": 1,
+   "why": "unreached by the tracer: full size, format only",
+   "hash": "8bc48aa75a4d",
+   "quality": 92,
+   "w": 1086,
+   "h": 1448,
+   "bytes": 279188,
+   "srcW": 1086,
+   "srcH": 1448,
+   "srcBytes": 1777677
+  },
   "reinforcements.png": {
    "out": "sized/reinforcements.webp",
    "scale": 0.45,

@@ -36,7 +36,7 @@ const VERIFIED_CAP={
   'imperial-units.png':'dynasty-art.js cut() resamples every cell to a fixed 128 px frame',
   'kc-encounter.png':'world-art.js cut() resamples every cell to a fixed 192 px frame',
 };
-const py=(req)=>{const r=spawnSync('python3',['-I',path.join(__dirname,'resize_assets.py')],{input:JSON.stringify(req),encoding:'utf8',maxBuffer:64<<20});if(r.status!==0)throw Error('resize_assets.py failed: '+r.stderr);return JSON.parse(r.stdout)};
+const py=(req)=>{const r=spawnSync(process.env.KINGDOM_PYTHON || 'python3',['-I','-X','utf8',path.join(__dirname,'resize_assets.py')],{input:JSON.stringify(req),encoding:'utf8',maxBuffer:64<<20});if(r.status!==0)throw Error('resize_assets.py failed: '+r.stderr);return JSON.parse(r.stdout)};
 const step=s=>{const v=Math.min(1,Math.ceil(s*MARGIN*20-1e-9)/20);return v>=.95?1:Math.max(.1,v)};
 function plan(){const draw=JSON.parse(fs.readFileSync(path.join(__dirname,'draw-sizes.json'),'utf8')),need=draw.need,limits=draw.attackLimits||{},ZD=DESIGN_ZOOM*DESIGN_DPR;
   const files=fs.readdirSync(SRC).filter(f=>/\.(png|jpg)$/.test(f)&&!SKIP.has(f)&&!UNREFERENCED.has(f)).sort();
@@ -71,7 +71,7 @@ function run({force=false,check=false}={}){const items=plan(),old=fs.existsSync(
   return {resized:done.length,total:items.length,decodedBefore:items.reduce((a,i)=>a+assets[i.file].srcW*assets[i.file].srcH*4,0),decodedAfter:items.reduce((a,i)=>a+assets[i.file].w*assets[i.file].h*4,0),bytesBefore:items.reduce((a,i)=>a+assets[i.file].srcBytes,0),bytesAfter:items.reduce((a,i)=>a+assets[i.file].bytes,0)}}
 /* Atlases loaded only when needed: every action atlas (attack-art.js, per present unit kind) and the direction groups outside BOOT_GROUPS. */
 function lazyAtlases(){const base=f=>f.replace(/^.*assets\//,'').replace(/[?#].*$/,''),attack=require(path.join(ROOT,'public/attack-manifest.json')).entries.map(e=>base(e.source)),dirs=require(path.join(ROOT,'public/direction-manifest.json')),art=fs.readFileSync(path.join(ROOT,'public/direction-art.js'),'utf8'),m=/BOOT_GROUPS=new Set\((\[[^\]]*\])\)/.exec(art);if(!m)throw Error('direction-art.js BOOT_GROUPS not found');const boot=new Set(JSON.parse(m[1].replace(/'/g,'"')));
-  return [...new Set([...attack,...dirs.groups.filter(g=>!boot.has(g.id)).map(g=>base(g.source))])].sort()}
+  return [...new Set(['panda-attack-v1.png','panda-idle-v1.png','panda-walk-v1.png',...attack,...dirs.groups.filter(g=>!boot.has(g.id)).map(g=>base(g.source))])].sort()}
 module.exports={run,plan,lazyAtlases};
 if(require.main===module){const a=process.argv.slice(2);const r=run({force:a.includes('--force'),check:a.includes('--check')});if(r.stale){if(r.stale.length){console.error('stale sized assets: '+r.stale.join(', '));process.exit(1)}console.log('sized assets up to date');return}
   const M=x=>(x/1048576).toFixed(1);console.log(`resized ${r.resized}/${r.total}; decoded ${M(r.decodedBefore)} -> ${M(r.decodedAfter)} MB; files ${M(r.bytesBefore)} -> ${M(r.bytesAfter)} MB`)}
