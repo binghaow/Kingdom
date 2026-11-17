@@ -2,7 +2,7 @@
 'use strict';
 /* Late-game simulation cost + determinism fingerprint (Node, no rendering). Four nations on a large map, about 110 units each
    (mixed kinds, villagers included), AI on; part of every army is ordered to advance on the map centre so armies meet and fight.
-   Prints ms per 0.05 s step (mean/p50/p95/max, steps over 40 ms and over 25 ms) and a state fingerprint every `every` steps (unit positions/hp, building hp,
+   Prints ms per 0.05 s step (mean/p50/p95/max, steps over 40 ms and over 25 ms; over40Steady/maxSteady skip the first 20 steps = 1 s of JIT warm-up) and a state fingerprint every `every` steps (unit positions/hp, building hp,
    resources, node amounts). Two code versions given the same seed and command list must print the same fingerprints.
    usage: node scripts/perf/late-game.cjs [steps=600] [out.json] [--per 110] [--seed 9090] [--map coast_l]
    KINGDOM_ROOT=<other checkout> runs another version of the engine (used for the before/after determinism comparison). */
@@ -38,6 +38,6 @@ const {sim,towns,mid}=setup();
 {const land=sim.s.units.find(u=>!sim.sea?.(u)&&!sim.air?.(u)),ship=sim.s.units.find(u=>sim.sea?.(u));sim.getGrid?.(null);if(land)sim.getGrid?.(land);if(ship)sim.getGrid?.(ship)}
 const ticks=[],prints=[];for(let i=1;i<=steps;i++){commands(sim,i,mid);const t=now();sim.tick(.05);ticks.push(now()-t);if(i%every===0)prints.push({step:i,...fingerprint(sim.s)})}
 const sorted=[...ticks].sort((a,b)=>a-b),res={root:ROOT,seed,mapId,towns,steps,units:sim.s.units.length,alive:sim.s.units.filter(u=>u.hp>0).length,
-  meanMs:+(ticks.reduce((a,b)=>a+b,0)/steps).toFixed(2),p50:+sorted[steps>>1].toFixed(2),p95:+sorted[Math.floor(steps*.95)].toFixed(2),max:+sorted.at(-1).toFixed(1),over40:ticks.filter(t=>t>40).length,over25:ticks.filter(t=>t>25).length,prints};
+  meanMs:+(ticks.reduce((a,b)=>a+b,0)/steps).toFixed(2),p50:+sorted[steps>>1].toFixed(2),p95:+sorted[Math.floor(steps*.95)].toFixed(2),max:+sorted.at(-1).toFixed(1),over40:ticks.filter(t=>t>40).length,over40Steady:ticks.filter((t,i)=>i>=20&&t>40).length,maxSteady:+Math.max(...ticks.slice(20)).toFixed(1),over25:ticks.filter(t=>t>25).length,prints};
 if(out)fs.writeFileSync(out,JSON.stringify(res,null,1));
 console.log(JSON.stringify({...res,prints:res.prints.map(p=>`${p.step}:${p.alive}/${p.units}:${p.hash}`)},null,0));

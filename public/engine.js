@@ -35,7 +35,7 @@ const PATH_DX=[1,-1,0,0,1,-1,1,-1],PATH_DY=[0,0,1,-1,1,1,-1,-1],PATH_DIAGONAL=1.
 /* Connected regions of a static navigation grid (built once per grid array; grids are replaced, never edited in place).
    A* forbids diagonal corner cutting, so 4-neighbour regions are exactly the cells A* can connect: a goal in another
    region is unreachable and findPath can return [] without expanding the whole start region. */
-const PATH_REGIONS=new WeakMap(),PATH_BUDGET=36,PATH_REFRESH=18,AUTO_SCAN_BUDGET=96;
+const PATH_REGIONS=new WeakMap(),PATH_BUDGET=36,PATH_REFRESH=18,AUTO_SCAN_BUDGET=96,AUTO_SCAN_SLACK=64;
 function pathRegions(g,cols,rows){let lab=PATH_REGIONS.get(g);if(lab)return lab;lab=new Int32Array(g.length);const queue=new Int32Array(g.length);let next=0;
  for(let i=0;i<g.length;i++){if(g[i]||lab[i])continue;next++;let head=0,tail=0;queue[tail++]=i;lab[i]=next;while(head<tail){const n=queue[head++],x=n%cols;
   if(x>0&&!g[n-1]&&!lab[n-1]){lab[n-1]=next;queue[tail++]=n-1}if(x<cols-1&&!g[n+1]&&!lab[n+1]){lab[n+1]=next;queue[tail++]=n+1}
@@ -110,11 +110,17 @@ class Sim{
  autoAcquireRadius(u){const configured=D[u.kind]?.acquisitionRadius;if(Number.isFinite(configured))return clamp(configured,80,700);return clamp(this.stat(u,'range')+115,220,420)}
  autoTargetPriority(e){const d=D[e.kind]||{};if(d.building)return d.damage>0?1:3;if(d.damage>0&&!['villager','engineer'].includes(e.kind))return 0;return 3}
  autoTargetReachable(u,e){const failed=this.pathFailures?.get(u.id);if(failed?.key?.startsWith(`${e.id}:`)&&(u.repath||0)>0)return false;if(u.engagement?.id===e.id&&u.engagement.point===null&&u.engagement.until>this.s.time)return false;return true}
- refreshAutoTargetRoster(){const s=this.s,roster=this.autoTargetRoster;roster.length=0;for(const u of s.units)if(u.hp>0&&!u.embarkedOn)roster.push(u);for(const b of s.buildings)if(b.hp>0)roster.push(b);this.autoTargetRosterAt=s.time}
- acquireAutoTarget(u){const s=this.s,radius=this.autoAcquireRadius(u),radius2=radius*radius;let state=this.autoTargets.get(u);if(!state){state={targetId:null,scanAt:0,anchor:null,ignoredId:null,ignoredAnchor:null};this.autoTargets.set(u,state)}
+ refreshAutoTargetRoster(){const s=this.s,roster=this.autoTargetRoster;roster.length=0;this._rosterGen=(this._rosterGen||0)+1;for(const u of s.units)if(u.hp>0&&!u.embarkedOn)roster.push(u);for(const b of s.buildings)if(b.hp>0)roster.push(b);this.autoTargetRosterAt=s.time}
+ /* P0: roster entries near u, in roster order (so the scan picks exactly what a full pass would). Entries are bucketed into 256 px cells once
+    per step and roster refresh; the query covers radius + AUTO_SCAN_SLACK, which absorbs what targets move later in the same step.
+    The scan still tests live positions, so a bucket can only hide a target that jumped more than the slack within one step (it is
+    picked up by the next scan). */
+ autoTargetNear(u,radius){const s=this.s,R=this.autoTargetRoster;let B=this._targetBuckets;if(!B||B.time!==s.time||B.gen!==this._rosterGen||B.n!==R.length){const cells=new Map();for(let i=0;i<R.length;i++){const c=R[i],k=(Math.floor(c.x/256)+512)*2048+Math.floor(c.y/256)+512;let a=cells.get(k);if(!a)cells.set(k,a=[]);a.push(i)}B=this._targetBuckets={time:s.time,gen:this._rosterGen,n:R.length,cells}}
+  const r=radius+AUTO_SCAN_SLACK,x0=Math.floor((u.x-r)/256)+512,x1=Math.floor((u.x+r)/256)+512,y0=Math.floor((u.y-r)/256)+512,y1=Math.floor((u.y+r)/256)+512,idx=[];for(let x=x0;x<=x1;x++)for(let y=y0;y<=y1;y++){const a=B.cells.get(x*2048+y);if(a)for(const i of a)idx.push(i)}idx.sort((a,b)=>a-b);const out=new Array(idx.length);for(let i=0;i<idx.length;i++)out[i]=R[idx[i]];return out}
+ acquireAutoTarget(u){const s=this.s;/* P0: the (pure) radius is only computed when a target is held or a scan is due */let radius,radius2;const need=()=>{if(radius===undefined){radius=this.autoAcquireRadius(u);radius2=radius*radius}};let state=this.autoTargets.get(u);if(!state){state={targetId:null,scanAt:0,anchor:null,ignoredId:null,ignoredAnchor:null};this.autoTargets.set(u,state)}
   let target=state.targetId?this.byId(state.targetId):null;if(state.targetId&&(!target||target.hp<=0||target.embarkedOn||this.canTarget?.(u,target)===false))state.scanAt=0;
   if(target&&target.hp>0&&!target.embarkedOn&&this.canTarget?.(u,target)!==false&&this.autoTargetReachable(u,target)){
-   const anchor=state.anchor||{x:u.x,y:u.y},leash=radius*1.55,dx=target.x-anchor.x,dy=target.y-anchor.y;
+   need();const anchor=state.anchor||{x:u.x,y:u.y},leash=radius*1.55,dx=target.x-anchor.x,dy=target.y-anchor.y;
    if(dx*dx+dy*dy<=leash*leash)return target;
    state.ignoredId=target.id;state.ignoredAnchor=anchor;
   }
@@ -123,10 +129,10 @@ class Sim{
   /* P0: at most AUTO_SCAN_BUDGET scans per step (a loaded save or a big order resets every unit's scan clock); the rest scan next step.
      The next scan is due on the unit's own step of the 0.35 s cycle, so scans no longer bunch every seventh step. */
   const sb=this._scanBudget;if(!sb||sb.time!==s.time)this._scanBudget={time:s.time,n:1};else if(sb.n>=AUTO_SCAN_BUDGET)return null;else sb.n++;
-  state.scanAt=s.time+this.slotDelay(u.id,.35)-1e-6;
+  state.scanAt=s.time+this.slotDelay(u.id,.35)-1e-6;need();
   if(s.time-this.autoTargetRosterAt>=.3)this.refreshAutoTargetRoster();
   let best=null,bestPriority=Infinity,bestDistance=radius2;
-  for(const candidate of this.autoTargetRoster){
+  for(const candidate of this.autoTargetNear(u,radius)){
    if(candidate.id===u.id||candidate.team===u.team||candidate.hp<=0||candidate.embarkedOn)continue;
    const dx=candidate.x-u.x,dy=candidate.y-u.y,gap2=dx*dx+dy*dy;if(gap2>radius2)continue;/* v44: cheap range test before the (pure) canTarget chain */
    if(this.canTarget&&!this.canTarget(u,candidate))continue;
