@@ -14,7 +14,9 @@
  *   node scripts/release/release-gate.cjs --dry     # only print the decision
  */
 'use strict';
-const { execSync } = require('child_process');
+const { execSync, execFileSync } = require('child_process');
+// git is called without a shell (execFileSync + argument arrays) so it works the same in bash, cmd.exe and PowerShell.
+const git = (...a) => execFileSync('git', a, { cwd: ROOT, encoding: 'utf8', stdio: 'pipe' });
 const fs = require('fs'), path = require('path');
 const ROOT = path.resolve(__dirname, '..', '..');
 const CODE = ['public', 'src', 'server', 'worker', 'scripts', 'package.json'];
@@ -22,9 +24,9 @@ const sh = (c, o = {}) => execSync(c, { cwd: ROOT, encoding: 'utf8', stdio: o.in
 const dry = process.argv.includes('--dry');
 
 function codeSame(commit) {
-  try { sh(`git cat-file -e ${commit}^{commit}`); } catch { return false; }
-  const checks = sh('git ls-files "check-*.cjs"').split('\n').filter(Boolean);
-  try { sh(`git diff --quiet ${commit} HEAD -- ${[...CODE, ...checks].join(' ')} ":(exclude)scripts/release"`); return true; } catch { return false; }
+  try { git('cat-file', '-e', commit + '^{commit}'); } catch { return false; }
+  const checks = git('ls-files', 'check-*.cjs').split('\n').filter(Boolean);
+  try { git('diff', '--quiet', commit, 'HEAD', '--', ...CODE, ...checks, ':(exclude)scripts/release'); return true; } catch { return false; }
 }
 
 const dir = path.join(ROOT, 'docs', 'release-reports');
@@ -40,7 +42,7 @@ for (const f of reports) {
   if (codeSame(commit)) { match = { file: f, commit, verdict }; break; }
 }
 
-const head = sh('git rev-parse --short HEAD').trim();
+const head = git('rev-parse', '--short', 'HEAD').trim();
 if (!match) {
   console.log(`[release-gate] HEAD ${head}: no passing full release-check report for identical code.`);
   console.log('[release-gate] Run once: node check-all.cjs && npm run build && node check-artifact.cjs && npm run release-check');
