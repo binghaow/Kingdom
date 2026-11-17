@@ -104,7 +104,7 @@ class FrontierV40 extends Base{
   campList.forEach((c,k)=>{for(const n of c.nodes)n.owners=campOwner[k].slice();const total=CAMP_REWARD[c.res]*rich*campShare[k],each=Math.round(total/c.nodes.length);if(!(each>0)){for(const n of c.nodes)drop.add(n);return}for(const n of c.nodes){n.amount=n.maxAmount=each}});s.nodes=s.nodes.filter(n=>!drop.has(n));
   s.resourceSites=sites.map(x=>({id:x.id,spots:x.spots.map(p=>({x:Math.round(p.x),y:Math.round(p.y)})),owner:x.owner}));
   // leave the navigation/wall caches exactly as an untouched new match has them (placement probing built them early)
-  this.grid=this.seaGrid=null;this._gateGrids=null;this._wallParts=wallCache[0];this._wallSignature=wallCache[1];this._wallCheckedAt=wallCache[2]}
+  this.grid=this.seaGrid=null;this._gateGrids=null;this._gridPrev=null;this._wallParts=wallCache[0];this._wallSignature=wallCache[1];this._wallCheckedAt=wallCache[2]}
 
  /* ---- 3. balloon ---- */
  balloons(team){const s=this.s;if(this._balloonAt!==s.time){this._balloonAt=s.time;const m=new Map();for(const u of s.units)if(u.kind==='scoutballoon'&&u.hp>0&&!u.embarkedOn){let list=m.get(u.team);if(!list)m.set(u.team,list=[]);list.push(u)}this._balloonMap=m}return this._balloonMap.get(team)||[]}

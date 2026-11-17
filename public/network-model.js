@@ -28,9 +28,9 @@ class NetworkSim extends Base{
  buildNav(probe,sea){K.activateWorld(this.world);this.refreshWalls?.();const W=this.world.width,H=this.world.height,cols=W/48,rows=H/48,masks=terrainMasks(this._navRoom,this._navWorld),kind=sea?'sea':'land';let base=masks[kind];if(!base||base.length!==cols*rows){base=new Uint8Array(cols*rows);const all=this.s.buildings;this.s.buildings=[];try{for(let y=0;y<rows;y++)for(let x=0;x<cols;x++)base[y*cols+x]=this.blocked(x*48+24,y*48+24,probe)?1:0}finally{this.s.buildings=all}masks[kind]=base}
   const g=base.slice();for(const b of this.s.buildings){if(b.hp<=0)continue;const x0=Math.max(0,Math.floor((b.x-NAV_REACH)/48)),x1=Math.min(cols-1,Math.floor((b.x+NAV_REACH)/48)),y0=Math.max(0,Math.floor((b.y-NAV_REACH)/48)),y1=Math.min(rows-1,Math.floor((b.y+NAV_REACH)/48));for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++)g[y*cols+x]=this.blocked(x*48+24,y*48+24,probe)?1:0}navStats.builds++;return g}
  prewarmNav(){if(!this.world)return;this.getGrid(null);this.getGrid(SEA_PROBE)}
- updateFog(){if(this.s.fogEnabled===false){this.fog=null;return}return super.updateFog()}
+ updateFog(only){if(this.s.fogEnabled===false){this.fog=null;return}return super.updateFog(only)}
  profile(team=1){const p=super.profile(team);return this.human(team)?{...p,economy:1,damage:1,cap:10000,train:1,age:0,think:1000000,wave:0}:p}
- ai(){for(const t of this.s.humanTeams||[])this.s.nextThink[t]=Number.MAX_SAFE_INTEGER;return super.ai()}
+ ai(only){for(const t of this.s.humanTeams||[])this.s.nextThink[t]=Number.MAX_SAFE_INTEGER;return super.ai(only)}
  aiPlayer(t){if(!this.human(t))return super.aiPlayer(t)}
  allied(a,b){if(super.allied(a,b))return true;const treaties=this.s.netTreaties;if(!treaties||!(a>=0&&b>=0))return false;for(const key in treaties){const p=treaties[this.pair(a,b)];return !!p&&(!p.warAt||p.warAt>this.s.time)}return false}
  label(t){return t<0?'KC 中立守卫':this.s.playerNames?.[t]||('玩家 '+(t+1))}

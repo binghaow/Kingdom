@@ -784,11 +784,49 @@
      "units": 397,
      "steps": 600,
      "reps": 3,
-     "meanMs": 6.38,
-     "p50": 4.61,
-     "p95": 14.19,
-     "max": 106.82,
-     "fingerprint": "115364dd"
+     "meanMs": 7.16,
+     "p50": 6.29,
+     "p95": 13.38,
+     "max": 36,
+     "over40": 1,
+     "over40Steady": 0,
+     "maxSteady": 23.54,
+     "over25": 3,
+     "fingerprint": "aeaba01b",
+     "raw": {
+      "calibrationMs": 38.16,
+      "speed": 1.16,
+      "runs": [
+       {
+        "meanMs": 8.74,
+        "p50": 7.53,
+        "p95": 15.68,
+        "max": 35.6,
+        "over40": 0,
+        "over40Steady": 0,
+        "maxSteady": 32.7
+       },
+       {
+        "meanMs": 8.32,
+        "p50": 7.18,
+        "p95": 15.57,
+        "max": 48.4,
+        "over40": 1,
+        "over40Steady": 0,
+        "maxSteady": 27
+       },
+       {
+        "meanMs": 8.33,
+        "p50": 7.32,
+        "p95": 15.53,
+        "max": 41.9,
+        "over40": 1,
+        "over40Steady": 0,
+        "maxSteady": 27.4
+       }
+      ]
+     },
+     "note": "P0 (docs/p0-spread-spikes.md): late sim baseline re-taken alone; other sections unchanged"
     },
     "browser": {
      "viewport": "1920x1080",
