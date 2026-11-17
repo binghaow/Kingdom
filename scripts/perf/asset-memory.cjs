@@ -11,8 +11,8 @@
      - pixels: decoded bytes of the art still alive after GC — every <img> loaded from assets/ (natural w*h*4) plus every canvas
               created by the page (w*h*4), tracked through WeakRefs.
    Load: a fresh profile (empty HTTP cache, service worker allowed, as on a first visit), CDP network throttling
-   (default 20 Mbit/s down, 5 Mbit/s up, 40 ms RTT), time from navigation start until KingdomArt.loaded is true (the start
-   button can be used). Bytes transferred until then are counted from the network log.
+   (default 20 Mbit/s down, 5 Mbit/s up, 40 ms RTT), time from navigation start until KingdomArt.ready resolves (every art
+   module's atlases are prepared and the start button is enabled; KingdomArt.loaded, the core visuals.js atlases, is reported as coreArtMs). Bytes transferred until then are counted from the network log.
    headless --disable-gpu on a shared 2-core box: numbers compare commits on this machine; they are not a device measurement.
    usage: node scripts/perf/asset-memory.cjs [--only memory|load] [--mbps 20] [--rtt 40] [--secs 6] [--json out.json] [--shot dir] */
 const fs=require('node:fs'),path=require('node:path');
@@ -55,8 +55,10 @@ async function load(chromium,port,{mbps,rtt}){const browser=await chromium.launc
   try{const ctx=await browser.newContext({viewport:{width:1440,height:900}}),p=await ctx.newPage(),cdp=await ctx.newCDPSession(p);let bytes=0,requests=0,stop=false;
     await cdp.send('Network.enable');await cdp.send('Network.setCacheDisabled',{cacheDisabled:true});await cdp.send('Network.emulateNetworkConditions',{offline:false,latency:rtt,downloadThroughput:mbps*1e6/8,uploadThroughput:5e6/8});
     cdp.on('Network.loadingFinished',e=>{if(!stop){bytes+=e.encodedDataLength;requests++}});
-    const t0=Date.now();await p.goto(`http://127.0.0.1:${port}/`,{waitUntil:'commit'});await p.waitForFunction(()=>window.KingdomArt&&KingdomArt.loaded,null,{timeout:600000,polling:100});const ms=Date.now()-t0;stop=true;
-    return {mbps,rttMs:rtt,toPlayableMs:ms,transferredMB:Math.round(bytes/1048576*10)/10,requests}}
+    await p.goto(`http://127.0.0.1:${port}/`,{waitUntil:'load',timeout:600000});
+    /* playable = KingdomArt.ready resolved (every art module chained onto it; the start button is enabled from it). KingdomArt.loaded alone is only the core visuals.js atlases. */
+    const t=await p.evaluate(()=>new Promise(ok=>{const core=()=>performance.now();let coreAt=window.KingdomArt?.loaded?core():null;const iv=setInterval(()=>{if(coreAt==null&&KingdomArt.loaded)coreAt=core()},50);KingdomArt.ready.then(()=>{clearInterval(iv);ok({ready:performance.now(),core:coreAt??performance.now()})},()=>{clearInterval(iv);ok({ready:-1,core:coreAt})})}));const ms=Math.round(t.ready);stop=true;
+    return {mbps,rttMs:rtt,toPlayableMs:ms,coreArtMs:Math.round(t.core),transferredMB:Math.round(bytes/1048576*10)/10,requests}}
   finally{await browser.close()}}
 async function run({only,mbps=20,rtt=40,secs=6,shot}={}){let chromium;try{({chromium}=require('playwright'))}catch(e){return {skipped:'playwright not available: '+e.message}}
   const server=await serve(),port=server.address().port,out={};try{

@@ -1,0 +1,21 @@
+{
+ "generated": "scripts/art/size-audio.cjs",
+ "files": {
+  "wind": {
+   "srcBytes": 3407168,
+   "bytes": 73214
+  },
+  "hooves": {
+   "srcBytes": 1886628,
+   "bytes": 73253
+  },
+  "boss-flame": {
+   "srcBytes": 1653248,
+   "bytes": 241406
+  },
+  "cow": {
+   "srcBytes": 574208,
+   "bytes": 85310
+  }
+ }
+}

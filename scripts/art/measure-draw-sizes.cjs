@@ -27,10 +27,15 @@ const HOOK=`(()=>{const prov=new WeakMap(),need={},key=s=>String(s).replace(/^.*
       if(ins.length){if(screen){const zd=(window.frontier?.camera?.z||1)*(window.FrontierRenderBudget?.dpr||devicePixelRatio||1);for(const [k,prod,mn] of ins)note(k,mn,prod*r/zd,null)}
         else{let p=prov.get(dst);if(!p)prov.set(dst,p=new Map());for(const [k,prod,mn] of ins){const np=prod*r,nm=Math.min(mn,np),o=p.get(k);p.set(k,o?[Math.max(o[0],np),Math.max(o[1],nm)]:[np,nm])}}}}catch(e){}
     return draw.call(this,src,...a)};
+  /* pixels also travel getImageData -> putImageData (often into a new canvas): carry the provenance with the ImageData */
+  const dataProv=new WeakMap(),gid=P.getImageData,pid=P.putImageData;P.getImageData=function(...a){const d=gid.apply(this,a);const p=prov.get(this.canvas);if(p)dataProv.set(d,new Map(p));return d};
+  P.putImageData=function(d,...a){const p=dataProv.get(d);if(p&&this.canvas){let q=prov.get(this.canvas);if(!q)prov.set(this.canvas,q=new Map());for(const [k,v] of p){const o=q.get(k);q.set(k,o?[Math.max(o[0],v[0]),Math.max(o[1],v[1])]:v)}}return pid.call(this,d,...a)};
   const full=(src,via)=>{const root=rootOf(src);const list=root?[root]:[...(prov.get(src)?.keys()||[])];for(const k of list){note(k,1,0,via);need[k].full=true}};
   const pat=P.createPattern;P.createPattern=function(src,...a){full(src,'pattern');return pat.call(this,src,...a)};
   const url=HTMLCanvasElement.prototype.toDataURL;HTMLCanvasElement.prototype.toDataURL=function(...a){const p=prov.get(this);if(p)for(const [k,v] of p)note(k,Math.min(1,v[1]),0,'dataURL');return url.apply(this,a)};
   window.__drawNeed=()=>need})();`;
+/* attack-art.js decode(): the frame cap (px) per action atlas, from the same defs the game uses */
+const LIMITS=async()=>{const D=KingdomSim.defs,m=await fetch('attack-manifest.json').then(r=>r.json()),o={};for(const e of m.entries)o[e.source.replace(/^.*assets\//,'')]=D[e.kind]?.monster?224:D[e.kind]?.domain||D[e.kind]?.role==='cannon'?192:160;return o};
 async function run({out=path.join(ROOT,'scripts/art/draw-sizes.json'),secs=3}={}){const {chromium}=require('playwright');const server=await serve(),port=server.address().port;
   const browser=await chromium.launch({args:['--disable-gpu'],...(process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH?{executablePath:process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH}:{})});
   try{const ctx=await browser.newContext({viewport:{width:1280,height:800}}),p=await ctx.newPage(),errors=[];p.on('pageerror',e=>errors.push(e.message));await p.addInitScript(HOOK);
@@ -46,7 +51,7 @@ async function run({out=path.join(ROOT,'scripts/art/draw-sizes.json'),secs=3}={}
       for(let i=0;i<plan.units.length;i+=12){made+=await batch(plan.units.slice(i,i+12),false);await p.waitForTimeout(secs*700)}
       for(let i=0;i<plan.blds.length;i+=6){made+=await batch(plan.blds.slice(i,i+6),true);await p.waitForTimeout(secs*300)}}
     await batch([],false);plan.made=made;plan.units=plan.units.length;plan.buildings=plan.blds.length;delete plan.blds;
-    const need=await p.evaluate(()=>window.__drawNeed()),loaded=await p.evaluate(()=>[...new Set(performance.getEntriesByType('resource').map(e=>e.name).filter(n=>/assets\/.*\.(png|jpg|webp)/.test(n)).map(n=>n.replace(/^.*?assets\//,'').replace(/[?#].*$/,'')))].sort());const result={generated:new Date().toISOString().slice(0,10),method:'scripts/art/measure-draw-sizes.cjs',plan:{units:plan.units,buildings:plan.buildings,made:plan.made},errors:errors.slice(0,5),loaded,unreached:loaded.filter(k=>!need[k]),need};
+    const need=await p.evaluate(()=>window.__drawNeed()),loaded=await p.evaluate(()=>[...new Set(performance.getEntriesByType('resource').map(e=>e.name).filter(n=>/assets\/.*\.(png|jpg|webp)/.test(n)).map(n=>n.replace(/^.*?assets\//,'').replace(/[?#].*$/,'')))].sort());const attackLimits=await p.evaluate(LIMITS);const result={attackLimits,generated:new Date().toISOString().slice(0,10),method:'scripts/art/measure-draw-sizes.cjs',plan:{units:plan.units,buildings:plan.buildings,made:plan.made},errors:errors.slice(0,5),loaded,unreached:loaded.filter(k=>!need[k]),need};
     fs.writeFileSync(out,JSON.stringify(result,null,1));return result}
   finally{await browser.close();server.close()}}
 module.exports={run};

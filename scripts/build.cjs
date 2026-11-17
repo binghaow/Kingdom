@@ -8,6 +8,14 @@ fs.mkdirSync(path.join(output,'server'),{recursive:true});
 const client=path.join(output,'client');if(fs.existsSync(client))fs.rmSync(client,{recursive:true});
 // Keep source recordings for review; omit the retired morning call and review-only mix from deployment.
 const sourceOnly=new Set(['audio/horn.mp3','audio/charge-preview.wav']);
+/* P2: atlases with a sized WebP copy (public/assets/sized, see scripts/art/size-assets.cjs) ship only that copy; the PNG/JPG stays in the
+   repo as the authored source. Files still named directly by CSS/HTML/manifest keep their original. Unreferenced atlases are not deployed. */
+const sizedManifest=JSON.parse(fs.readFileSync(path.join(source,'assets/sized/manifest.json'),'utf8'));
+const directRefs=new Set(['assets/ten-capitals.png'/* check-artifact.cjs asserts this file in dist */,'assets/world-atlas.png'/* imperial.css */,'assets/app-180.png','assets/app-192.png','assets/app-512.png']);
+for(const f of Object.keys(sizedManifest.assets))if(!directRefs.has('assets/'+f))sourceOnly.add('assets/'+f);
+for(const f of sizedManifest.unreferenced||[])sourceOnly.add('assets/'+f);
+/* trimmed SFX (scripts/art/size-audio.cjs): the client loads audio/sized/<key>.mp3 */
+for(const k of Object.keys(JSON.parse(fs.readFileSync(path.join(source,'audio/sized/manifest.json'),'utf8')).files))sourceOnly.add('audio/'+k+'.mp3');
 fs.cpSync(source,client,{recursive:true,filter:p=>!sourceOnly.has(path.relative(source,p).replaceAll('\\','/'))});
 const pngResult=optimizePngAssets(path.join(client,'assets'));
 const modules=new Map();
