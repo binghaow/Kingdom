@@ -3,7 +3,7 @@
 /* Pre-release routine check (AGENTS.md "发布前常规检查"): pathfinding + stuck units, simulation cost, render frame time,
    server/multiplayer latency. Compares every gated metric with scripts/release/baseline.json and prints PASS/WARN/FAIL.
    Writes docs/release-reports/<date>-<commit>.md and .json. Exit code 1 when any check FAILs.
-   usage: npm run release-check [-- --quick] [-- --update-baseline] [-- --only path,sim,render,net] [-- --no-report]
+   usage: npm run release-check [-- --quick] [-- --update-baseline] [-- --only path,sim,render,late,net,scale] [-- --no-report]
    Diagnostics only: all instrumentation lives in scripts/release and is attached to test instances or to pages opened with
    ?perf=1; no game file is changed and normal play is unaffected. */
 const fs=require('node:fs'),path=require('node:path'),os=require('node:os'),{execSync}=require('node:child_process'),{ROOT,now,r1,r2,args,calibrate,baselineCompatibility}=require('./lib.cjs');
@@ -54,6 +54,13 @@ function gate(results,base){const checks=[],speed=base?.calibrationMs&&results.c
     else if(R?.skipped)custom('后期','Playwright',0,null,'WARN',R.skipped)}
   checks.speed=speed;return checks}
 
+/* P1 (scale-target.md): 1000 units / 8 sides is over budget until P5, so it is reported (INFO, or WARN for spikes) and never FAILs;
+   replay consistency is a hard gate: standard recordings must replay identically 3 times and match the recorded checksums. */
+function scaleChecks(S){const out=[],c=(name,value,status,why,unit='')=>out.push({area:'规模 P1',name,value,baseline:null,unit,rule:'custom',status,why});if(!S)return out;const M=S.sim;
+  if(M){const n=`${M.units} 单位 ${M.nations} 国 8 组`;c(`${n} 每步均值（预算 ≤ 8）`,M.meanMs,'INFO',M.meanMs>8?`超预算 ${r2(M.meanMs/8)} 倍（P5 目标，只记录）`:'在预算内','ms');c(`${n} 每步 p95（预算 ≤ 16）`,M.p95,'INFO',M.p95>16?`超预算 ${r2(M.p95/16)} 倍（只记录）`:'在预算内','ms');c(`${n} 每步最大值`,M.max,'INFO','只记录','ms');
+    c(`${n} >40 ms 步（第 20 步后）`,M.over40Steady,M.over40Steady>0?'WARN':'INFO',M.over40Steady>0?`${M.over40Steady} 次（全程 ${M.over40} 次）；P5 前预期存在，只记录不判 FAIL`:'无');c(`${n} 多次运行状态一致`,M.deterministic?1:0,M.deterministic?'PASS':'FAIL',M.deterministic?'':'同一种子多次运行结果不同：确定性被破坏 '+M.checksums.join(' / '))}
+  for(const r of S.replays||[])c(`录像回放一致 ${r.replay}（3 次）`,r.same&&r.matchesRecorded&&!r.resultMismatch?1:0,r.same&&r.matchesRecorded&&!r.resultMismatch?'PASS':'FAIL',!r.same?'3 次回放校验值不同':!r.matchesRecorded?`与录制时校验值不同（${r.final} ≠ ${r.recorded}）；若玩法有意改动，需重录并说明`:r.resultMismatch?'指令返回值不同':'');
+  return out}
 function verdict(checks){return checks.some(c=>c.status==='FAIL')?'FAIL':checks.some(c=>c.status==='WARN')?'WARN':'PASS'}
 
 /* ---------- report ---------- */
@@ -61,7 +68,7 @@ const fmt=v=>v===null||v===undefined?'—':typeof v==='number'?String(r2(v)):Str
 function markdown(results,checks,base,elapsed){const V=verdict(checks),fails=checks.filter(c=>c.status==='FAIL'),warns=checks.filter(c=>c.status==='WARN'),L=[];
   L.push(`# 发布前常规检查 ${meta.date.slice(0,10)} · ${meta.commit}${meta.dirty?'（工作区有未提交改动）':''}`,'',a['update-baseline']?'## 结论：**BASELINE**（本次运行写入了新基线，未做门槛比较）':`## 结论：**${V}**`,'');
   L.push(`- 模式 ${mode}，分支 \`${meta.branch}\`，基线 ${base?`${base.meta?.commit}（${base.meta?.date?.slice(0,10)}，${base.meta?.mode}）`:'无'}，耗时 ${Math.round(elapsed)} 秒，Node ${meta.node}，${meta.cpus} 核；机器速度校准 ${results.calibrationMs} ms（基线 ${base?.results?.calibrationMs??'—'} ms，耗时项按系数 ${r2(checks.speed??1)} 校正后再比较）。`);
-  L.push(`- ${checks.length} 项门槛：PASS ${checks.filter(c=>c.status==='PASS').length} · WARN ${warns.length} · FAIL ${fails.length}。任何 FAIL 都不得发布（AGENTS.md）。`);
+  L.push(`- ${checks.length} 项门槛：PASS ${checks.filter(c=>c.status==='PASS').length} · INFO ${checks.filter(c=>c.status==='INFO').length} · WARN ${warns.length} · FAIL ${fails.length}。任何 FAIL 都不得发布（AGENTS.md）。`);
   for(const c of [...fails,...warns])L.push(`- **${c.status}** ${c.area} · ${c.name}：${fmt(c.value)}${c.unit} vs 基线 ${fmt(c.baseline)}${c.unit} — ${c.why}`);
   const P=results.path;if(P){const all=P.scenarios.flatMap(s=>s.stuck.samples);L.push('','## 卡住单位',`规则：有移动意图（路径或远处的移动/攻击/采集目标）、未在战斗或工作、${P.stuckRule.windowSec} 秒内位移 < ${P.stuckRule.thresholdPx} 像素；挤在共同终点附近的单位与“目标被围死”的预期情况单列，不计入卡住数。`,'');
     L.push('| 场景 | 卡住 | 终点拥挤 | 预期不可达 | 分类 |','|---|---|---|---|---|');for(const s of P.scenarios)L.push(`| ${s.scenario} | ${s.stuck.stuckUnits} | ${s.stuck.crowdedAtGoal} | ${s.stuck.expectedUnreachable} | ${Object.entries(s.stuck.byReason).map(([k,v])=>k+' '+v).join('，')||'—'} |`);
@@ -78,6 +85,8 @@ function markdown(results,checks,base,elapsed){const V=verdict(checks),fails=che
   const N=results.net;if(N){L.push('','## 服务器与联机','','| 场景 | 检查点 | 单位 | CPU/轮询 均值/p50/p95/max ms | 响应 KB | gzip KB | 存档 gzip KB | 恢复后首步 冷/缓存 ms |','|---|---|---|---|---|---|---|---|');for(const [who,rows] of [['2 人·迷雾关',N.opening],['4 人·迷雾开',N.fourSeats]])for(const r of rows)L.push(`| ${who} | ${r.label} | ${r.units} | ${r.cpuMeanMs}/${r.cpuP50}/${r.cpuP95}/${r.cpuMax} | ${r.respKB} | ${r.respGzKB} | ${r.storedGzKB} | ${r.firstTickAfterHydrateMs}/${r.firstTickCachedMs} |`);
     const c=N.conflicts;L.push('',`冲突重算（实测，进程内，4 席位同时到达 ${c.rounds} 轮 ${c.requests} 个请求）：乐观锁失败 ${c.lostRaces} 次 = ${c.conflictsPerReq} 次/请求，失败请求 ${c.failedRequests}；每轮 CPU 顺序到达 ${c.cpuPerRoundSequentialMs} ms → 同时到达 ${c.cpuPerRoundSimultaneousMs} ms（+${c.extraCpuPct}%）。`);
     L.push('','下令到首次位移（模型，'+N.assumptions+'）：','','| 场景 | RTT ms | CPU ms | 冲突 次/请求（模型） | 指令确认 均值 (p95) ms | 权威位移可见 均值 (p95) ms | 己方单位起步 |','|---|---|---|---|---|---|---|');for(const l of N.latency)L.push(`| ${l.scenario} | ${l.rttMs} | ${l.cpuMs} | ${l.conflictsPerReqModel} | ${l.ackMeanMs} (${l.ackP95Ms}) | ${l.firstMoveMeanMs} (${l.firstMoveP95Ms}) | 下一帧（本地预测） |`)}
+  const SC=results.scale;if(SC){const M=SC.sim;L.push('','## 规模基准 1000 单位 / 8 组（P1，只记录不判 FAIL）','',`Node：${M.note}，coast_l，AI 开，${M.steps} 步 × ${M.reps} 次中位数：每步均值 ${M.meanMs} ms，p50 ${M.p50}，p95 ${M.p95}，max ${M.max}，>16 ms 步 ${M.over16}，>40 ms 步 ${M.over40}（第 20 步后 ${M.over40Steady}，最大 ${M.maxSteady} ms）；预算（scale-target.md 第 2 节）均值 ≤ 8 ms、p95 ≤ 16 ms。多次运行状态一致：${M.deterministic?'是':'否'}（${[...new Set(M.checksums)].join(' / ')}）。`);
+    if(SC.replays?.length){L.push('','录像回放（3 次）：','','| 录像 | 步数 | 玩家指令 | 校验值 | 3 次一致 | 与录制一致 | 最终 |','|---|---|---|---|---|---|---|');for(const r of SC.replays)L.push(`| ${r.replay} | ${r.steps} | ${r.commands} | ${r.checksums} | ${r.same?'是':'否'} | ${r.matchesRecorded?'是':'否'} | ${r.final} |`)}}
   L.push('','## 全部门槛','','| 状态 | 类别 | 项目 | 当前 | 基线 | 说明 |','|---|---|---|---|---|---|');for(const c of checks)L.push(`| ${c.status} | ${c.area} | ${c.name} | ${fmt(c.value)}${c.unit} | ${fmt(c.baseline)}${c.unit} | ${c.why} |`);
   L.push('','## 仍需真机验证（本检查不能代替）','','- iPhone 17 / iPad 实机 `?perf=1` 帧率、render/scene、发热与降频（headless 无 GPU，数字只用于提交之间比较）。','- Safari/WebKit 上的渲染与内存（这里只测 Chromium）。','- Cloudflare Worker / D1 实际 CPU、isolate 复用率、D1 往返和真实冲突率；跨设备、弱网、丢包、后台恢复。','- 触控操作、HUD 布局与双语文本（Frontier UI audit 另行执行）。');
   return L.join('\n')+'\n'}
@@ -89,6 +98,7 @@ function markdown(results,checks,base,elapsed){const V=verdict(checks),fails=che
   await step('render','渲染帧耗时（Playwright）',()=>require('./render-cost.cjs').run({quick}));
   await step('late','后期 400+ 单位（模拟 + 浏览器）',()=>require('./late-cost.cjs').run({quick}));
   await step('net','服务器与联机延迟',()=>require('./net-cost.cjs').run({quick}));
+  await step('scale','规模基准 1000 单位 / 8 组 + 录像回放一致（P1）',()=>require('./scale-cost.cjs').run({quick}));
   results.calibrationMs=r2((cal0+calibrate())/2);const elapsed=(now()-t0)/1000;
   if(a['update-baseline']){const next=base||{},previous=base?.[mode]?.results;next[mode]={meta,results};next.meta={updated:meta.date,commit:meta.commit,branch:meta.branch,note:'release-check baselines; full and quick runs are compared only with the same mode. Regenerate with npm run release-check -- --update-baseline [--quick] on the same machine.'};if(only&&previous)next[mode].results={...previous,...results};fs.writeFileSync(BASELINE,JSON.stringify(next,null,1)+'\n');console.log(`[release-check] baseline (${mode}) written to ${path.relative(ROOT,BASELINE)}`)}
   const ref=a['update-baseline']?null:baseMode?.results;let checks=[];
@@ -97,6 +107,7 @@ function markdown(results,checks,base,elapsed){const V=verdict(checks),fails=che
     else checks=gate(results,ref?{...ref,meta:baseMode.meta}:null);
     if(baseMode&&!compat.compatible&&results.render?.skipped)checks.push({area:'渲染',name:'Playwright',value:0,baseline:null,unit:'',rule:'custom',status:'WARN',why:results.render.skipped});
   }
+  if(!a['update-baseline'])checks.push(...scaleChecks(results.scale));
   if(ref&&compat.compatible&&!ref.calibrationMs)checks.push({area:'机器',name:'速度校准',value:results.calibrationMs,baseline:null,unit:'ms',rule:'custom',status:'WARN',why:'基线没有速度校准，耗时项未校正；请重建基线'});const V=a['update-baseline']?'BASELINE':verdict(checks);
   const md=markdown(results,checks,a['update-baseline']?null:baseMode,elapsed);
   if(!a['no-report']){fs.mkdirSync(REPORTS,{recursive:true});const name=`${meta.date.slice(0,10)}-${meta.commit}${quick?'-quick':''}`;fs.writeFileSync(path.join(REPORTS,name+'.md'),md);fs.writeFileSync(path.join(REPORTS,name+'.json'),JSON.stringify({verdict:V,meta,baseline:baseMode?.meta||null,checks,results},null,1)+'\n');console.log(`[release-check] report: docs/release-reports/${name}.md`)}
