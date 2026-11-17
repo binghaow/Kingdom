@@ -327,3 +327,7 @@ Full `npm test` and `npm run build` passed. Local browser preview could not conn
 - 第一次完整运行时共享虚拟机被其他任务的 Playwright 占满（速度校准 78 ms，对基线 33 ms，超过 1.6 倍校正上限），13 个耗时项 FAIL（含未改动的渲染与迷雾），无效；第二次（校准 1.54 倍）仅“50 单位每步均值” FAIL。同机 A/B（改前 9b3cbb0 与本分支轮流跑 `sim-scaling.cjs`）：50 单位作为进程内第一行（冷启动）时本分支约 +0.35 ms，热身后（100,50 顺序）两边持平（改前 1.98–2.67 ms，本分支 2.02–2.70 ms），200/400 单位持平；判定为冷启动 JIT 噪声。
 - 机器空闲后第三次完整运行：**PASS 91 · WARN 3 · FAIL 0**，报告 `docs/release-reports/2026-11-11-35196bd.md`（报告标注“工作区有未提交改动”只指本文档，游戏代码已提交）。3 个 WARN 都是 headless 渲染帧间隔（+26–28%），渲染代码未改动、每帧 drawImage / filter 次数均 PASS，运行期间负载约 3.8（另一小任务在跑），属噪声。
 - 改前报告保留为 `docs/release-reports/2026-11-11-4c286f7.md`。卡住单位数、首段受阻丢弃、围攻场景 A* 次数与展开节点是有意的改善，之后用 `--update-baseline`（完整与快速两种模式）重建基线，记录在下一节提交说明里。
+
+## v44 后期 400–500 单位（feature/late-game-perf）
+
+详见 [late-game-perf-v44.md](late-game-perf-v44.md)：Node 后期场景每步均值 19.1→8.3 ms、p95 49.8→18.5 ms，状态指纹与 main 逐位一致（5 个场景 × 1200 步）；headless 1920×1080 四军同屏 FPS 8.6→12、每帧 JS 54.8→30.7 ms。release-check 新增「后期」一节与对应基线（旧基线未改）。
