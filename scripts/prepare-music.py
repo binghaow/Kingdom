@@ -15,6 +15,7 @@ TRACKS = {  # source in music/ -> output in public/audio/music/
     'sunlight-on-the-orchard-b.mp3': 'sunlight-orchard.mp3',
     'cobblestone-celebration-c.mp3': 'cobblestone-celebration.mp3',
     'unseen-gambit-tension-a.mp3': 'unseen-gambit.mp3',
+    'against-the-stone-gates-battle-a.mp3': 'stone-gates.mp3',
 }
 TARGET, PEAK, LRA = -17.5, -1.5, 11
 TRIM = ('silenceremove=start_periods=1:start_threshold=-40dB:start_silence=0.05,'
