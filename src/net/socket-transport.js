@@ -19,8 +19,10 @@ export class SocketTransport {
     if (this.stopped || this.fatal) return this;
     const c = this.client; let ws;
     try { ws = this.ws = new this.WS(this.url); } catch (e) { this.fail('socket unavailable: ' + (e?.message || e)); return this; }
-    let opened = false;
-    const guard = setTimeout(() => { if (!opened) { try { ws.close(); } catch { /* ignore */ } } }, this.connectTimeout);
+    let opened = false, ended = false;
+    // Some runtimes (Node's undici) report a refused upgrade only as 'error' and never fire 'close', so every way a socket
+    // can end goes through ended(), once.
+    const guard = setTimeout(() => { if (!opened) end(); }, this.connectTimeout);
     ws.onopen = () => {
       opened = true; clearTimeout(guard); this.open = true; this.everOpen = true; this.failedConnects = 0;
       this.raw({ type: 'hello', seat: c.seat, token: this.token, proto: 1, last: c.sealed });
@@ -35,7 +37,8 @@ export class SocketTransport {
       else if (msg.type === 'desync') c.desync = msg.ds;
       else if (msg.type === 'error' && !msg.retry) { this.fatal = new Error(msg.error); this.onError?.(this.fatal, true); }
     };
-    ws.onclose = () => {
+    const end = () => {
+      if (ended) return; ended = true; try { ws.close(); } catch { /* ignore */ }
       clearTimeout(guard); const was = this.open; this.open = false;
       if (this.stopped || this.fatal || ws !== this.ws) return;
       if (!opened) { if (++this.failedConnects >= 2) return this.fail('connect failed'); return setTimeout(() => this.start(), 300); }
@@ -44,7 +47,8 @@ export class SocketTransport {
       this.reconnects++; c.stats.reconnects = this.reconnects;
       setTimeout(() => this.start(), was && this.drops.length === 1 ? 0 : 250 * this.drops.length);
     };
-    ws.onerror = () => {};
+    ws.onclose = end;
+    ws.onerror = () => { if (!opened) end(); };
     clearInterval(this.timer);
     this.timer = setInterval(() => {
       if (!this.open) return;

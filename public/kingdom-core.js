@@ -712,14 +712,9 @@
         this.fail("socket unavailable: " + (e?.message || e));
         return this;
       }
-      let opened = false;
+      let opened = false, ended = false;
       const guard = setTimeout(() => {
-        if (!opened) {
-          try {
-            ws.close();
-          } catch {
-          }
-        }
+        if (!opened) end();
       }, this.connectTimeout);
       ws.onopen = () => {
         opened = true;
@@ -754,7 +749,13 @@
           this.onError?.(this.fatal, true);
         }
       };
-      ws.onclose = () => {
+      const end = () => {
+        if (ended) return;
+        ended = true;
+        try {
+          ws.close();
+        } catch {
+        }
         clearTimeout(guard);
         const was = this.open;
         this.open = false;
@@ -771,7 +772,9 @@
         c.stats.reconnects = this.reconnects;
         setTimeout(() => this.start(), was && this.drops.length === 1 ? 0 : 250 * this.drops.length);
       };
+      ws.onclose = end;
       ws.onerror = () => {
+        if (!opened) end();
       };
       clearInterval(this.timer);
       this.timer = setInterval(() => {

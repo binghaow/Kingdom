@@ -102,7 +102,9 @@ async function main(o = args()) {
   const cpu = process.cpuUsage(cpu0), wall = (Date.now() - wall0) / 1000, requests = meter.lockstep - req0;
   const bySeat = [...meter.bySeat].map(([k, m]) => [k, { ...m }]), wsBytes = ws ? { in: ws.meter.bytesIn, out: ws.meter.bytesOut, sockets: ws.meter.sockets } : null;
   // Recording download (design 9.4) and a headless replay of it.
-  const rec = await api(base, '/api/lockstep/' + room.id, { replay: 1 }, room.seats[0].token);
+  // In B1 (--durable) the commands live in the room object, which serves the recording in production (durable.cjs poll).
+  const object = o.durable && ws?.objects.get(room.id);
+  const rec = object ? core.recording(object.relay.setup, object.relay.rows, { period: object.relay.period, seats: room.seats.map((x) => ({ seat: x.seat, team: x.team })) }) : await api(base, '/api/lockstep/' + room.id, { replay: 1 }, room.seats[0].token);
   const { replayLockstep } = await import(pathToFileURL(path.join(ROOT, 'src/net/lockstep.js')).href);
   const K = require(path.join(ROOT, 'public/network-model.js')), commands = require(path.join(ROOT, 'public/network-commands.js'));
   const replay = replayLockstep(K, commands, { ...rec, turns });
