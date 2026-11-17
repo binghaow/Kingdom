@@ -147,6 +147,7 @@
     VERSION: () => VERSION,
     attachRecorder: () => attachRecorder,
     compareWithRecording: () => compareWithRecording,
+    createReplayRunner: () => createReplayRunner,
     decodeArg: () => decodeArg,
     encodeArg: () => encodeArg,
     firstDifference: () => firstDifference,
@@ -303,7 +304,7 @@
     };
     return api;
   }
-  function runReplay(K, replay, { steps, every, onStep, Sim } = {}) {
+  function createReplayRunner(K, replay, { steps, every, onStep, onCheckpoint, Sim } = {}) {
     if (!replay || replay.format !== FORMAT) throw Error("not a kingdom replay");
     if (replay.version > VERSION) throw Error(`replay version ${replay.version} is newer than this player (${VERSION})`);
     const Ctor = Sim || K.Sim, total = steps ?? replay.steps, interval = every ?? (replay.every || DEFAULT_EVERY);
@@ -315,27 +316,53 @@
       byStep.get(c.s).push(c);
     }
     const checksums = [], mismatch = [];
-    let dtNext = null;
-    for (let step = 0; step < total; step++) {
-      for (const c of byStep.get(step) || []) {
-        if (c.dt !== void 0) {
-          dtNext = c.dt;
-          continue;
+    let dtNext = null, step = 0;
+    return {
+      sim,
+      total,
+      checksums,
+      mismatch,
+      get step() {
+        return step;
+      },
+      get done() {
+        return step >= total;
+      },
+      run(n = Infinity) {
+        for (let i = 0; i < n && step < total; i++, step++) {
+          for (const c of byStep.get(step) || []) {
+            if (c.dt !== void 0) {
+              dtNext = c.dt;
+              continue;
+            }
+            const fn = sim[c.m];
+            if (typeof fn !== "function") {
+              mismatch.push({ step, m: c.m, why: "method missing" });
+              continue;
+            }
+            const r = resultOf(fn.apply(sim, c.a.map((a) => decodeArg(sim, a))));
+            if (c.r !== void 0 && JSON.stringify(r) !== JSON.stringify(c.r)) mismatch.push({ step, m: c.m, expected: c.r, got: r });
+          }
+          sim.tick(dtNext ?? STEP);
+          dtNext = null;
+          if (interval > 0 && (step + 1) % interval === 0) {
+            const entry = { step: step + 1, hash: checksum(sim).hash };
+            checksums.push(entry);
+            if (onCheckpoint) onCheckpoint(sim, step + 1, entry);
+          }
+          if (onStep) onStep(sim, step + 1);
         }
-        const fn = sim[c.m];
-        if (typeof fn !== "function") {
-          mismatch.push({ step, m: c.m, why: "method missing" });
-          continue;
-        }
-        const r = resultOf(fn.apply(sim, c.a.map((a) => decodeArg(sim, a))));
-        if (c.r !== void 0 && JSON.stringify(r) !== JSON.stringify(c.r)) mismatch.push({ step, m: c.m, expected: c.r, got: r });
+        return step >= total;
+      },
+      result() {
+        return { steps: total, checksums, final: { step: total, ...checksum(sim) }, results: { mismatch }, sim };
       }
-      sim.tick(dtNext ?? STEP);
-      dtNext = null;
-      if (interval > 0 && (step + 1) % interval === 0) checksums.push({ step: step + 1, hash: checksum(sim).hash });
-      if (onStep) onStep(sim, step + 1);
-    }
-    return { steps: total, checksums, final: { step: total, ...checksum(sim) }, results: { mismatch }, sim };
+    };
+  }
+  function runReplay(K, replay, options = {}) {
+    const runner = createReplayRunner(K, replay, options);
+    runner.run();
+    return runner.result();
   }
   function compareWithRecording(result, recording) {
     if (recording.checksums && recording.checksums.length) {

@@ -331,3 +331,7 @@ Full `npm test` and `npm run build` passed. Local browser preview could not conn
 ## v44 后期 400–500 单位（feature/late-game-perf）
 
 详见 [late-game-perf-v44.md](late-game-perf-v44.md)：Node 后期场景每步均值 19.1→8.3 ms、p95 49.8→18.5 ms，状态指纹与 main 逐位一致（5 个场景 × 1200 步）；headless 1920×1080 四军同屏 FPS 8.6→12、每帧 JS 54.8→30.7 ms。release-check 新增「后期」一节与对应基线（旧基线未改）。
+
+## 运行期内存预算（feature/memory-and-device-check）
+
+详见 [memory-budget.md](memory-budget.md)：图集改用 createImageBitmap 解码进画布、运行期派生画布缓存统一进 160/96/64 MB 的全局 LRU 预算。后期 412 单位场景渲染进程内存（headless Chromium）电脑 955→666 MB、手机配置 961→629 MB，late-render HUD render p50 26→22 ms、release-check 渲染场景未变慢；仍高于 400/300 MB 目标，剩余为渲染进程地板与常驻帧图（P6）。真机未测。

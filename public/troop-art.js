@@ -1,5 +1,5 @@
 /* Nation, equipment and era aware silhouettes. Each weapon and vehicle is drawn by function. */
-(()=>{'use strict';const A=window.KingdomArt,K=window.KingdomSim,P=window.KingdomArtProfiles,D=K.defs,old=A.unit,measure=A.measure,icon=A.icon,cache=new Map(),icons=new Map();
+(()=>{'use strict';const A=window.KingdomArt,K=window.KingdomSim,P=window.KingdomArtProfiles,D=K.defs,old=A.unit,measure=A.measure,icon=A.icon,cache=(globalThis.KingdomArt?.canvasCache?.('troop-art:cache')||new Map()),icons=new Map();
 const make=(w,h)=>Object.assign(document.createElement('canvas'),{width:Math.ceil(w),height:Math.ceil(h)});
 function line(c,x,y,X,Y,color,w=2){c.strokeStyle=color;c.lineWidth=w;c.lineCap='round';c.beginPath();c.moveTo(x,y);c.lineTo(X,Y);c.stroke()}
 function oval(c,x,y,rx,ry,color){c.fillStyle=color;c.beginPath();c.ellipse(x,y,rx,ry,0,0,7);c.fill()}

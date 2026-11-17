@@ -42,6 +42,7 @@ P0 结果（2026-11-17，`feature/p0-spread-spikes`，见 `docs/p0-spread-spikes
 
 P1 结果（2026-11-17，`feature/p1-foundations`，见 `docs/p1-foundations.md`）：**1000 单位基准（5 国 × 200 单位，座位上限 5，军队分 8 组在 4 条战线对冲，coast_l，AI 开）每步均值 22.0–22.3 ms、p50 20–21 ms、p95 32.7–33.2 ms、最大 67–75 ms，第 20 步后 >40 ms 4–11 次**（本机 Node，600 步 × 3 次中位数，两次完整 release-check）——均值超预算约 2.8 倍、p95 约 2 倍，留给 P5；release-check 只记录（INFO/WARN）。录像回放（4 张地图各 60 s，含玩家指令）3 次一致且与录制时校验值相同；校验值每 20 步一个（FNV-1a，按 id 排序、1/100 量化）。跨引擎：Chromium 与 Node 一致；WebKit/Safari/iPhone 尚未验证（本机没有 WebKit），方法见 p1-foundations.md 第 6 节。
 P2 素材流水线结果（2026-11-17，`feature/p2-asset-pipeline`，测法见 `docs/p2-asset-pipeline.md`）：首次加载到可玩（20 Mbit/s、40 ms）43.5 s → 9.8 s；部署包 270 → 76 MB；图集解码像素总量 775 → 447 MB（首屏 207 MB）；后期 412 单位场景渲染进程内存（无头 Chromium）约 1400 → 960 MB，**仍未达到 400 / 300 MB**，剩余主要是逐帧缓存画布（约 310 MB）和解码过程的分配器占用，需 P6 渲染改造继续压。
+内存预算与真机一致性（2026-11-17，`feature/memory-and-device-check`，见 `docs/memory-budget.md`、`docs/device-consistency-check.md`）：图集改为 `createImageBitmap` 解码进画布（不再在 Chromium 的可丢弃共享内存里常驻约 2 倍像素的解码缓存），所有运行期派生画布缓存（队伍色、攻击动作集、点选遮罩/幽灵、步态帧、建筑变体等 17 个）纳入一个全局 LRU 字节预算（电脑 160 MB、触屏 96 MB、低内存设备 64 MB）。后期 412 单位场景渲染进程内存（无头 Chromium，同一测法）电脑 **955 → 666 MB**、手机配置 **961 → 629 MB**，渲染耗时未变差（late-render render p50 26 → 22 ms）；**仍未达到 400 / 300 MB**：剩余约 284 MB 渲染进程地板、约 190 MB 启动时切好的常驻帧图和地形烘焙（留给 P6）、约 136 MB 预算内缓存。新增 `/consistency.html`：在任意浏览器里回放 3 段标准录像（战斗/建造/经济，40–60 s），每 1 秒对照 Node 生成的校验值，供 iPhone/iPad/Safari 真机自测；Chromium 全部一致，Safari 待用户真机结果。
 
 ## 3. 目标架构
 
