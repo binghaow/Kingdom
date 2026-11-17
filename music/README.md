@@ -13,6 +13,8 @@ This folder holds source music for Frontier Kingdom. It is outside `public/`, so
 | `cobblestone-celebration-c.mp3` | Cobblestone Celebration | Piece C | 3:02, MP3 192 kbps, 44.1 kHz stereo；-11.6 LUFS，true peak +0.1 dBTP；开头无静音、结尾约 2.4 s 静音 | Google Gemini app 生成（Lyria 音乐模型），项目作者 2026-11-14 提供，与 Piece A 同一流程。含 SynthID 隐形水印。**App 内再分发授权待确认** / Generated in the Gemini app (Lyria); redistribution rights unverified | 原文件，未修改（SHA-256 `421a22ce…5dbdfdf0`）；已进游戏，见 `docs/music-director.md` |
 | `unseen-gambit-tension-a.mp3` | The Unseen Gambit | Tension A | 1:58, MP3 192 kbps, 44.1 kHz stereo；-11.7 LUFS，true peak +0.2 dBTP；开头无静音、结尾约 0.4 s 静音 | Google Gemini app 生成（Lyria 音乐模型），项目作者 2026-11-14 提供，与 Piece A 同一流程。含 SynthID 隐形水印。**App 内再分发授权待确认** / Generated in the Gemini app (Lyria); redistribution rights unverified | 原文件，未修改（SHA-256 `3a7aef43…555bd743`）；已进游戏，见 `docs/music-director.md` |
 | `against-the-stone-gates-battle-a.mp3` | Against the Stone Gates | Battle A | 2:03, MP3 192 kbps, 44.1 kHz stereo | Google Gemini 生成，项目作者 2026-11-16 提供 / Generated in Gemini by the project author | 原文件（SHA-256 `2d3aa90a...ead1a670`）；与 Tension A 交替作为战斗音乐 |
+| `breach-at-the-gate-battle-b.mp3` | Breach at the Gate | Battle B | 2:03, MP3 192 kbps, 44.1 kHz stereo | Google Gemini 生成，项目作者 2026-11-16 提供 | 原文件（SHA-256 `d9aae051…acc7173e`）；战斗音乐三首轮换之一 |
+| `rise-of-the-sovereign-victory.mp3` | Rise of the Sovereign | Victory | 1:02, MP3 192 kbps, 44.1 kHz stereo | Google Gemini 生成，项目作者 2026-11-16 提供 | 原文件（SHA-256 `72084487…c7c0179c`）；胜利时播放一次 |
 
 ## 进游戏 / In-game use
 
