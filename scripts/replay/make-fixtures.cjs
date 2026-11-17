@@ -38,6 +38,6 @@ function player(sim,step,K){const s=sim.s,D=K.defs,town=s.buildings.find(b=>b.te
     const out=rec.export();out.meta.created=null;out.meta.name=c.name;
     const ai=new Set(sim.s.units.filter(u=>u.team>0).map(u=>u.team));
     const text=JSON.stringify(out,null,0)+'\n',target=path.join(FIXTURES,c.name+'.json');
-    if(dry){const same=fs.existsSync(target)&&fs.readFileSync(target,'utf8')===text;console.log(`${c.name}: ${same?'IDENTICAL to fixtures':'DIFFERENT from fixtures'}`);if(!same)process.exitCode=1;continue}
+    if(dry){const same=fs.existsSync(target)&&fs.readFileSync(target,'utf8').replace(/\r\n/g,'\n')===text;console.log(`${c.name}: ${same?'IDENTICAL to fixtures':'DIFFERENT from fixtures'}`);if(!same)process.exitCode=1;continue}
     fs.writeFileSync(target,text);
     console.log(`${c.name}: ${out.steps} steps, ${out.commands.length} player commands (${[...new Set(out.commands.map(c=>c.m))].join(',')}), ${out.checksums.length} checksums, final ${out.final.hash}, units ${out.final.units}, computer teams active ${[...ai].join(',')}`)}})().catch(e=>{console.error(e);process.exit(1)});

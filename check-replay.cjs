@@ -28,6 +28,6 @@ const fs=require('node:fs'),path=require('node:path'),assert=require('node:asser
     console.log(`PASS replay ${f}: ${data.steps} steps, ${data.commands.length} player commands, ${runs.length}+1 replays identical, ${data.checksums.length} checksums match the recorded game (final ${data.final.hash}), computer teams ${[...teams].join(',')} reproduced from the seed`)}
   assert(maps.size>=3,'need at least 3 different maps');
   // Re-playing the same scripted player through the recorder gives the same command list (capture itself is deterministic).
-  const gen=spawnSync(process.execPath,[path.join(__dirname,'scripts/replay/make-fixtures.cjs'),'--dry'],{encoding:'utf8'});assert.equal(gen.status,0,gen.stderr);assert(/IDENTICAL to fixtures/.test(gen.stdout),gen.stdout);
-  console.log('PASS replay capture: re-recording the scripted games reproduces every fixture byte for byte');
+  const gen=spawnSync(process.execPath,[path.join(__dirname,'scripts/replay/make-fixtures.cjs'),'--dry'],{encoding:'utf8'});assert.equal(gen.status,0,gen.stderr+gen.stdout);assert(/IDENTICAL to fixtures/.test(gen.stdout),gen.stdout);
+  console.log('PASS replay capture: re-recording the scripted games reproduces every fixture with canonical LF line endings');
 })().catch(e=>{console.error('FAIL',e.message);process.exit(1)});
