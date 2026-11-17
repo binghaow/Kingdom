@@ -117,10 +117,11 @@ export function attachRecorder(sim, setup, { every = DEFAULT_EVERY, onCommand = 
   return api;
 }
 
-/* Run a replay headlessly. Returns { checksums:[{step,hash}], final, results:{mismatch:[...]}, steps }.
-   options.steps: stop early / run longer than recorded; options.every overrides the checksum interval;
-   options.onStep(sim, step) is called after every tick (benchmarks, debugging). */
-export function runReplay(K, replay, { steps, every, onStep, Sim } = {}) {
+/* Step-wise replay runner: the same loop as runReplay, but the caller decides how many steps to run at a time (the device
+   consistency page, public/consistency.html, runs a few hundred steps per animation frame so a phone stays responsive).
+   runner.run(n) advances up to n steps and returns true when finished; runner.result() gives what runReplay returns.
+   options.onCheckpoint(sim, step, entry) is called at every checksum (entry = {step, hash}). */
+export function createReplayRunner(K, replay, { steps, every, onStep, onCheckpoint, Sim } = {}) {
   if (!replay || replay.format !== FORMAT) throw Error('not a kingdom replay');
   if (replay.version > VERSION) throw Error(`replay version ${replay.version} is newer than this player (${VERSION})`);
   const Ctor = Sim || K.Sim, total = steps ?? replay.steps, interval = every ?? (replay.every || DEFAULT_EVERY);
@@ -129,20 +130,41 @@ export function runReplay(K, replay, { steps, every, onStep, Sim } = {}) {
   const byStep = new Map();
   for (const c of replay.commands) { if (!byStep.has(c.s)) byStep.set(c.s, []); byStep.get(c.s).push(c); }
   const checksums = [], mismatch = [];
-  let dtNext = null;
-  for (let step = 0; step < total; step++) {
-    for (const c of byStep.get(step) || []) {
-      if (c.dt !== undefined) { dtNext = c.dt; continue; }
-      const fn = sim[c.m];
-      if (typeof fn !== 'function') { mismatch.push({ step, m: c.m, why: 'method missing' }); continue; }
-      const r = resultOf(fn.apply(sim, c.a.map((a) => decodeArg(sim, a))));
-      if (c.r !== undefined && JSON.stringify(r) !== JSON.stringify(c.r)) mismatch.push({ step, m: c.m, expected: c.r, got: r });
-    }
-    sim.tick(dtNext ?? STEP); dtNext = null;
-    if (interval > 0 && (step + 1) % interval === 0) checksums.push({ step: step + 1, hash: checksum(sim).hash });
-    if (onStep) onStep(sim, step + 1);
-  }
-  return { steps: total, checksums, final: { step: total, ...checksum(sim) }, results: { mismatch }, sim };
+  let dtNext = null, step = 0;
+  return {
+    sim, total, checksums, mismatch,
+    get step() { return step; },
+    get done() { return step >= total; },
+    run(n = Infinity) {
+      for (let i = 0; i < n && step < total; i++, step++) {
+        for (const c of byStep.get(step) || []) {
+          if (c.dt !== undefined) { dtNext = c.dt; continue; }
+          const fn = sim[c.m];
+          if (typeof fn !== 'function') { mismatch.push({ step, m: c.m, why: 'method missing' }); continue; }
+          const r = resultOf(fn.apply(sim, c.a.map((a) => decodeArg(sim, a))));
+          if (c.r !== undefined && JSON.stringify(r) !== JSON.stringify(c.r)) mismatch.push({ step, m: c.m, expected: c.r, got: r });
+        }
+        sim.tick(dtNext ?? STEP); dtNext = null;
+        if (interval > 0 && (step + 1) % interval === 0) {
+          const entry = { step: step + 1, hash: checksum(sim).hash };
+          checksums.push(entry);
+          if (onCheckpoint) onCheckpoint(sim, step + 1, entry);
+        }
+        if (onStep) onStep(sim, step + 1);
+      }
+      return step >= total;
+    },
+    result() { return { steps: total, checksums, final: { step: total, ...checksum(sim) }, results: { mismatch }, sim }; },
+  };
+}
+
+/* Run a replay headlessly. Returns { checksums:[{step,hash}], final, results:{mismatch:[...]}, steps }.
+   options.steps: stop early / run longer than recorded; options.every overrides the checksum interval;
+   options.onStep(sim, step) is called after every tick (benchmarks, debugging). */
+export function runReplay(K, replay, options = {}) {
+  const runner = createReplayRunner(K, replay, options);
+  runner.run();
+  return runner.result();
 }
 
 /* Compare a replay result with a recording: the recorded checksums when it has any (a normal game records none, only the final
