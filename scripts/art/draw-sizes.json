@@ -1,0 +1,545 @@
+{
+ "attackLimits": {
+  "attack-villager-v34.png": 160,
+  "attack-infantry-v34.png": 160,
+  "attack-archer-v34.png": 160,
+  "attack-cavalry-v34.png": 160,
+  "attack-musketeer-v34.png": 160,
+  "attack-grenadier-v34.png": 160,
+  "attack-cannon-v34.png": 192,
+  "attack-healer-v34.png": 160,
+  "attack-halberd-v34.png": 160,
+  "attack-skirmisher-v34.png": 160,
+  "attack-hussar-v34.png": 160,
+  "attack-mortar-v34.png": 192,
+  "attack-longbow-v34.png": 160,
+  "attack-cuirassier-v34.png": 160,
+  "attack-repeater-v34.png": 160,
+  "attack-fishingboat-v34.png": 192,
+  "attack-sloop-v34.png": 192,
+  "attack-frigate-v34.png": 192,
+  "attack-bombketch-v34.png": 192,
+  "attack-transport-v34.png": 192,
+  "attack-trader-v34.png": 160,
+  "attack-samurai-v34.png": 160,
+  "attack-janissary-v34.png": 160,
+  "attack-streltsy-v34.png": 160,
+  "attack-prussianguard-v34.png": 160,
+  "attack-tercio-v34.png": 160,
+  "attack-nassau-v34.png": 160,
+  "attack-continental-v34.png": 160,
+  "attack-eliteguard-v34.png": 160,
+  "attack-dragoon-v34.png": 160,
+  "attack-engineer-v34.png": 160,
+  "attack-howitzer-v34.png": 192,
+  "attack-hero_britain-v34.png": 160,
+  "attack-hero_france-v34.png": 160,
+  "attack-hero_china-v34.png": 160,
+  "attack-hero_japan-v34.png": 160,
+  "attack-hero_ottoman-v34.png": 160,
+  "attack-hero_russia-v34.png": 160,
+  "attack-hero_prussia-v34.png": 160,
+  "attack-hero_spain-v34.png": 160,
+  "attack-hero_netherlands-v34.png": 160,
+  "attack-hero_usa-v34.png": 160,
+  "attack-kcdragon-v34.png": 224,
+  "attack-kcdemon-v34.png": 224,
+  "attack-steamcrawler-v34.png": 192,
+  "attack-fieldmortar-v34.png": 192,
+  "attack-rifleguard-v34.png": 160,
+  "attack-combatmedic-v34.png": 160,
+  "attack-trebuchet-v34.png": 192,
+  "attack-siegewagon-v34.png": 160,
+  "attack-scoutballoon-v34.png": 192,
+  "attack-airtransport-v34.png": 192,
+  "attack-gunship-v34.png": 192,
+  "attack-runesentinel-v34.png": 160,
+  "attack-emberthrower-v34.png": 192,
+  "attack-tangdou-v34.png": 192,
+  "attack-tuantuan-v34.png": 192,
+  "attack-bomber-v34.png": 192,
+  "attack-carrier-v34.png": 192,
+  "attack-airwing-v34.png": 192,
+  "attack-bear-v34.png": 160,
+  "attack-jackal-v34.png": 160,
+  "attack-kcdragon-breath-v34.png": 224,
+  "attack-kcdemon-breath-v34.png": 224,
+  "attack-villager-mine-v34.png": 160,
+  "attack-villager-wood-v34.png": 160,
+  "attack-villager-food-v34.png": 160,
+  "attack-villager-build-v34.png": 160
+ },
+ "generated": "2026-11-17",
+ "method": "scripts/art/measure-draw-sizes.cjs",
+ "plan": {
+  "units": 62,
+  "buildings": 45,
+  "made": 334
+ },
+ "errors": [
+  "Cannot read properties of undefined (reading 'x')"
+ ],
+ "loaded": [
+  "architecture-v2.png",
+  "attack-bear-v34.png",
+  "attack-fishingboat-v34.png",
+  "attack-infantry-v34.png",
+  "attack-jackal-v34.png",
+  "attack-kcdemon-breath-v34.png",
+  "attack-kcdemon-v34.png",
+  "attack-kcdragon-breath-v34.png",
+  "attack-kcdragon-v34.png",
+  "attack-sloop-v34.png",
+  "attack-villager-v34.png",
+  "aviation-v2.png",
+  "bridge.png",
+  "building-damage-v32.png",
+  "campaign-v5.png",
+  "clarity-v6.png",
+  "cliffs-v4.png",
+  "directions-advanced-v33.png",
+  "directions-animals-v33.png",
+  "directions-artillery-v33.png",
+  "directions-cargo-v33.png",
+  "directions-civilians-v33.png",
+  "directions-core-v33.png",
+  "directions-engineering-v33.png",
+  "directions-heroesA-v33.png",
+  "directions-heroesB-v33.png",
+  "directions-heroesC-v33.png",
+  "directions-line-v33.png",
+  "directions-nationalA-v33.png",
+  "directions-nationalB-v33.png",
+  "directions-nationalC-v33.png",
+  "directions-navalA-v33.png",
+  "directions-navalAir-v33.png",
+  "directions-special-v33.png",
+  "directions-wildnodes-v33.png",
+  "directions-workerwork-v33.png",
+  "expansion-buildings.png",
+  "expansion-units.png",
+  "functional-buildings-v1.jpg",
+  "guardian-actions-v29.png",
+  "guardian-fire.png",
+  "guardians-v7.png",
+  "imperial-units.png",
+  "industry-v2.png",
+  "kc-encounter.png",
+  "livestock.png",
+  "magic-v5.png",
+  "meadow.jpg",
+  "nation-buildings.png",
+  "nation-units.png",
+  "national-idle-v3.png",
+  "nations-east.png",
+  "nations-west.png",
+  "naval-atlas.png",
+  "reinforcements.png",
+  "resource-nodes-n1-v41.png",
+  "ships-v3.png",
+  "siege-equipment-v29.png",
+  "ten-capitals.png",
+  "terrain-materials-v2.png",
+  "trees-v29.png",
+  "troop-actions-v29.png",
+  "troops-actions-v3.png",
+  "troops-idle-v3.png",
+  "troops-v2.png",
+  "units-atlas.png",
+  "villager-actions-v29.png",
+  "villager-carry-v9.png",
+  "walls-v1.png",
+  "wildlife-v8.png",
+  "world-atlas.png"
+ ],
+ "unreached": [
+  "attack-bear-v34.png",
+  "attack-fishingboat-v34.png",
+  "attack-jackal-v34.png",
+  "attack-kcdemon-breath-v34.png",
+  "attack-kcdemon-v34.png",
+  "attack-kcdragon-breath-v34.png",
+  "attack-kcdragon-v34.png",
+  "attack-villager-v34.png",
+  "aviation-v2.png",
+  "building-damage-v32.png",
+  "campaign-v5.png",
+  "clarity-v6.png",
+  "directions-cargo-v33.png",
+  "directions-engineering-v33.png",
+  "directions-heroesB-v33.png",
+  "directions-heroesC-v33.png",
+  "directions-special-v33.png",
+  "directions-wildnodes-v33.png",
+  "directions-workerwork-v33.png",
+  "functional-buildings-v1.jpg",
+  "guardian-actions-v29.png",
+  "guardian-fire.png",
+  "guardians-v7.png",
+  "industry-v2.png",
+  "livestock.png",
+  "magic-v5.png",
+  "meadow.jpg",
+  "national-idle-v3.png",
+  "ships-v3.png",
+  "troops-actions-v3.png",
+  "villager-carry-v9.png",
+  "walls-v1.png",
+  "wildlife-v8.png"
+ ],
+ "need": {
+  "naval-atlas.png": {
+   "m": 0.2803852924306256,
+   "k": 0,
+   "full": false,
+   "draws": 8,
+   "via": {
+    "dataURL": 8
+   }
+  },
+  "nation-buildings.png": {
+   "m": 0.27487403361135043,
+   "k": 0,
+   "full": false,
+   "draws": 8,
+   "via": {
+    "dataURL": 8
+   }
+  },
+  "reinforcements.png": {
+   "m": 0.38554610106305665,
+   "k": 0,
+   "full": false,
+   "draws": 4,
+   "via": {
+    "dataURL": 4
+   }
+  },
+  "nation-units.png": {
+   "m": 1,
+   "k": 0.20142099194763777,
+   "full": false,
+   "draws": 46,
+   "via": {
+    "dataURL": 6
+   }
+  },
+  "expansion-buildings.png": {
+   "m": 0.9988726042841037,
+   "k": 0.21293501465735765,
+   "full": false,
+   "draws": 76,
+   "via": {
+    "dataURL": 8
+   }
+  },
+  "expansion-units.png": {
+   "m": 0.38554216867469876,
+   "k": 0,
+   "full": false,
+   "draws": 4,
+   "via": {
+    "dataURL": 4
+   }
+  },
+  "world-atlas.png": {
+   "m": 0.9988726042841037,
+   "k": 0.11751442403342396,
+   "full": false,
+   "draws": 178,
+   "via": {
+    "dataURL": 8
+   }
+  },
+  "units-atlas.png": {
+   "m": 0.3827751196172248,
+   "k": 0,
+   "full": false,
+   "draws": 4,
+   "via": {
+    "dataURL": 4
+   }
+  },
+  "nations-east.png": {
+   "m": 0.41058540497193263,
+   "k": 0.15114675030865093,
+   "full": false,
+   "draws": 21,
+   "via": {
+    "dataURL": 8
+   }
+  },
+  "nations-west.png": {
+   "m": 0.35359116022099446,
+   "k": 0.13016574422298877,
+   "full": false,
+   "draws": 21,
+   "via": {
+    "dataURL": 6
+   }
+  },
+  "imperial-units.png": {
+   "m": 0.3086816720257235,
+   "k": 0,
+   "full": false,
+   "draws": 4,
+   "via": {
+    "dataURL": 4
+   }
+  },
+  "ten-capitals.png": {
+   "m": 0.2556411150760645,
+   "k": 0,
+   "full": false,
+   "draws": 10,
+   "via": {
+    "dataURL": 10
+   }
+  },
+  "kc-encounter.png": {
+   "m": 0.5303867403314917,
+   "k": 0,
+   "full": false,
+   "draws": 6,
+   "via": {
+    "dataURL": 6
+   }
+  },
+  "terrain-materials-v2.png": {
+   "m": 1,
+   "k": 0,
+   "full": true,
+   "draws": 7,
+   "via": {
+    "pattern": 7
+   }
+  },
+  "architecture-v2.png": {
+   "m": 1,
+   "k": 0.810897435897436,
+   "full": false,
+   "draws": 137,
+   "via": {
+    "dataURL": 1
+   }
+  },
+  "troops-idle-v3.png": {
+   "m": 0.26638434289163804,
+   "k": 0,
+   "full": false,
+   "draws": 1,
+   "via": {
+    "dataURL": 1
+   }
+  },
+  "bridge.png": {
+   "m": 0.13313246657583447,
+   "k": 0.295619597225513,
+   "full": false,
+   "draws": 90,
+   "via": {}
+  },
+  "directions-nationalA-v33.png": {
+   "m": 0.9113704394603273,
+   "k": 0.2380206004442142,
+   "full": false,
+   "draws": 43,
+   "via": {
+    "dataURL": 4
+   }
+  },
+  "directions-nationalB-v33.png": {
+   "m": 0.8680577849117176,
+   "k": 0.20594140081574683,
+   "full": false,
+   "draws": 41,
+   "via": {
+    "dataURL": 4
+   }
+  },
+  "directions-nationalC-v33.png": {
+   "m": 0.8974382022471911,
+   "k": 0.20248449184117692,
+   "full": false,
+   "draws": 14,
+   "via": {
+    "dataURL": 2
+   }
+  },
+  "cliffs-v4.png": {
+   "m": 0.16443265310941177,
+   "k": 0.3499940652677391,
+   "full": false,
+   "draws": 52,
+   "via": {}
+  },
+  "trees-v29.png": {
+   "m": 1,
+   "k": 0.3981172047182386,
+   "full": false,
+   "draws": 2924,
+   "via": {}
+  },
+  "resource-nodes-n1-v41.png": {
+   "m": 1,
+   "k": 0.2578125,
+   "full": false,
+   "draws": 170,
+   "via": {}
+  },
+  "directions-core-v33.png": {
+   "m": 0.8851394228974581,
+   "k": 0.26486136002616356,
+   "full": false,
+   "draws": 91,
+   "via": {}
+  },
+  "villager-actions-v29.png": {
+   "m": 1,
+   "k": 0.3760654886703046,
+   "full": false,
+   "draws": 149,
+   "via": {}
+  },
+  "directions-civilians-v33.png": {
+   "m": 0.8650226178316067,
+   "k": 0.20648865581823864,
+   "full": false,
+   "draws": 103,
+   "via": {}
+  },
+  "directions-animals-v33.png": {
+   "m": 0.9454288168999848,
+   "k": 0.19674490358635946,
+   "full": false,
+   "draws": 340,
+   "via": {}
+  },
+  "attack-infantry-v34.png": {
+   "m": 0.5046296296296297,
+   "k": 0.18507211079395205,
+   "full": false,
+   "draws": 58,
+   "via": {}
+  },
+  "troop-actions-v29.png": {
+   "m": 1,
+   "k": 0.2661751118673158,
+   "full": false,
+   "draws": 8,
+   "via": {}
+  },
+  "directions-line-v33.png": {
+   "m": 0.8851303735024666,
+   "k": 0.2529150261518478,
+   "full": false,
+   "draws": 46,
+   "via": {}
+  },
+  "siege-equipment-v29.png": {
+   "m": 1,
+   "k": 0.310909087007696,
+   "full": false,
+   "draws": 28,
+   "via": {}
+  },
+  "troops-v2.png": {
+   "m": 1,
+   "k": 0.1964494359727757,
+   "full": false,
+   "draws": 22,
+   "via": {}
+  },
+  "attack-archer-v34.png": {
+   "m": 0.5317725752508361,
+   "k": 0.1999134792120945,
+   "full": false,
+   "draws": 9,
+   "via": {}
+  },
+  "attack-healer-v34.png": {
+   "m": 0.5445026178010471,
+   "k": 0.20202559374181805,
+   "full": false,
+   "draws": 9,
+   "via": {}
+  },
+  "attack-skirmisher-v34.png": {
+   "m": 0.548951048951049,
+   "k": 0.20231428073898824,
+   "full": false,
+   "draws": 6,
+   "via": {}
+  },
+  "directions-artillery-v33.png": {
+   "m": 0.9680197979190308,
+   "k": 0.3965856059834594,
+   "full": false,
+   "draws": 11,
+   "via": {}
+  },
+  "attack-mortar-v34.png": {
+   "m": 0.6457564575645757,
+   "k": 0.3966711291866052,
+   "full": false,
+   "draws": 2,
+   "via": {}
+  },
+  "attack-cannon-v34.png": {
+   "m": 0.5893536121673004,
+   "k": 0.3719878125808212,
+   "full": false,
+   "draws": 2,
+   "via": {}
+  },
+  "directions-navalA-v33.png": {
+   "m": 0.9361155698234351,
+   "k": 0.6003100767526508,
+   "full": false,
+   "draws": 53,
+   "via": {}
+  },
+  "directions-navalAir-v33.png": {
+   "m": 0.8241814540543058,
+   "k": 0.4957966559545433,
+   "full": false,
+   "draws": 14,
+   "via": {}
+  },
+  "attack-sloop-v34.png": {
+   "m": 0.6319444444444444,
+   "k": 0.5184460615786427,
+   "full": false,
+   "draws": 9,
+   "via": {}
+  },
+  "attack-longbow-v34.png": {
+   "m": 0.52,
+   "k": 0.19937158370511288,
+   "full": false,
+   "draws": 4,
+   "via": {}
+  },
+  "attack-cuirassier-v34.png": {
+   "m": 0.5294117647058824,
+   "k": 0.24522658755906632,
+   "full": false,
+   "draws": 2,
+   "via": {}
+  },
+  "directions-advanced-v33.png": {
+   "m": 0.8939855273043616,
+   "k": 0.246690893726913,
+   "full": false,
+   "draws": 12,
+   "via": {}
+  },
+  "directions-heroesA-v33.png": {
+   "m": 0.9161969465078951,
+   "k": 0.2951909659391549,
+   "full": false,
+   "draws": 22,
+   "via": {}
+  }
+ }
+}
