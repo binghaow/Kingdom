@@ -1,0 +1,604 @@
+{
+ "verdict": "WARN",
+ "meta": {
+  "commit": "d4e1275",
+  "branch": "HEAD",
+  "dirty": true,
+  "date": "2026-11-16T02:35:59.810Z",
+  "mode": "full",
+  "node": "v24.19.0",
+  "cpus": 16,
+  "platform": "win32",
+  "arch": "x64",
+  "cpuModel": "13th Gen Intel(R) Core(TM) i7-13620H"
+ },
+ "baseline": {
+  "commit": "fb70bd1",
+  "branch": "claude/release-gates",
+  "dirty": false,
+  "date": "2026-11-11T11:22:10.435Z",
+  "mode": "full",
+  "node": "v22.23.4",
+  "cpus": 2,
+  "platform": "linux"
+ },
+ "checks": [
+  {
+   "area": "机器",
+   "name": "性能基线兼容性",
+   "value": "win32/v24.19.0/x64",
+   "baseline": "linux/v22.23.4/未知架构",
+   "unit": "",
+   "rule": "custom",
+   "status": "WARN",
+   "why": "环境不匹配，本次不作性能退化判定：平台不同（win32 / linux）；Node 主版本不同（v24.19.0 / v22.23.4）。请在目标机器上重建基线后比较。"
+  },
+  {
+   "area": "渲染",
+   "name": "Playwright",
+   "value": 0,
+   "baseline": null,
+   "unit": "",
+   "rule": "custom",
+   "status": "WARN",
+   "why": "playwright not available: Cannot find module 'playwright'\nRequire stack:\n- C:\\Users\\bingh\\OneDrive\\文档\\ChatGPT\\帝国时代\\frontier-kingdom\\.codex-ui-audit\\scripts\\release\\render-cost.cjs\n- C:\\Users\\bingh\\OneDrive\\文档\\ChatGPT\\帝国时代\\frontier-kingdom\\.codex-ui-audit\\scripts\\release\\release-check.cjs"
+  }
+ ],
+ "results": {
+  "path": {
+   "stuckRule": {
+    "windowSec": 4,
+    "thresholdPx": 16,
+    "sampleSec": 0.5
+   },
+   "scenarios": [
+    {
+     "scenario": "opening",
+     "units": 75,
+     "simSeconds": 120,
+     "dt": 0.1,
+     "astar": {
+      "calls": 1541,
+      "callsPerSimSec": 12.8,
+      "expandedP50": 7,
+      "expandedP95": 25,
+      "expandedMax": 170,
+      "msP50": 0.03,
+      "msP95": 0.1,
+      "msMax": 110.22,
+      "msTotal": 667.9,
+      "failRate": 0,
+      "fails": 0,
+      "retryRate": 0.01,
+      "retries": 19,
+      "unreachableCacheHits": 614,
+      "droppedRoutes": 19,
+      "cacheHitRate": 0.97,
+      "engagement": {
+       "memoHits": 0,
+       "searches": 0,
+       "astarCalls": 0,
+       "noPosition": 0,
+       "memoHitRate": 0
+      },
+      "airDirect": 0,
+      "gridBuilds": 6,
+      "gridMs": 598.9
+     },
+     "step": {
+      "meanMs": 4.99,
+      "p95Ms": 12.22,
+      "p99Ms": 18.91,
+      "stepsOver50ms": 6,
+      "maxMs": 133.3,
+      "worst": {
+       "ms": 133.3,
+       "calls": 10,
+       "at": 0.1
+      }
+     },
+     "stuck": {
+      "stuckUnits": 1,
+      "crowdedAtGoal": 0,
+      "expectedUnreachable": 0,
+      "byReason": {
+       "first-leg-obstructed": 1
+      },
+      "samples": [
+       {
+        "scenario": "opening",
+        "category": "first-leg-obstructed",
+        "id": 9,
+        "kind": "villager",
+        "team": 0,
+        "x": 1944,
+        "y": 2266,
+        "order": "gather",
+        "goal": {
+         "x": 1690,
+         "y": 1987
+        },
+        "toGoal": 378,
+        "since": 48,
+        "at": 119.5,
+        "travelled": 0,
+        "net": 0.1,
+        "pathLeft": 0,
+        "routeFailed": true,
+        "stallTries": 1,
+        "crowd": 1,
+        "nearestBuilding": "house 48px",
+        "reason": "route found but first leg obstructed (dropped, retried every 1.8 s)",
+        "duration": 71.5
+       }
+      ]
+     },
+     "title": "开局：2 人脚本对局（采集、建造、训练、首波进攻），NetworkSim 0.1 s 步"
+    },
+    {
+     "scenario": "battle200",
+     "units": 149,
+     "simSeconds": 40,
+     "dt": 0.05,
+     "astar": {
+      "calls": 4376,
+      "callsPerSimSec": 109.4,
+      "expandedP50": 58,
+      "expandedP95": 1447,
+      "expandedMax": 2159,
+      "msP50": 0.04,
+      "msP95": 0.84,
+      "msMax": 4.68,
+      "msTotal": 844.1,
+      "failRate": 0,
+      "fails": 0,
+      "retryRate": 0,
+      "retries": 0,
+      "unreachableCacheHits": 0,
+      "droppedRoutes": 1,
+      "cacheHitRate": 0,
+      "engagement": {
+       "memoHits": 0,
+       "searches": 0,
+       "astarCalls": 0,
+       "noPosition": 0,
+       "memoHitRate": 0
+      },
+      "airDirect": 0,
+      "gridBuilds": 0,
+      "gridMs": 0
+     },
+     "step": {
+      "meanMs": 17.37,
+      "p95Ms": 38.03,
+      "p99Ms": 72.16,
+      "stepsOver50ms": 18,
+      "maxMs": 145.4,
+      "worst": {
+       "ms": 145.4,
+       "calls": 196,
+       "at": 0.1
+      }
+     },
+     "stuck": {
+      "stuckUnits": 0,
+      "crowdedAtGoal": 0,
+      "expectedUnreachable": 0,
+      "byReason": {},
+      "samples": []
+     },
+     "title": "200 单位会战：coast_s 双方各约 100 混编单位推进对攻"
+    },
+    {
+     "scenario": "siegeEnclosed",
+     "units": 76,
+     "simSeconds": 30,
+     "dt": 0.05,
+     "astar": {
+      "calls": 1345,
+      "callsPerSimSec": 44.8,
+      "expandedP50": 3,
+      "expandedP95": 24,
+      "expandedMax": 83,
+      "msP50": 0.02,
+      "msP95": 0.05,
+      "msMax": 155.72,
+      "msTotal": 777.1,
+      "failRate": 0.27,
+      "fails": 360,
+      "retryRate": 0.12,
+      "retries": 159,
+      "unreachableCacheHits": 0,
+      "droppedRoutes": 0,
+      "cacheHitRate": 0,
+      "engagement": {
+       "memoHits": 12324,
+       "searches": 457,
+       "astarCalls": 754,
+       "noPosition": 63,
+       "memoHitRate": 0.96
+      },
+      "airDirect": 0,
+      "gridBuilds": 5,
+      "gridMs": 742.7
+     },
+     "step": {
+      "meanMs": 6.89,
+      "p95Ms": 26.42,
+      "p99Ms": 71.32,
+      "stepsOver50ms": 9,
+      "maxMs": 192.1,
+      "worst": {
+       "ms": 192.1,
+       "calls": 42,
+       "at": 6
+      }
+     },
+     "stuck": {
+      "stuckUnits": 0,
+      "crowdedAtGoal": 0,
+      "expectedUnreachable": 0,
+      "byReason": {},
+      "samples": []
+     },
+     "title": "围攻被围死目标：敌方城镇中心被完整城墙环绕（迷雾关），60 单位对其下达攻击"
+    },
+    {
+     "scenario": "formation",
+     "units": 187,
+     "simSeconds": 70,
+     "dt": 0.05,
+     "astar": {
+      "calls": 5338,
+      "callsPerSimSec": 76.3,
+      "expandedP50": 95,
+      "expandedP95": 474,
+      "expandedMax": 837,
+      "msP50": 0.05,
+      "msP95": 0.24,
+      "msMax": 1.99,
+      "msTotal": 400.4,
+      "failRate": 0,
+      "fails": 0,
+      "retryRate": 0,
+      "retries": 0,
+      "unreachableCacheHits": 36,
+      "droppedRoutes": 0,
+      "cacheHitRate": 1,
+      "engagement": {
+       "memoHits": 0,
+       "searches": 0,
+       "astarCalls": 0,
+       "noPosition": 0,
+       "memoHitRate": 0
+      },
+      "airDirect": 0,
+      "gridBuilds": 0,
+      "gridMs": 0
+     },
+     "step": {
+      "meanMs": 11.62,
+      "p95Ms": 29.82,
+      "p99Ms": 33.49,
+      "stepsOver50ms": 2,
+      "maxMs": 50.4,
+      "worst": {
+       "ms": 50.4,
+       "calls": 166,
+       "at": 5.4
+      }
+     },
+     "stuck": {
+      "stuckUnits": 0,
+      "crowdedAtGoal": 0,
+      "expectedUnreachable": 0,
+      "byReason": {},
+      "samples": []
+     },
+     "title": "大编队一次下令：160 混编单位按界面阵型（每列 √N、间距 25）移动到约 3000 像素外"
+    }
+   ]
+  },
+  "sim": {
+   "reps": 3,
+   "steps": 240,
+   "dtSec": 0.05,
+   "rows": [
+    {
+     "requested": 50,
+     "units": 55,
+     "meanMs": 5.6,
+     "p50": 3.25,
+     "p95": 15.46,
+     "max": 104.8,
+     "collision": 0.26,
+     "targeting": 0.29,
+     "pathfinding": 1.04,
+     "fog": 0.92,
+     "ai": 0.07,
+     "other": 3,
+     "pathCalls": 355
+    },
+    {
+     "requested": 100,
+     "units": 105,
+     "meanMs": 8.75,
+     "p50": 5.53,
+     "p95": 24.63,
+     "max": 85.1,
+     "collision": 0.54,
+     "targeting": 0.81,
+     "pathfinding": 1.32,
+     "fog": 1.36,
+     "ai": 0.01,
+     "other": 4.71,
+     "pathCalls": 693
+    },
+    {
+     "requested": 200,
+     "units": 205,
+     "meanMs": 17.73,
+     "p50": 11.13,
+     "p95": 50.94,
+     "max": 145.3,
+     "collision": 1.6,
+     "targeting": 2.65,
+     "pathfinding": 2.43,
+     "fog": 2.24,
+     "ai": 0.02,
+     "other": 8.73,
+     "pathCalls": 1394
+    },
+    {
+     "requested": 400,
+     "units": 405,
+     "meanMs": 39.48,
+     "p50": 22.37,
+     "p95": 93.58,
+     "max": 290,
+     "collision": 5.4,
+     "targeting": 9.55,
+     "pathfinding": 4.54,
+     "fog": 4.15,
+     "ai": 0.02,
+     "other": 15.9,
+     "pathCalls": 2792
+    }
+   ],
+   "growth": {
+    "meanMs": 0.98,
+    "p95": 0.9,
+    "collision": 1.52,
+    "targeting": 1.75,
+    "pathfinding": 0.74,
+    "fog": 0.75,
+    "ai": -0.63,
+    "other": 0.84
+   },
+   "unitRatio": 7.36,
+   "superlinear": [
+    "collision ~ units^1.52",
+    "targeting ~ units^1.75"
+   ]
+  },
+  "render": {
+   "skipped": "playwright not available: Cannot find module 'playwright'\nRequire stack:\n- C:\\Users\\bingh\\OneDrive\\文档\\ChatGPT\\帝国时代\\frontier-kingdom\\.codex-ui-audit\\scripts\\release\\render-cost.cjs\n- C:\\Users\\bingh\\OneDrive\\文档\\ChatGPT\\帝国时代\\frontier-kingdom\\.codex-ui-audit\\scripts\\release\\release-check.cjs"
+  },
+  "net": {
+   "reps": 3,
+   "opening": [
+    {
+     "label": "opening t=0s",
+     "units": 27,
+     "cpuMeanMs": 35.5,
+     "cpuP50": 31,
+     "cpuP95": 94,
+     "cpuMax": 94,
+     "respKB": 37.1,
+     "respGzKB": 9.5,
+     "storedGzKB": 34.8,
+     "firstTickAfterHydrateMs": 0,
+     "firstTickCachedMs": 0
+    },
+    {
+     "label": "bot t~60s",
+     "units": 60,
+     "cpuMeanMs": 43,
+     "cpuP50": 32,
+     "cpuP95": 78,
+     "cpuMax": 79,
+     "respKB": 54.1,
+     "respGzKB": 6.8,
+     "storedGzKB": 40.9,
+     "firstTickAfterHydrateMs": 0,
+     "firstTickCachedMs": 0
+    }
+   ],
+   "fourSeats": [
+    {
+     "label": "opening t=0s",
+     "units": 47,
+     "cpuMeanMs": 82.8,
+     "cpuP50": 77,
+     "cpuP95": 156,
+     "cpuMax": 157,
+     "respKB": 16.1,
+     "respGzKB": 4,
+     "storedGzKB": 65.9,
+     "firstTickAfterHydrateMs": 0,
+     "firstTickCachedMs": 15
+    },
+    {
+     "label": "bot t~60s",
+     "units": 109,
+     "cpuMeanMs": 98.5,
+     "cpuP50": 94,
+     "cpuP95": 156,
+     "cpuMax": 187,
+     "respKB": 28.1,
+     "respGzKB": 7.1,
+     "storedGzKB": 76.8,
+     "firstTickAfterHydrateMs": 344,
+     "firstTickCachedMs": 15
+    },
+    {
+     "label": "bot t~180s",
+     "units": 216,
+     "cpuMeanMs": 158.9,
+     "cpuP50": 141,
+     "cpuP95": 266,
+     "cpuMax": 375,
+     "respKB": 64.7,
+     "respGzKB": 8.2,
+     "storedGzKB": 104,
+     "firstTickAfterHydrateMs": 500,
+     "firstTickCachedMs": 47
+    },
+    {
+     "label": "4x140 units, advancing/combat",
+     "units": 572,
+     "cpuMeanMs": 507.9,
+     "cpuP50": 516,
+     "cpuP95": 703,
+     "cpuMax": 813,
+     "respKB": 234.5,
+     "respGzKB": 21.8,
+     "storedGzKB": 149.9,
+     "firstTickAfterHydrateMs": 797,
+     "firstTickCachedMs": 297
+    }
+   ],
+   "conflicts": {
+    "rounds": 12,
+    "requests": 48,
+    "lostRaces": 72,
+    "conflictsPerReq": 1.5,
+    "failedRequests": 0,
+    "cpuPerRoundSequentialMs": 278.7,
+    "cpuPerRoundSimultaneousMs": 631.5,
+    "extraCpuPct": 127
+   },
+   "latency": [
+    {
+     "scenario": "2 人开局",
+     "seats": 2,
+     "rttMs": 40,
+     "d1Ms": 20,
+     "cpuMs": 35.5,
+     "conflictsPerReqModel": 0.42,
+     "ackMeanMs": 190,
+     "ackP95Ms": 386,
+     "firstMoveMeanMs": 505,
+     "firstMoveP95Ms": 739,
+     "ownUnitOnScreen": "next frame (local prediction)"
+    },
+    {
+     "scenario": "2 人开局",
+     "seats": 2,
+     "rttMs": 100,
+     "d1Ms": 20,
+     "cpuMs": 35.5,
+     "conflictsPerReqModel": 0.06,
+     "ackMeanMs": 230,
+     "ackP95Ms": 359,
+     "firstMoveMeanMs": 561,
+     "firstMoveP95Ms": 696,
+     "ownUnitOnScreen": "next frame (local prediction)"
+    },
+    {
+     "scenario": "2 人开局",
+     "seats": 2,
+     "rttMs": 200,
+     "d1Ms": 20,
+     "cpuMs": 35.5,
+     "conflictsPerReqModel": 0,
+     "ackMeanMs": 388,
+     "ackP95Ms": 547,
+     "firstMoveMeanMs": 813,
+     "firstMoveP95Ms": 977,
+     "ownUnitOnScreen": "next frame (local prediction)"
+    },
+    {
+     "scenario": "4 人 ~170 单位",
+     "seats": 4,
+     "rttMs": 40,
+     "d1Ms": 20,
+     "cpuMs": 158.9,
+     "conflictsPerReqModel": 1.76,
+     "ackMeanMs": 833,
+     "ackP95Ms": 1665,
+     "firstMoveMeanMs": 1557,
+     "firstMoveP95Ms": 2608,
+     "ownUnitOnScreen": "next frame (local prediction)"
+    },
+    {
+     "scenario": "4 人 ~170 单位",
+     "seats": 4,
+     "rttMs": 100,
+     "d1Ms": 20,
+     "cpuMs": 158.9,
+     "conflictsPerReqModel": 1.99,
+     "ackMeanMs": 978,
+     "ackP95Ms": 1831,
+     "firstMoveMeanMs": 1799,
+     "firstMoveP95Ms": 2908,
+     "ownUnitOnScreen": "next frame (local prediction)"
+    },
+    {
+     "scenario": "4 人 ~170 单位",
+     "seats": 4,
+     "rttMs": 200,
+     "d1Ms": 20,
+     "cpuMs": 158.9,
+     "conflictsPerReqModel": 0.87,
+     "ackMeanMs": 850,
+     "ackP95Ms": 1536,
+     "firstMoveMeanMs": 1581,
+     "firstMoveP95Ms": 2395,
+     "ownUnitOnScreen": "next frame (local prediction)"
+    },
+    {
+     "scenario": "4 人 ~570 单位对攻",
+     "seats": 4,
+     "rttMs": 40,
+     "d1Ms": 20,
+     "cpuMs": 507.9,
+     "conflictsPerReqModel": 1.32,
+     "ackMeanMs": 1904,
+     "ackP95Ms": 3897,
+     "firstMoveMeanMs": 3341,
+     "firstMoveP95Ms": 5798,
+     "ownUnitOnScreen": "next frame (local prediction)"
+    },
+    {
+     "scenario": "4 人 ~570 单位对攻",
+     "seats": 4,
+     "rttMs": 100,
+     "d1Ms": 20,
+     "cpuMs": 507.9,
+     "conflictsPerReqModel": 1.48,
+     "ackMeanMs": 2099,
+     "ackP95Ms": 4163,
+     "firstMoveMeanMs": 3666,
+     "firstMoveP95Ms": 6263,
+     "ownUnitOnScreen": "next frame (local prediction)"
+    },
+    {
+     "scenario": "4 人 ~570 单位对攻",
+     "seats": 4,
+     "rttMs": 200,
+     "d1Ms": 20,
+     "cpuMs": 507.9,
+     "conflictsPerReqModel": 1.78,
+     "ackMeanMs": 2429,
+     "ackP95Ms": 4645,
+     "firstMoveMeanMs": 4222,
+     "firstMoveP95Ms": 7022,
+     "ownUnitOnScreen": "next frame (local prediction)"
+    }
+   ],
+   "assumptions": "RTT 40/100/200 ms 与 D1 往返 20 ms 为假设值；CPU 为本机 Node 实测（内存 SQLite），不是 Cloudflare Worker / D1 实测。"
+  },
+  "calibrationMs": 75.51
+ }
+}

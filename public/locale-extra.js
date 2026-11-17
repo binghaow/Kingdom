@@ -298,4 +298,15 @@ V 时代：只攻击建筑，飞越城墙；每次出击携弹 2 枚，弹尽后
 训练村民（军械工程师已并入村民）；推进时代，扩展人口与经济|Trains villagers (the ordnance engineer is merged into the villager); advances ages and expands population and economy
 训练村民（军械工程师已并入村民）；推进时代，扩展人口与经济。II 时代起村民可建造新的城镇中心（275 木材 + 100 石料）：每方最多 3 座，须离己方城镇中心至少 700；新城同样训练村民、接收全部资源、提供人口；推进时代同一时间只能在一座城镇中心进行|Trains villagers (the ordnance engineer is merged into the villager); advances ages and expands population and economy. From Age II villagers can build another town centre (275 wood + 100 stone): at most 3 per side, at least 700 away from your other town centres; a new town also trains villagers, accepts every resource and adds population; only one town centre can advance the age at a time
 点击射击场，训练一名长弓卫士（英国用它替代弓箭手）。图标右上角 ⓘ 可以查看详细数值和职责。|Select the archery range and train a Longbow Guard (Britain’s replacement for the archer). Use the icon’s upper-right ⓘ to inspect statistics and roles.
+整体电脑策略|Default AI Strategy
+单个电脑使用此策略；多名电脑默认跟随此项，也可逐个覆盖。|This is the default for one computer. With multiple opponents, they follow it unless overridden individually.
+跟随上方默认策略|Follow Default Above
+电脑默认策略|Default AI Strategy
+电脑策略（覆盖默认设置）|AI Strategy (Overrides Default)
+策略（覆盖默认设置）|Strategy (Overrides Default)
+为这名电脑单独设置策略；默认跟随上方设置|Choose this computer's strategy; it follows the default above unless overridden.
+战争迷雾默认开启。玩家与电脑均受视野限制。|Fog of War is on by default. Vision is limited for both you and computer opponents.
+小熊猫|Little Panda
+单机隐藏伙伴：高生命、高护甲与爪击；输入“小熊猫”召唤|Hidden single-player companion: high health and armor, with powerful claw attacks. Enter the secret phrase to summon.
+开始战役|Start Campaign
 `.trim().split('\n').map(l=>{const i=l.indexOf('|');return[l.slice(0,i),l.slice(i+1)]})));if(typeof module!=='undefined')module.exports=root.KingdomLocaleData})(typeof window==='undefined'?globalThis:window);

@@ -1,5 +1,9 @@
 # Architecture and AI Roadmap
 
+## Panda companion rendering
+
+`companions.js` adds the panda as a local single-player companion while preserving the existing companion simulation extension. `panda-art.js` wraps the final `KingdomArt.unit` renderer and lazily decodes its three RGBA atlases only after summon; each atlas has eight directional rows. It does not change the game loop, AI cadence, collision grid, network protocol or renderer framework. Multiplayer construction continues to strip/reject companion units.
+
 ## Runtime overview
 
 The game remains a browser JavaScript simulation with a fixed-step simulation and Canvas renderer. Simulation decisions run on the existing AI timer, not the render loop. The base game ticks at 20 Hz; the difficulty layer schedules each computer team using its profile's `think` interval. Raids and scouting have their own slower timers.

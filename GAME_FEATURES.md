@@ -1,5 +1,12 @@
 # Game Features
 
+## Hidden single-player panda companion
+
+- Enter `小熊猫` in the in-game chat during a single-player match to summon one friendly panda companion near the town center. Repeating the phrase will not create duplicates; multiplayer sessions reject it.
+- The panda reuses the existing companion combat, hit-feedback, selection and sound event paths. It has high survivability and melee strength but remains a land unit.
+- It has separate eight-direction walk, idle/greeting and attack atlases. The atlas images are loaded only after the companion is summoned.
+- Its real panda vocal recording and image-generation provenance are recorded in `public/audio/CREDITS.md`, `public/audio/sources.json` and `docs/art/drafts/panda-v1/README.md`.
+
 ## Computer opponents
 
 - Single-player debug mode exposes all country-specific building options in the `All` build tab and country-specific unit options at their valid production buildings. It skips normal age, nation, research, resource, population and queue limits for debug construction/training/research and completes them in about one second. Turning debug off restores normal progression. Placement safety and producer compatibility remain active; multiplayer cannot enable debug.
