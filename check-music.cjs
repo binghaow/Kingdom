@@ -20,7 +20,7 @@ function finishTrack(){const e=els.find(x=>!x.paused&&!x.loop);e.duration=100;e.
  assert.equal(new Set(order).size,CALM.length,'rotation covers every calm piece: '+order.join(','));
  for(let i=0;i<3;i++){A.sound('melee',0,1,true);now+=500}await advance(1000);assert.equal(status().musicMood,'calm','preview sounds never start tension');
  A.sound('melee');now+=1000;A.sound('melee');await advance(1000);assert.equal(status().musicMood,'calm','two isolated hits are not a battle');
- A.sound('underAttack');await advance(1000);assert.equal(status().musicMood,'tension');assert.equal(status().musicTrack,TENSION);const tense=els.find(e=>!e.paused&&e.loop);assert(tense,'tension piece loops');
+ A.sound('underAttack');await advance(1000);assert.equal(status().musicMood,'tension');/* main 6560353 rotates the battle pieces (unseen-gambit, stone-gates, breach-gate); any of them is the tension track */assert(['music/unseen-gambit','music/stone-gates','music/breach-gate'].includes(status().musicTrack),'tension piece: '+status().musicTrack);const tense=els.find(e=>!e.paused&&e.loop);assert(tense,'tension piece loops');
  for(let i=0;i<10;i++){A.sound('melee');await advance(5000)}assert.equal(status().musicMood,'tension','continued fighting holds tension');
  await advance(20000);assert.equal(status().musicMood,'tension','no flip-flop right after the last hit');await advance(7000);assert.equal(status().musicMood,'calm');assert.equal(status().musicTrack,null,'fade to silence after the battle');
  await advance(16000);assert(CALM.includes(status().musicTrack),'calm returns after the battle');
