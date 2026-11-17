@@ -53,6 +53,7 @@ const resultOf = (r) => {
   if (r === undefined || r === null || typeof r === 'string' || typeof r === 'boolean' || typeof r === 'number') return r ?? null;
   if (typeof r.id === 'number') return { $e: r.id };
   if (typeof r.error === 'string') return { error: r.error };
+  if (r.building && typeof r.building.id === 'number') return { building: r.building.id };
   return '[object]';
 };
 
@@ -122,7 +123,7 @@ export function attachRecorder(sim, setup, { every = DEFAULT_EVERY, onCommand = 
 export function runReplay(K, replay, { steps, every, onStep, Sim } = {}) {
   if (!replay || replay.format !== FORMAT) throw Error('not a kingdom replay');
   if (replay.version > VERSION) throw Error(`replay version ${replay.version} is newer than this player (${VERSION})`);
-  const Ctor = Sim || K.Sim, total = steps ?? replay.steps, interval = every ?? replay.every ?? DEFAULT_EVERY;
+  const Ctor = Sim || K.Sim, total = steps ?? replay.steps, interval = every ?? (replay.every || DEFAULT_EVERY);
   const sim = new Ctor(replay.setup.difficulty, null, clone(replay.setup.options) || {});
   if (replay.setup.prewarm !== false) prewarm(sim);
   const byStep = new Map();
@@ -144,6 +145,16 @@ export function runReplay(K, replay, { steps, every, onStep, Sim } = {}) {
   return { steps: total, checksums, final: { step: total, ...checksum(sim) }, results: { mismatch }, sim };
 }
 
+/* Compare a replay result with a recording: the recorded checksums when it has any (a normal game records none, only the final
+   state), then the final checksum. Returns null when equal, else the first difference. */
+export function compareWithRecording(result, recording) {
+  if (recording.checksums && recording.checksums.length) {
+    const byStep = new Map(result.checksums.map((c) => [c.step, c.hash]));
+    for (const c of recording.checksums) if (byStep.get(c.step) !== c.hash) return { step: c.step, recorded: c.hash, replay: byStep.get(c.step) ?? null };
+  }
+  if (recording.final && recording.final.step === result.final.step && recording.final.hash !== result.final.hash) return { step: result.final.step, recorded: recording.final.hash, replay: result.final.hash };
+  return null;
+}
 /* Compare two checksum lists; returns null when equal, else the first difference. */
 export function firstDifference(a, b) {
   const n = Math.max(a.length, b.length);

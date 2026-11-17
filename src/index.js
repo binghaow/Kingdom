@@ -30,7 +30,9 @@ function install(K) {
       super(difficulty, saved, options, ...rest);
       if (saved || core.replay.disabled) return;
       try {
-        core.replay.current = replay.attachRecorder(this, { difficulty, options, created: new Date().toISOString(), source: 'game' });
+        // Commands are always captured (one cheap check per call, enables bug reproduction). Checksums every 20 steps hash every
+        // entity, so in normal play they are off (AGENTS.md: diagnostics opt-in); ?replay=1 turns them on.
+        core.replay.current = replay.attachRecorder(this, { difficulty, options, created: new Date().toISOString(), source: 'game' }, { every: query.has('replay') ? replay.DEFAULT_EVERY : 0 });
         core.replay.recorders++;
       } catch (e) { core.replay.error = String(e && e.message || e); }
     }
@@ -58,16 +60,32 @@ core.replay.run = (data, opts = {}) => {
   return { steps: r.steps, checksums: r.checksums, final: r.final, results: r.results };
 };
 
-/* Debug entry, opt-in only: ?replay=1 shows a small "export replay" button. Normal players see nothing. */
+/* Debug entry, opt-in only: ?replay=1 shows two small buttons. Normal players see nothing.
+   - export: downloads the current game's replay JSON (setup + commands + checksums every 20 steps);
+   - verify: pick a replay JSON (e.g. a fixture from scripts/replay/fixtures, or a game exported on another device), replay it
+     headlessly with THIS browser's engine and show the final checksum next to the recorded one (Safari / iPhone check). */
 function debugButton() {
   if (!query.has('replay') || typeof document === 'undefined') return;
+  const style = (b, left) => { b.type = 'button'; b.style.cssText = `position:fixed;left:${left}px;bottom:8px;z-index:9999;font:12px system-ui;padding:6px 10px;border-radius:6px;border:1px solid #c9a65a;background:#1d1a14;color:#f3e3b5;opacity:.85`; };
   const add = () => {
     if (document.getElementById('kingdom-replay-export')) return;
-    const b = document.createElement('button');
-    b.id = 'kingdom-replay-export'; b.type = 'button'; b.textContent = '导出录像 / Export replay';
-    b.style.cssText = 'position:fixed;left:8px;bottom:8px;z-index:9999;font:12px system-ui;padding:6px 10px;border-radius:6px;border:1px solid #c9a65a;background:#1d1a14;color:#f3e3b5;opacity:.85';
+    const b = document.createElement('button'); b.id = 'kingdom-replay-export'; b.textContent = '导出录像 / Export replay'; style(b, 8);
     b.onclick = () => { const d = core.replay.download(); b.textContent = d ? `已导出 ${d.final.step} 步 · ${d.final.hash}` : '尚无对局'; };
-    document.body.append(b);
+    const v = document.createElement('button'); v.id = 'kingdom-replay-verify'; v.textContent = '验证录像 / Verify'; style(v, 190);
+    const input = document.createElement('input'); input.type = 'file'; input.accept = 'application/json,.json'; input.hidden = true;
+    v.onclick = () => input.click();
+    input.onchange = async () => {
+      const f = input.files && input.files[0]; if (!f) return;
+      v.textContent = '回放中…';
+      try {
+        const data = JSON.parse(await f.text()), t = Date.now(), r = core.replay.run(data), d = replay.compareWithRecording(r, data);
+        const ok = !d && (!data.final || data.final.hash === r.final.hash);
+        v.textContent = `${ok ? '一致 SAME' : '不一致 DIFF' + (d ? ' @' + d.step : '')} · ${r.final.hash} / ${data.final?.hash ?? '—'} · ${Date.now() - t} ms`;
+        core.replay.lastVerify = { ok, final: r.final.hash, recorded: data.final?.hash ?? null, firstDifference: d, checksums: r.checksums };
+      } catch (e) { v.textContent = '失败：' + (e && e.message || e); }
+      input.value = '';
+    };
+    document.body.append(b, v, input);
   };
   if (document.body) add(); else document.addEventListener('DOMContentLoaded', add);
 }

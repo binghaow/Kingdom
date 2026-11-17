@@ -14,7 +14,7 @@ assert.equal(scripts.filter(s=>s==='kingdom-core.js').length,1,'index.html must 
 const at=scripts.indexOf('kingdom-core.js');assert(at>scripts.indexOf('network-model.js')&&at>scripts.indexOf('network-client.js'),'kingdom-core.js must follow the simulation scripts');assert(at<scripts.indexOf('expansion.js'),'kingdom-core.js must precede expansion.js (it creates the first game)');
 assert(!/\bimport\s*\(|^\s*import\s|^\s*export\s/m.test(code),'bundle must be a classic script (no ES module syntax left)');
 // Evaluate the bundle against the real simulation through the window.KingdomSim bridge.
-const K={...require(path.join(ROOT,'public/network-model.js'))},Base=K.Sim,win={KingdomSim:K,location:{search:''}};win.window=win;
+const K={...require(path.join(ROOT,'public/network-model.js'))},Base=K.Sim,win={KingdomSim:K,location:{search:'?replay=1'}};win.window=win;
 vm.runInNewContext(code,{window:win,globalThis:win,URLSearchParams,Blob:undefined,console,setTimeout,Math,JSON,Object,Array,Map,Set,Number,String,Error,Date});
 const C=win.KingdomCore;assert(C&&C.installed&&C.version===1,'bundle did not install window.KingdomCore');assert.notEqual(K.Sim,Base);assert.equal(K.Sim.Base,Base);
 const sim=new K.Sim('normal',null,{nations:['britain','france'],mapId:'coast_s',seed:4242});C.replay.prewarm(sim);assert(C.replay.current&&C.replay.current.sim===sim,'new game is not recorded');

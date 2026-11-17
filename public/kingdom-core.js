@@ -146,6 +146,7 @@
     STEP: () => STEP,
     VERSION: () => VERSION,
     attachRecorder: () => attachRecorder,
+    compareWithRecording: () => compareWithRecording,
     decodeArg: () => decodeArg,
     encodeArg: () => encodeArg,
     firstDifference: () => firstDifference,
@@ -212,6 +213,7 @@
     if (r === void 0 || r === null || typeof r === "string" || typeof r === "boolean" || typeof r === "number") return r ?? null;
     if (typeof r.id === "number") return { $e: r.id };
     if (typeof r.error === "string") return { error: r.error };
+    if (r.building && typeof r.building.id === "number") return { building: r.building.id };
     return "[object]";
   };
   function prewarm(sim) {
@@ -304,7 +306,7 @@
   function runReplay(K, replay, { steps, every, onStep, Sim } = {}) {
     if (!replay || replay.format !== FORMAT) throw Error("not a kingdom replay");
     if (replay.version > VERSION) throw Error(`replay version ${replay.version} is newer than this player (${VERSION})`);
-    const Ctor = Sim || K.Sim, total = steps ?? replay.steps, interval = every ?? replay.every ?? DEFAULT_EVERY;
+    const Ctor = Sim || K.Sim, total = steps ?? replay.steps, interval = every ?? (replay.every || DEFAULT_EVERY);
     const sim = new Ctor(replay.setup.difficulty, null, clone(replay.setup.options) || {});
     if (replay.setup.prewarm !== false) prewarm(sim);
     const byStep = /* @__PURE__ */ new Map();
@@ -335,6 +337,14 @@
     }
     return { steps: total, checksums, final: { step: total, ...checksum(sim) }, results: { mismatch }, sim };
   }
+  function compareWithRecording(result, recording) {
+    if (recording.checksums && recording.checksums.length) {
+      const byStep = new Map(result.checksums.map((c) => [c.step, c.hash]));
+      for (const c of recording.checksums) if (byStep.get(c.step) !== c.hash) return { step: c.step, recorded: c.hash, replay: byStep.get(c.step) ?? null };
+    }
+    if (recording.final && recording.final.step === result.final.step && recording.final.hash !== result.final.hash) return { step: result.final.step, recorded: recording.final.hash, replay: result.final.hash };
+    return null;
+  }
   function firstDifference(a, b) {
     const n = Math.max(a.length, b.length);
     for (let i = 0; i < n; i++) if (a[i]?.step !== b[i]?.step || a[i]?.hash !== b[i]?.hash) return { index: i, a: a[i] || null, b: b[i] || null };
@@ -363,7 +373,7 @@
         super(difficulty, saved, options, ...rest);
         if (saved || core.replay.disabled) return;
         try {
-          core.replay.current = attachRecorder(this, { difficulty, options, created: (/* @__PURE__ */ new Date()).toISOString(), source: "game" });
+          core.replay.current = attachRecorder(this, { difficulty, options, created: (/* @__PURE__ */ new Date()).toISOString(), source: "game" }, { every: query.has("replay") ? DEFAULT_EVERY : 0 });
           core.replay.recorders++;
         } catch (e) {
           core.replay.error = String(e && e.message || e);
@@ -395,18 +405,44 @@
   };
   function debugButton() {
     if (!query.has("replay") || typeof document === "undefined") return;
+    const style = (b, left) => {
+      b.type = "button";
+      b.style.cssText = `position:fixed;left:${left}px;bottom:8px;z-index:9999;font:12px system-ui;padding:6px 10px;border-radius:6px;border:1px solid #c9a65a;background:#1d1a14;color:#f3e3b5;opacity:.85`;
+    };
     const add = () => {
       if (document.getElementById("kingdom-replay-export")) return;
       const b = document.createElement("button");
       b.id = "kingdom-replay-export";
-      b.type = "button";
       b.textContent = "导出录像 / Export replay";
-      b.style.cssText = "position:fixed;left:8px;bottom:8px;z-index:9999;font:12px system-ui;padding:6px 10px;border-radius:6px;border:1px solid #c9a65a;background:#1d1a14;color:#f3e3b5;opacity:.85";
+      style(b, 8);
       b.onclick = () => {
         const d = core.replay.download();
         b.textContent = d ? `已导出 ${d.final.step} 步 · ${d.final.hash}` : "尚无对局";
       };
-      document.body.append(b);
+      const v = document.createElement("button");
+      v.id = "kingdom-replay-verify";
+      v.textContent = "验证录像 / Verify";
+      style(v, 190);
+      const input = document.createElement("input");
+      input.type = "file";
+      input.accept = "application/json,.json";
+      input.hidden = true;
+      v.onclick = () => input.click();
+      input.onchange = async () => {
+        const f = input.files && input.files[0];
+        if (!f) return;
+        v.textContent = "回放中…";
+        try {
+          const data = JSON.parse(await f.text()), t = Date.now(), r = core.replay.run(data), d = compareWithRecording(r, data);
+          const ok = !d && (!data.final || data.final.hash === r.final.hash);
+          v.textContent = `${ok ? "一致 SAME" : "不一致 DIFF" + (d ? " @" + d.step : "")} · ${r.final.hash} / ${data.final?.hash ?? "—"} · ${Date.now() - t} ms`;
+          core.replay.lastVerify = { ok, final: r.final.hash, recorded: data.final?.hash ?? null, firstDifference: d, checksums: r.checksums };
+        } catch (e) {
+          v.textContent = "失败：" + (e && e.message || e);
+        }
+        input.value = "";
+      };
+      document.body.append(b, v, input);
     };
     if (document.body) add();
     else document.addEventListener("DOMContentLoaded", add);
