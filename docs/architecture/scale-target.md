@@ -40,6 +40,8 @@
 
 P0 结果（2026-11-17，`feature/p0-spread-spikes`，见 `docs/p0-spread-spikes.md`）：电脑 AI 按座位错开、寻路每步预算、索敌和迷雾按 id/队伍错开、网格增量重建。400 单位后期场景（本机，交替测量）每步均值 8.7 → 8.3 ms，p95 19.3 → 15.6 ms，最大 101–118 → 36–48 ms（只在开局 1 s 的 JIT 预热里），第 20 步之后 > 40 ms 的步 4–7 次 → 0 次；按机器速度换算到基线机器 p95 13.4 ms。P0 验收达成；电脑对电脑强度与改前接近。
 
+P1 结果（2026-11-17，`feature/p1-foundations`，见 `docs/p1-foundations.md`）：**1000 单位基准（5 国 × 200 单位，座位上限 5，军队分 8 组在 4 条战线对冲，coast_l，AI 开）每步均值 22.0–22.3 ms、p50 20–21 ms、p95 32.7–33.2 ms、最大 67–75 ms，第 20 步后 >40 ms 4–11 次**（本机 Node，600 步 × 3 次中位数，两次完整 release-check）——均值超预算约 2.8 倍、p95 约 2 倍，留给 P5；release-check 只记录（INFO/WARN）。录像回放（4 张地图各 60 s，含玩家指令）3 次一致且与录制时校验值相同；校验值每 20 步一个（FNV-1a，按 id 排序、1/100 量化）。跨引擎：Chromium 与 Node 一致；WebKit/Safari/iPhone 尚未验证（本机没有 WebKit），方法见 p1-foundations.md 第 6 节。
+
 ## 3. 目标架构
 
 ```
