@@ -1,0 +1,293 @@
+{
+ "method": "scripts/perf/asset-memory.cjs (headless Chromium, late scene 412 units / 4 nations, after 3x GC; load: 20 Mbit/s, 40 ms RTT, fresh profile)",
+ "before": {
+  "memory_disable_gpu": {
+   "desktop": {
+    "profile": "desktop",
+    "setup": {
+     "units": 412,
+     "nations": [
+      "?",
+      "?",
+      "?",
+      "?"
+     ],
+     "kinds": 12
+    },
+    "dpr": 1,
+    "pssMB": 1880,
+    "rendererMB": 1397,
+    "jsHeapMB": 13,
+    "imageMB": 125,
+    "images": 22,
+    "canvasMB": 397,
+    "canvases": 2184,
+    "attack": {
+     "sets": 17,
+     "mb": 23
+    },
+    "assets": null,
+    "errors": []
+   },
+   "phone": {
+    "profile": "phone",
+    "setup": {
+     "units": 412,
+     "nations": [
+      "?",
+      "?",
+      "?",
+      "?"
+     ],
+     "kinds": 12
+    },
+    "dpr": 1.275,
+    "pssMB": 1880,
+    "rendererMB": 1410,
+    "jsHeapMB": 15,
+    "imageMB": 125,
+    "images": 22,
+    "canvasMB": 403,
+    "canvases": 2249,
+    "attack": {
+     "sets": 19,
+     "mb": 28
+    },
+    "assets": null,
+    "errors": []
+   }
+  },
+  "memory_gpu": {
+   "desktop": {
+    "profile": "desktop",
+    "gpu": true,
+    "setup": {
+     "units": 412,
+     "nations": [
+      "?",
+      "?",
+      "?",
+      "?"
+     ],
+     "kinds": 12
+    },
+    "dpr": 1,
+    "pssMB": 1915,
+    "rendererMB": 1425,
+    "rendererPrivateMB": 1381,
+    "gpuProcessMB": 62,
+    "jsHeapMB": 13,
+    "imageMB": 125,
+    "images": 22,
+    "canvasMB": 400,
+    "canvases": 2215,
+    "attack": {
+     "sets": 19,
+     "mb": 28
+    },
+    "assets": null,
+    "errors": []
+   },
+   "phone": {
+    "profile": "phone",
+    "gpu": true,
+    "setup": {
+     "units": 412,
+     "nations": [
+      "?",
+      "?",
+      "?",
+      "?"
+     ],
+     "kinds": 12
+    },
+    "dpr": 1.5,
+    "pssMB": 1850,
+    "rendererMB": 1382,
+    "rendererPrivateMB": 1355,
+    "gpuProcessMB": 42,
+    "jsHeapMB": 16,
+    "imageMB": 125,
+    "images": 22,
+    "canvasMB": 397,
+    "canvases": 2235,
+    "attack": {
+     "sets": 17,
+     "mb": 23
+    },
+    "assets": null,
+    "errors": []
+   }
+  },
+  "load": {
+   "load": {
+    "mbps": 20,
+    "rttMs": 40,
+    "toPlayableMs": 43548,
+    "bodyMBBeforeReady": 125.5,
+    "requestsBeforeReady": 182,
+    "largestBeforeReady": [
+     "3601 KB assets/terrain-materials-v2.png",
+     "3564 KB assets/industry-v2.png",
+     "3547 KB assets/troops-actions-v3.png",
+     "3349 KB assets/expansion-buildings.png",
+     "3040 KB assets/aviation-v2.png",
+     "3019 KB assets/kc-encounter.png",
+     "2963 KB assets/magic-v5.png",
+     "2883 KB assets/trees-v29.png",
+     "2859 KB assets/guardian-actions-v29.png",
+     "2830 KB assets/campaign-v5.png",
+     "2782 KB assets/clarity-v6.png",
+     "2730 KB assets/nation-buildings.png"
+    ],
+    "transferredMB": 97.1,
+    "requests": 199
+   }
+  }
+ },
+ "after": {
+  "memory_disable_gpu": {
+   "desktop": {
+    "profile": "desktop",
+    "setup": {
+     "units": 412,
+     "nations": [
+      "?",
+      "?",
+      "?",
+      "?"
+     ],
+     "kinds": 12
+    },
+    "dpr": 1,
+    "pssMB": 1217,
+    "rendererMB": 964,
+    "jsHeapMB": 12,
+    "imageMB": 60,
+    "images": 13,
+    "canvasMB": 310,
+    "canvases": 2098,
+    "attack": {
+     "sets": 19,
+     "mb": 28
+    },
+    "assets": null,
+    "errors": []
+   },
+   "phone": {
+    "profile": "phone",
+    "setup": {
+     "units": 412,
+     "nations": [
+      "?",
+      "?",
+      "?",
+      "?"
+     ],
+     "kinds": 12
+    },
+    "dpr": 1.5,
+    "pssMB": 1189,
+    "rendererMB": 953,
+    "jsHeapMB": 13,
+    "imageMB": 60,
+    "images": 13,
+    "canvasMB": 313,
+    "canvases": 2178,
+    "attack": {
+     "sets": 19,
+     "mb": 28
+    },
+    "assets": null,
+    "errors": []
+   }
+  },
+  "memory_gpu": {
+   "desktop": {
+    "profile": "desktop",
+    "gpu": true,
+    "setup": {
+     "units": 412,
+     "nations": [
+      "?",
+      "?",
+      "?",
+      "?"
+     ],
+     "kinds": 12
+    },
+    "dpr": 1,
+    "pssMB": 1225,
+    "rendererMB": 970,
+    "rendererPrivateMB": 930,
+    "gpuProcessMB": 59,
+    "jsHeapMB": 11,
+    "imageMB": 60,
+    "images": 13,
+    "canvasMB": 314,
+    "canvases": 2112,
+    "attack": {
+     "sets": 19,
+     "mb": 28
+    },
+    "assets": null,
+    "errors": []
+   },
+   "phone": {
+    "profile": "phone",
+    "gpu": true,
+    "setup": {
+     "units": 412,
+     "nations": [
+      "?",
+      "?",
+      "?",
+      "?"
+     ],
+     "kinds": 12
+    },
+    "dpr": 1.5,
+    "pssMB": 1176,
+    "rendererMB": 939,
+    "rendererPrivateMB": 910,
+    "gpuProcessMB": 43,
+    "jsHeapMB": 14,
+    "imageMB": 60,
+    "images": 13,
+    "canvasMB": 302,
+    "canvases": 2061,
+    "attack": {
+     "sets": 17,
+     "mb": 23
+    },
+    "assets": null,
+    "errors": []
+   }
+  },
+  "load": {
+   "load": {
+    "mbps": 20,
+    "rttMs": 40,
+    "toPlayableMs": 9762,
+    "bodyMBBeforeReady": 17.9,
+    "requestsBeforeReady": 162,
+    "largestBeforeReady": [
+     "1169 KB assets/sized/troops-actions-v3.webp",
+     "1094 KB assets/sized/industry-v2.webp",
+     "765 KB assets/sized/troops-idle-v3.webp",
+     "749 KB assets/sized/world-atlas.full.webp",
+     "737 KB assets/sized/architecture-v2.webp",
+     "737 KB assets/sized/trees-v29.webp",
+     "730 KB assets/sized/expansion-buildings.webp",
+     "655 KB assets/sized/ten-capitals.webp",
+     "631 KB assets/sized/clarity-v6.webp",
+     "622 KB assets/sized/villager-actions-v29.webp",
+     "572 KB assets/sized/campaign-v5.webp",
+     "533 KB assets/sized/directions-workerwork-v33.webp"
+    ],
+    "transferredMB": 18.9,
+    "requests": 178
+   }
+  }
+ }
+}
