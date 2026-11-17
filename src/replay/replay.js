@@ -48,7 +48,13 @@ export function decodeArg(sim, v) {
   return out;
 }
 const clone = (x) => (x === undefined ? undefined : JSON.parse(JSON.stringify(x)));
-const resultOf = (r) => (typeof r === 'string' || typeof r === 'boolean' || typeof r === 'number' || r === null || r === undefined ? r ?? null : r && typeof r.id === 'number' ? { $e: r.id } : '[object]');
+/* What a command returned (toast text, the new building, an {error}) - stored so a replay can verify every call behaved the same. */
+const resultOf = (r) => {
+  if (r === undefined || r === null || typeof r === 'string' || typeof r === 'boolean' || typeof r === 'number') return r ?? null;
+  if (typeof r.id === 'number') return { $e: r.id };
+  if (typeof r.error === 'string') return { error: r.error };
+  return '[object]';
+};
 
 /* Same calls as expansion.js warmNavigation(): grids are caches of static terrain, but prewarming keeps the replay on
    exactly the game's call sequence. */

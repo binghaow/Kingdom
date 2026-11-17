@@ -208,7 +208,12 @@
     return out;
   }
   var clone = (x) => x === void 0 ? void 0 : JSON.parse(JSON.stringify(x));
-  var resultOf = (r) => typeof r === "string" || typeof r === "boolean" || typeof r === "number" || r === null || r === void 0 ? r ?? null : r && typeof r.id === "number" ? { $e: r.id } : "[object]";
+  var resultOf = (r) => {
+    if (r === void 0 || r === null || typeof r === "string" || typeof r === "boolean" || typeof r === "number") return r ?? null;
+    if (typeof r.id === "number") return { $e: r.id };
+    if (typeof r.error === "string") return { error: r.error };
+    return "[object]";
+  };
   function prewarm(sim) {
     if (typeof sim.getGrid !== "function") return;
     const s = sim.s, land = s.units.find((u) => !sim.sea?.(u) && !sim.air?.(u)), ship = s.units.find((u) => sim.sea?.(u));
