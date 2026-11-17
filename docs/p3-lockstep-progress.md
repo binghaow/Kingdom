@@ -101,6 +101,8 @@ coast_l、迷雾开、5 国：4 个人类国家（8 个座位，每国 2 个座�
 
 ---
 
+**交付检查**：`node check-all.cjs` 通过（含新的 check-lockstep）；`npm run build` 通过（Worker 28 个模块）；`node check-artifact.cjs` 通过；完整 `npm run release-check`：112 PASS / 1 WARN / 0 FAIL（WARN 是 main 上已有的千兵 >40 ms 尖峰，只记录），未改基线。
+
 ## 4. 两种传输的现状
 
 | 传输 | 状态 | 说明 |
