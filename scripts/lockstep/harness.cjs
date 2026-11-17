@@ -19,7 +19,7 @@ const { sqliteD1 } = require(path.join(ROOT, 'scripts/sqlite-d1.cjs'));
 
 function args() {
   const a = process.argv.slice(2), get = (k, d) => { const i = a.indexOf('--' + k); return i >= 0 ? a[i + 1] : d; };
-  return { clients: +get('clients', 4), seconds: +get('seconds', 60), period: +get('period', 100), lobby: a.includes('--lobby'), jitter: +get('jitter', 0), delay: +get('delay', 0), loss: +get('loss', 0), json: get('json', null), quiet: a.includes('--quiet'), seed: +get('seed', 4242) };
+  return { clients: +get('clients', 4), seconds: +get('seconds', 60), period: +get('period', 100), lobby: a.includes('--lobby'), jitter: +get('jitter', 0), delay: +get('delay', 0), loss: +get('loss', 0), json: get('json', null), quiet: a.includes('--quiet'), seed: +get('seed', 4242), transport: get('transport', 'http'), durable: a.includes('--durable'), wsLimit: +get('ws-limit', 0), noWs: a.includes('--no-ws') };
 }
 
 async function sha256(text) { const b = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text)); return Array.from(new Uint8Array(b), (x) => x.toString(16).padStart(2, '0')).join(''); }
@@ -67,7 +67,7 @@ async function lobbyRoom(base, n, o) {
 async function directRoom(DB, n, o) {
   const humans = Math.min(4, n), nations = ['britain', 'france', 'china', 'japan', 'ottoman'].slice(0, humans + 1);
   const setup = core.makeSetup({ difficulty: 'normal', nations, groups: nations.map((_, i) => i + 1), mapId: 'coast_l', minerals: 'standard', fog: true, seed: o.seed, humanTeams: [...Array(humans).keys()], names: nations.map((_, i) => i < humans ? 'Bot ' + (i + 1) : '电脑 ' + (i + 1)), netMode: 'ffa' });
-  const id = 'LS' + Array.from({ length: 6 }, (_, i) => 'ABCDEFGHJKLMNPQRSTUVWXYZ'[(Date.now() >> (i * 3)) % 24]).join('');
+  const id = 'LS' + Array.from({ length: 6 }, () => 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'[Math.floor(Math.random() * 32)]).join('');
   const seats = []; for (let i = 0; i < n; i++) { const token = 'tok-' + i + '-' + Math.random().toString(36).slice(2); seats.push({ seat: i, team: i % humans, token, hash: await sha256(token) }); }
   const startAt = Date.now() + 3000;
   await Lockstep.createRoom(DB, { id, setup, startAt, period: o.period, seats: seats.map((s) => ({ seat: s.seat, team: s.team, token: s.hash })) });
@@ -86,6 +86,9 @@ async function main(o = args()) {
   const sqlite = new DatabaseSync(':memory:'), DB = sqliteD1(sqlite);
   for (const f of ['0000_multiplayer.sql', '0001_room_limits.sql']) sqlite.exec(require('node:fs').readFileSync(path.join(ROOT, 'drizzle', f), 'utf8'));
   const { server, meter, base } = await startServer(DB);
+  const ws = o.noWs ? null : require('./node-ws.cjs').attachUpgrade(server, { DB }, { durable: o.durable });
+  // --ws-limit S: the 'platform' closes every socket after S seconds (connection time limit); clients must reconnect and catch up.
+  const limiter = ws && o.wsLimit ? setInterval(() => { const t = Date.now(); for (const c of ws.wss.clients) { c._born ??= t; if (t - c._born > o.wsLimit * 1000) c.terminate(); } }, 200) : null;
   const room = o.lobby ? await lobbyRoom(base, o.clients, o) : await directRoom(DB, o.clients, o);
   if (o.lobby && o.period !== core.PERIOD) sqlite.prepare('UPDATE lockstep_rooms SET period = ? WHERE id = ?').run(o.period, room.id);
   for (const s of room.seats) meter.tokenSeat.set(s.token, s.seat);
@@ -93,9 +96,11 @@ async function main(o = args()) {
   // CPU per relay request, sampled every 5 s of wall time together with the current relay turn.
   const windows = []; let last = { cpu: process.cpuUsage(), n: meter.lockstep, t: Date.now() };
   const sampler = setInterval(() => { const c = process.cpuUsage(), n = meter.lockstep, row = sqlite.prepare('SELECT sealed FROM lockstep_rooms WHERE id = ?').get(room.id); const d = (c.user + c.system - last.cpu.user - last.cpu.system) / 1000; if (n > last.n) windows.push({ sealed: row?.sealed ?? -1, requests: n - last.n, cpuMsPerRequest: d / (n - last.n) }); last = { cpu: c, n, t: Date.now() }; }, 5000);
-  const results = await Promise.all(room.seats.map((s) => runClient({ base, room: room.id, token: s.token, seat: s.seat, seats: room.seats.map((x) => ({ seat: x.seat, team: x.team })), setup: room.setup, startAt: room.startAt, period: room.period, turns, jitter: o.jitter, delay: o.delay, loss: o.loss, botSeed: o.seed, keepLatency: true })));
+  const results = await Promise.all(room.seats.map((s) => runClient({ base, room: room.id, token: s.token, seat: s.seat, seats: room.seats.map((x) => ({ seat: x.seat, team: x.team })), setup: room.setup, startAt: room.startAt, period: room.period, turns, jitter: o.jitter, delay: o.delay, loss: o.loss, botSeed: o.seed, keepLatency: true, transport: o.transport })));
+  if (limiter) clearInterval(limiter);
   clearInterval(sampler);
   const cpu = process.cpuUsage(cpu0), wall = (Date.now() - wall0) / 1000, requests = meter.lockstep - req0;
+  const bySeat = [...meter.bySeat].map(([k, m]) => [k, { ...m }]), wsBytes = ws ? { in: ws.meter.bytesIn, out: ws.meter.bytesOut, sockets: ws.meter.sockets } : null;
   // Recording download (design 9.4) and a headless replay of it.
   const rec = await api(base, '/api/lockstep/' + room.id, { replay: 1 }, room.seats[0].token);
   const { replayLockstep } = await import(pathToFileURL(path.join(ROOT, 'src/net/lockstep.js')).href);
@@ -103,7 +108,7 @@ async function main(o = args()) {
   const replay = replayLockstep(K, commands, { ...rec, turns });
   const bad = sqlite.prepare('SELECT step, hash, agree, bad FROM lockstep_hashes WHERE room = ? AND bad IS NOT NULL').all(room.id);
   const hashRows = sqlite.prepare('SELECT COUNT(*) AS n FROM lockstep_hashes WHERE room = ?').get(room.id).n;
-  server.close();
+  ws?.closeAll(); server.close();
 
   const failures = [];
   const ok = results.filter((r) => !r.error);
@@ -116,7 +121,7 @@ async function main(o = args()) {
 
   const gameSeconds = turns / 10, lat = ok.flatMap((r) => r.stats.latencyAll || []).sort((a, b) => a - b), q = (p) => (lat.length ? Math.round(lat[Math.min(lat.length - 1, Math.floor(p * lat.length))]) : null);
   const scale = core.PERIOD / room.period; // latency in game-time ms (equal to wall ms at --period 100)
-  const seats = [...meter.bySeat].filter(([s]) => s !== undefined).sort((a, b) => a[0] - b[0]).map(([seat, m]) => ({ seat, requests: m.n,
+  const seats = bySeat.filter(([s]) => s !== undefined).sort((a, b) => a[0] - b[0]).map(([seat, m]) => ({ seat, requests: m.n,
     upPayloadBps: Math.round(m.upBody / gameSeconds), downPayloadBps: Math.round(m.downBody / gameSeconds),
     upWireBps: Math.round((m.upBody + m.upHead) / gameSeconds), downWireBps: Math.round((m.downBody + m.downHead) / gameSeconds) }));
   const units = ok[0]?.samples || [];
@@ -125,14 +130,14 @@ async function main(o = args()) {
     ok: failures.length === 0, failures,
     consistency: { clients: ok.length, checksumsPerClient: ref?.hashes.length || 0, pairsCompared: compared, relayHashRows: hashRows, relayMismatches: bad.length, final: ref?.final, replayFinal: replay.final.hash, recordedCommands: rec.commands.length },
     wallSeconds: Math.round(wall), unitsAtEnd: ok.map((r) => r.units), unitSamples: units.map((s) => [s.turn / 10, s.units]),
-    bandwidth: seats, bandwidthNote: 'bytes per game second; payload = HTTP bodies; wire = bodies + HTTP/1.1 header bytes measured at the relay (response headers reconstructed)',
+    bandwidth: seats, websocket: wsBytes && { sockets: wsBytes.sockets, upPayloadBpsPerClient: Math.round(wsBytes.in / gameSeconds / Math.max(1, ok.length)), downPayloadBpsPerClient: Math.round(wsBytes.out / gameSeconds / Math.max(1, ok.length)) }, bandwidthNote: 'bytes per game second; payload = HTTP bodies; wire = bodies + HTTP/1.1 header bytes measured at the relay (response headers reconstructed)',
     latency: { commands: lat.length, p50: q(0.5) && Math.round(q(0.5) * scale), p90: q(0.9) && Math.round(q(0.9) * scale), max: lat.length && Math.round(lat[lat.length - 1] * scale), unit: 'ms of game time from issue to execution on the issuing client (wall ms when --period 100)' },
     relay: { requests, cpuMsPerRequest: +(cpu.user + cpu.system) / 1000 / Math.max(1, requests), windows, statuses: meter.status, note: 'relay process CPU (HTTP parsing + service + SQLite) / lockstep requests; clients run in other processes' },
-    clients: ok.map((r) => ({ seat: r.seat, team: r.team, requests: r.stats.requests, failures: r.stats.failures, lost: r.lost, stalls: r.stats.stalls, stallMs: Math.round(r.stats.stallMs), catchupTurns: r.stats.catchup, rejected: r.stats.rejected, commands: r.stats.commands, rtt: Math.round(r.rtt), delay: r.delay, simMsPerTurn: +r.simMsPerTurn.toFixed(2), maxTurnMs: Math.round(r.maxTurnMs), buildMs: r.buildMs })),
+    clients: ok.map((r) => ({ seat: r.seat, team: r.team, transport: r.transport, fallback: r.fallback, reconnects: r.reconnects, requests: r.stats.requests, failures: r.stats.failures, lost: r.lost, stalls: r.stats.stalls, stallMs: Math.round(r.stats.stallMs), catchupTurns: r.stats.catchup, rejected: r.stats.rejected, commands: r.stats.commands, rtt: Math.round(r.rtt), delay: r.delay, simMsPerTurn: +r.simMsPerTurn.toFixed(2), maxTurnMs: Math.round(r.maxTurnMs), buildMs: r.buildMs })),
   };
   if (o.json) require('node:fs').writeFileSync(o.json, JSON.stringify(report, null, 1));
   if (!o.quiet) console.log(JSON.stringify(report, (k, v) => (k === 'windows' && v.length > 12 ? v.filter((_, i) => i % Math.ceil(v.length / 12) === 0) : v), 1));
   return report;
 }
-module.exports = { main };
+module.exports = { main, args };
 if (require.main === module) main().then((r) => process.exit(r.ok ? 0 : 1)).catch((e) => { console.error(e); process.exit(1); });

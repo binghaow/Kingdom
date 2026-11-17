@@ -378,6 +378,577 @@
     return null;
   }
 
+  // src/net/lockstep.js
+  var STEP2 = 0.05;
+  var STEPS_PER_TURN = 2;
+  var HASH_EVERY = 20;
+  var DEFAULT_PERIOD = 100;
+  var clone2 = (v) => JSON.parse(JSON.stringify(v));
+  function buildSim(K, setup) {
+    const sim = new K.NetworkSim(setup.difficulty, null, clone2(setup.options));
+    sim.s.playerNames = setup.names.slice();
+    sim.s.netMode = setup.netMode;
+    sim.prewarmNav();
+    sim.announce("联机战役已开始");
+    return sim;
+  }
+  var LockstepClient = class {
+    /* opts: K (window.KingdomSim / network-model.js), commands (network-commands.js), setup, seat, seats [{seat,team}],
+       startAt (relay clock ms), period, now() local ms clock, onResult(text, cmd, latencyMs), hashes (default true) */
+    constructor(opts) {
+      this.K = opts.K;
+      this.commands = opts.commands;
+      this.setup = opts.setup;
+      this.seat = opts.seat;
+      this.teams = new Map((opts.seats || []).map((s) => [s.seat, s.team]));
+      this.team = this.teams.has(opts.seat) ? this.teams.get(opts.seat) : -1;
+      this.startAt = opts.startAt;
+      this.period = opts.period || DEFAULT_PERIOD;
+      this.now = opts.now || (() => Date.now());
+      this.onResult = opts.onResult || null;
+      this.onTurn = opts.onTurn || null;
+      this.hashes = opts.hashes !== false;
+      this.sim = opts.sim || buildSim(this.K, this.setup);
+      this.nextTurn = 0;
+      this.step = 0;
+      this.sealed = -1;
+      this.delay = 2;
+      this.turns = /* @__PURE__ */ new Map();
+      this.seen = /* @__PURE__ */ new Set();
+      this.outbox = [];
+      this.sentCmds = /* @__PURE__ */ new Map();
+      this.seq = 0;
+      this.issued = /* @__PURE__ */ new Map();
+      this.hashQueue = [];
+      this.hashLog = [];
+      this.offset = null;
+      this.samples = [];
+      this.rtt = null;
+      this.seatInfo = null;
+      this.desync = null;
+      this.waitingSince = null;
+      this.log = [];
+      this.stats = { requests: 0, failures: 0, up: 0, down: 0, latency: [], turnLatency: [], catchup: 0, stalls: 0, stallMs: 0, commands: 0, rejected: 0 };
+    }
+    /* ---- clock ---- */
+    serverNow() {
+      return this.now() + (this.offset ?? 0);
+    }
+    clockTurn() {
+      return (this.serverNow() - this.startAt) / this.period;
+    }
+    /* Playback horizon (design section 4): a command reaching the relay in turn T's window runs about D*period after it was
+       issued; never closer to the seal than half a round trip plus 30 ms of jitter margin. */
+    lagTurns() {
+      const rtt = this.rtt ?? 100, half = rtt / 2;
+      return Math.max((half + 30) / this.period, this.delay - (half + this.period / 2) / this.period);
+    }
+    horizon() {
+      return Math.floor(this.clockTurn() - 1 - this.lagTurns());
+    }
+    /* ---- outgoing ---- */
+    issue(type, args) {
+      if (this.team < 0 || this.desync) return false;
+      const item = { seq: ++this.seq, cmd: { type, args: args || {} }, at: this.now() };
+      this.outbox.push(item);
+      this.issued.set(item.seq, item);
+      this.stats.commands++;
+      return true;
+    }
+    /* Message for the relay; the caller passes the returned token back to sent()/failed(). */
+    outgoing({ wait = true, turns = true, seats = false } = {}) {
+      const cmds = this.outbox.splice(0, 32), hashes = this.hashQueue.splice(0, 16);
+      const body = { a: this.sealed, x: this.nextTurn - 1 };
+      if (!wait) body.w = 0;
+      if (!turns) body.q = 0;
+      if (this.rtt !== null) body.r = Math.round(this.rtt);
+      if (cmds.length) body.c = cmds.map((c) => [c.seq, c.cmd]);
+      if (hashes.length) body.h = hashes;
+      if (seats) body.s = 1;
+      return { body, cmds, hashes, sentAt: this.now() };
+    }
+    /* Commands sent but not yet seen in a delivered turn go back to the front of the queue (after a reconnect or a transport
+       switch); the relay ignores a seat+seq it already stored. */
+    requeueUnconfirmed() {
+      const waiting = [...this.issued.values()].filter((i) => !this.seen.has(this.seat + ":" + i.seq) && !this.outbox.includes(i));
+      this.outbox.unshift(...waiting.sort((a, b) => a.seq - b.seq));
+    }
+    failed(token) {
+      this.stats.failures++;
+      this.outbox.unshift(...token.cmds.filter((c) => !this.outbox.includes(c)));
+      this.hashQueue.unshift(...token.hashes);
+    }
+    /* ---- incoming ---- */
+    receive(msg, token, recvAt = this.now()) {
+      this.stats.requests++;
+      if (token) {
+        const net = Math.max(0, recvAt - token.sentAt - (msg.hw || 0));
+        this.rtt = this.rtt === null ? net : this.rtt * 0.8 + net * 0.2;
+        this.samples.push({ net, offset: this.startAt + msg.n - (recvAt - net / 2) });
+        if (this.samples.length > 30) this.samples.shift();
+        this.offset = this.samples.reduce((a, b) => b.net < a.net ? b : a).offset;
+      }
+      if (Number.isFinite(msg.d)) this.delay = msg.d;
+      if (msg.seats) this.seatInfo = msg.seats.map(([seat, team, at, age]) => ({ seat, team, at, age }));
+      if (msg.ds && !this.desync) this.desync = msg.ds;
+      for (const row of msg.t || []) {
+        const [turn, seat, seq, cmd] = row, key = seat + ":" + seq;
+        if (turn < this.nextTurn || this.seen.has(key)) continue;
+        this.seen.add(key);
+        let list = this.turns.get(turn);
+        if (!list) this.turns.set(turn, list = []);
+        list.push({ seat, seq, cmd });
+      }
+      if (Number.isFinite(msg.se) && msg.t && msg.se > this.sealed) this.sealed = msg.se;
+    }
+    /* ---- simulation ---- */
+    runTurn() {
+      const turn = this.nextTurn, list = (this.turns.get(turn) || []).sort((a, b) => a.seat - b.seat || a.seq - b.seq), now = this.now();
+      for (const r of list) {
+        const team = this.teams.has(r.seat) ? this.teams.get(r.seat) : -1;
+        let result;
+        try {
+          result = team >= 0 ? this.commands.execute(this.sim, team, r.cmd) : "观战席位不能下令";
+        } catch (e) {
+          result = { error: String(e?.message || e) };
+          this.stats.rejected++;
+        }
+        this.log.push({ turn, seat: r.seat, seq: r.seq, c: r.cmd });
+        if (r.seat === this.seat) {
+          const mine = this.issued.get(r.seq);
+          this.issued.delete(r.seq);
+          const latency = mine ? now - mine.at : null;
+          if (latency !== null) this.stats.latency.push(latency);
+          this.onResult?.(result, r.cmd, latency);
+        }
+      }
+      this.turns.delete(turn);
+      for (let i = 0; i < STEPS_PER_TURN; i++) {
+        this.sim.tick(STEP2);
+        this.step++;
+        if (this.hashes && this.step % HASH_EVERY === 0) {
+          const h = checksum(this.sim).hash;
+          this.hashQueue.push([this.step, h]);
+          this.hashLog.push([this.step, h]);
+        }
+      }
+      this.nextTurn++;
+      this.onTurn?.(turn);
+    }
+    /* Runs every turn that is both sealed and due, within a time budget (ms). A device that fell behind (background tab,
+       slow frame) runs extra turns until it is back on the horizon (catch-up). Returns turns executed. */
+    advance(budget = 12) {
+      const start = this.now(), limit = Math.min(this.horizon(), this.sealed);
+      let n = 0;
+      while (this.nextTurn <= limit && !this.desync) {
+        this.runTurn();
+        n++;
+        if (this.now() - start > budget) break;
+      }
+      if (n > 1) this.stats.catchup += n - 1;
+      const due = this.horizon() >= this.nextTurn && this.nextTurn > this.sealed;
+      if (due && !this.desync) {
+        if (this.waitingSince === null) {
+          this.waitingSince = this.now();
+          this.stats.stalls++;
+        }
+      } else if (this.waitingSince !== null) {
+        this.stats.stallMs += this.now() - this.waitingSince;
+        this.waitingSince = null;
+      }
+      return n;
+    }
+    /* Who the game is waiting for, once a wait exceeds 1 s (design section 6): the slowest seat that is behind, else the network. */
+    waiting(limitMs = 1e3) {
+      if (this.waitingSince === null || this.now() - this.waitingSince < limitMs) return null;
+      const behind = (this.seatInfo || []).filter((s) => s.seat !== this.seat && s.team >= 0 && (s.at < this.sealed - 5 || s.age > 1500)).sort((a, b) => a.at - b.at)[0];
+      return behind ? { seat: behind.seat, team: behind.team, ms: this.now() - this.waitingSince } : { seat: null, team: null, ms: this.now() - this.waitingSince };
+    }
+    recording() {
+      return {
+        format: "kingdom-lockstep",
+        version: 1,
+        setup: this.setup,
+        period: this.period,
+        seats: [...this.teams].map(([seat, team]) => ({ seat, team })),
+        turns: this.nextTurn,
+        commands: this.log.slice(),
+        checksums: this.hashLog.map(([step, hash]) => ({ step, hash }))
+      };
+    }
+  };
+  function replayLockstep(K, commands, rec, { turns = rec.turns } = {}) {
+    const c = new LockstepClient({ K, commands, setup: rec.setup, seat: -1, seats: rec.seats, startAt: 0, period: rec.period, now: () => 0 });
+    for (const r of rec.commands) c.receive({ t: [[r.turn, r.seat, r.seq, r.c]] });
+    c.sealed = turns - 1;
+    while (c.nextTurn < turns) c.runTurn();
+    return { checksums: c.hashLog.map(([step, hash]) => ({ step, hash })), final: checksum(c.sim) };
+  }
+
+  // src/net/http-transport.js
+  var HttpTransport = class {
+    /* opts: url (/api/lockstep/<ROOM>), token, client (LockstepClient), fetch, period, timeout, maxInFlight, seatsEvery, onError */
+    constructor(opts) {
+      this.url = opts.url;
+      this.token = opts.token;
+      this.client = opts.client;
+      this.fetch = opts.fetch || ((...a) => globalThis.fetch(...a));
+      this.period = opts.period || this.client.period;
+      this.timeout = opts.timeout || 5e3;
+      this.maxInFlight = opts.maxInFlight || 4;
+      this.seatsEvery = opts.seatsEvery || 10;
+      this.onError = opts.onError || null;
+      this.onReceive = opts.onReceive || null;
+      this.inFlight = 0;
+      this.count = 0;
+      this.polls = [];
+      this.timer = null;
+      this.stopped = false;
+      this.fatal = null;
+      this.lastOk = 0;
+    }
+    /* Polls: a new waiting poll starts when none is in flight, or when the oldest one has been out longer than 1.5 periods
+       (slow round trip), at most maxInFlight overall. Command posts in between ask for no turn data, so turns are not
+       delivered twice. */
+    start() {
+      this.stopped = false;
+      this.polls = [];
+      const loop = () => {
+        if (this.stopped) return;
+        const now = this.client.now();
+        if (!this.polls.length || now - this.polls[0] > this.period * 1.5) this.send(true);
+        this.timer = setTimeout(loop, Math.max(10, this.period / 4));
+      };
+      loop();
+      return this;
+    }
+    stop() {
+      this.stopped = true;
+      clearTimeout(this.timer);
+    }
+    /* Called after issue(): send now unless the pipe is full (the next periodic request will carry it). */
+    kick() {
+      if (this.client.outbox.length && this.inFlight < this.maxInFlight) this.send(false);
+    }
+    async send(wait = true) {
+      if (this.stopped || this.fatal || this.inFlight >= this.maxInFlight) return;
+      const token = this.client.outgoing({ wait, turns: wait, seats: wait && (this.count++ % this.seatsEvery === 0 || this.client.waitingSince !== null) });
+      const text = JSON.stringify(token.body), stats = this.client.stats, started = token.sentAt;
+      this.inFlight++;
+      stats.up += text.length;
+      if (wait) this.polls.push(started);
+      let ok = false;
+      const controller = typeof AbortController !== "undefined" ? new AbortController() : null, timer = setTimeout(() => controller?.abort(), this.timeout);
+      try {
+        const res = await this.fetch(this.url, { method: "POST", headers: { "Content-Type": "application/json", Authorization: "Bearer " + this.token }, body: text, cache: "no-store", signal: controller?.signal });
+        const reply = await res.text();
+        stats.down += reply.length;
+        let data = null;
+        try {
+          data = JSON.parse(reply);
+        } catch {
+        }
+        if (!res.ok || !data) {
+          const e = new Error(data?.error || "HTTP " + res.status);
+          e.status = res.status;
+          if (res.status >= 400 && res.status < 500 && res.status !== 408 && res.status !== 429) {
+            this.fatal = e;
+            this.onError?.(e, true);
+            return;
+          }
+          throw e;
+        }
+        this.lastOk = this.client.now();
+        ok = true;
+        this.client.receive(data, token);
+        this.onReceive?.(data);
+      } catch (e) {
+        this.client.failed(token);
+        this.onError?.(e, false);
+      } finally {
+        clearTimeout(timer);
+        this.inFlight--;
+        if (wait) {
+          const i = this.polls.indexOf(started);
+          if (i >= 0) this.polls.splice(i, 1);
+          if (ok && !this.stopped && !this.polls.length) this.send(true);
+        }
+      }
+    }
+  };
+
+  // src/net/socket-transport.js
+  var SocketTransport = class {
+    /* opts: url (ws(s)://…/api/lockstep/<ROOM>/ws), token, client, WebSocket, ackEvery, connectTimeout, onFail, onError, onReceive */
+    constructor(opts) {
+      this.url = opts.url;
+      this.token = opts.token;
+      this.client = opts.client;
+      this.WS = opts.WebSocket || globalThis.WebSocket;
+      this.ackEvery = opts.ackEvery || 250;
+      this.connectTimeout = opts.connectTimeout || 3e3;
+      this.onFail = opts.onFail || null;
+      this.onError = opts.onError || null;
+      this.onReceive = opts.onReceive || null;
+      this.ws = null;
+      this.timer = null;
+      this.stopped = false;
+      this.fatal = null;
+      this.open = false;
+      this.pings = 0;
+      this.everOpen = false;
+      this.failedConnects = 0;
+      this.drops = [];
+      this.reconnects = 0;
+      this.lastTurnsAt = 0;
+    }
+    start() {
+      if (this.stopped || this.fatal) return this;
+      const c = this.client;
+      let ws;
+      try {
+        ws = this.ws = new this.WS(this.url);
+      } catch (e) {
+        this.fail("socket unavailable: " + (e?.message || e));
+        return this;
+      }
+      let opened = false;
+      const guard = setTimeout(() => {
+        if (!opened) {
+          try {
+            ws.close();
+          } catch {
+          }
+        }
+      }, this.connectTimeout);
+      ws.onopen = () => {
+        opened = true;
+        clearTimeout(guard);
+        this.open = true;
+        this.everOpen = true;
+        this.failedConnects = 0;
+        this.raw({ type: "hello", seat: c.seat, token: this.token, proto: 1, last: c.sealed });
+        c.requeueUnconfirmed();
+        this.flush();
+      };
+      ws.onmessage = (e) => {
+        const text = typeof e.data === "string" ? e.data : String(e.data);
+        c.stats.down += text.length;
+        let msg;
+        try {
+          msg = JSON.parse(text);
+        } catch {
+          return;
+        }
+        if (msg.type === "turns") {
+          c.stats.requests++;
+          this.lastTurnsAt = c.now();
+          c.receive(msg, null);
+          this.onReceive?.(msg);
+        } else if (msg.type === "pong") c.receive({ n: msg.n }, { sentAt: msg.t, cmds: [], hashes: [] });
+        else if (msg.type === "start") {
+          if (Number.isFinite(msg.d)) c.delay = msg.d;
+        } else if (msg.type === "desync") c.desync = msg.ds;
+        else if (msg.type === "error" && !msg.retry) {
+          this.fatal = new Error(msg.error);
+          this.onError?.(this.fatal, true);
+        }
+      };
+      ws.onclose = () => {
+        clearTimeout(guard);
+        const was = this.open;
+        this.open = false;
+        if (this.stopped || this.fatal || ws !== this.ws) return;
+        if (!opened) {
+          if (++this.failedConnects >= 2) return this.fail("connect failed");
+          return setTimeout(() => this.start(), 300);
+        }
+        const now = c.now();
+        this.drops = this.drops.filter((t) => now - t < 1e4);
+        this.drops.push(now);
+        if (this.drops.length >= 3 && now - this.lastTurnsAt > 3e3) return this.fail("socket keeps closing");
+        this.reconnects++;
+        c.stats.reconnects = this.reconnects;
+        setTimeout(() => this.start(), was && this.drops.length === 1 ? 0 : 250 * this.drops.length);
+      };
+      ws.onerror = () => {
+      };
+      clearInterval(this.timer);
+      this.timer = setInterval(() => {
+        if (!this.open) return;
+        const hashes = c.hashQueue.splice(0, 16), ack = { type: "ack", x: c.nextTurn - 1 };
+        if (hashes.length) ack.h = hashes;
+        this.raw(ack);
+        if (this.pings++ % 4 === 0) this.raw({ type: "ping", t: c.now(), r: c.rtt === null ? void 0 : Math.round(c.rtt) });
+      }, this.ackEvery);
+      return this;
+    }
+    fail(reason) {
+      if (this.stopped) return;
+      this.stop();
+      this.onFail?.(reason);
+    }
+    raw(msg) {
+      const text = JSON.stringify(msg);
+      this.client.stats.up += text.length;
+      try {
+        this.ws.send(text);
+      } catch {
+      }
+    }
+    flush() {
+      const c = this.client;
+      if (!this.open || !c.outbox.length) return;
+      const cmds = c.outbox.splice(0, 32);
+      this.raw({ type: "cmd", c: cmds.map((x) => [x.seq, x.cmd]) });
+      if (c.outbox.length) this.flush();
+    }
+    kick() {
+      this.flush();
+    }
+    stop() {
+      this.stopped = true;
+      this.open = false;
+      clearInterval(this.timer);
+      try {
+        this.ws?.close();
+      } catch {
+      }
+    }
+  };
+
+  // src/net/auto-transport.js
+  var AutoTransport = class {
+    /* opts: mode, httpUrl, wsUrl, token, client, fetch, WebSocket, onError, onReceive, onSwitch(reason) */
+    constructor(opts) {
+      this.opts = opts;
+      this.client = opts.client;
+      this.active = null;
+      this.mode = null;
+      this.fallbackReason = null;
+    }
+    get fatal() {
+      return this.active?.fatal || null;
+    }
+    start() {
+      const o = this.opts, WS = o.WebSocket || globalThis.WebSocket;
+      if (o.mode === "ws" && WS && o.wsUrl) {
+        this.mode = "ws";
+        this.active = new SocketTransport({ url: o.wsUrl, token: o.token, client: this.client, WebSocket: WS, onError: o.onError, onReceive: o.onReceive, onFail: (r) => this.fallback(r) }).start();
+      } else this.http();
+      return this;
+    }
+    http() {
+      const o = this.opts;
+      this.mode = "http";
+      this.active = new HttpTransport({ url: o.httpUrl, token: o.token, client: this.client, fetch: o.fetch, onError: o.onError, onReceive: o.onReceive, timeout: o.timeout }).start();
+    }
+    fallback(reason) {
+      if (this.mode !== "ws") return;
+      this.fallbackReason = reason;
+      this.client.requeueUnconfirmed();
+      this.http();
+      this.opts.onSwitch?.(reason);
+    }
+    kick() {
+      this.active?.kick();
+    }
+    stop() {
+      this.active?.stop();
+    }
+  };
+
+  // src/net/browser.js
+  var VIEW_EVERY = 90;
+  function startBrowserLockstep(root2, opts) {
+    const K = root2.KingdomSim, commands = root2.KingdomNetCommands, ls = opts.room.lockstep;
+    if (!K || !K.NetworkSim || !commands || !ls) throw new Error("lockstep: simulation or command rules not loaded");
+    const now = () => root2.performance.timeOrigin + root2.performance.now();
+    const client = new LockstepClient({
+      K,
+      commands,
+      setup: ls.setup,
+      seat: opts.seat,
+      seats: ls.seats,
+      startAt: ls.startAt,
+      period: ls.period,
+      now,
+      onResult: (result, cmd, latency) => {
+        executed.push({ type: cmd.type, latency, at: now() });
+        if (executed.length > 500) executed.shift();
+        opts.onResult?.(result, cmd, latency);
+      }
+    });
+    const executed = [];
+    let mode = ls.transport === "ws" ? "ws" : "http";
+    try {
+      const q = new URLSearchParams(root2.location.search).get("lockstep");
+      if (q === "ws" || q === "http") mode = q;
+    } catch {
+    }
+    const wsUrl = root2.location ? (root2.location.protocol === "https:" ? "wss://" : "ws://") + root2.location.host + "/api/lockstep/" + opts.room.id + "/ws" : null;
+    const transport = new AutoTransport({
+      mode,
+      httpUrl: "/api/lockstep/" + opts.room.id,
+      wsUrl,
+      token: opts.token,
+      client,
+      onReceive: () => opts.onAlive?.(),
+      onError: (e, fatal) => opts.onError?.(e, fatal),
+      onSwitch: (reason) => opts.onSwitch?.(reason)
+    });
+    let lastView = -Infinity, viewTurn = -1, waitShown = false, timer = null, stopped = false;
+    const stats = { views: 0, viewMs: 0, maxViewMs: 0 };
+    function view() {
+      const replica = opts.replica?.(), t0 = root2.performance.now();
+      const v = K.networkSnapshot(client.sim, client.team, replica?.lastEvent || 0, { slim: true, have: replica?.have?.() || {} });
+      const copy = JSON.parse(JSON.stringify(v));
+      const ms = root2.performance.now() - t0;
+      stats.views++;
+      stats.viewMs += ms;
+      stats.maxViewMs = Math.max(stats.maxViewMs, ms);
+      viewTurn = client.nextTurn;
+      lastView = now();
+      opts.onView(copy);
+    }
+    function pump() {
+      if (stopped) return;
+      const behind = client.horizon() - client.nextTurn;
+      client.advance(behind > 10 ? 40 : 12);
+      if (client.nextTurn > viewTurn && (now() - lastView >= VIEW_EVERY || viewTurn < 0)) view();
+      const wait = client.waiting(1e3);
+      if (wait || waitShown) {
+        waitShown = !!wait;
+        opts.onWait?.(wait);
+      }
+      if (client.desync && !stopped) {
+        opts.onDesync?.(client.desync);
+        stop();
+      }
+    }
+    function stop() {
+      stopped = true;
+      clearInterval(timer);
+      transport.stop();
+    }
+    transport.start();
+    timer = setInterval(pump, 16);
+    return {
+      client,
+      transport,
+      stats,
+      executed,
+      stop,
+      issue(type, args) {
+        if (stopped) return false;
+        const ok = client.issue(type, args);
+        if (ok) transport.kick();
+        return ok;
+      },
+      recording: () => client.recording()
+    };
+  }
+
   // src/index.js
   var root = typeof window !== "undefined" ? window : globalThis;
   var query = (() => {
@@ -474,6 +1045,14 @@
     if (document.body) add();
     else document.addEventListener("DOMContentLoaded", add);
   }
+  core.lockstep = {
+    current: null,
+    start(opts) {
+      core.lockstep.current?.stop();
+      return core.lockstep.current = startBrowserLockstep(root, opts);
+    },
+    replay: (rec) => replayLockstep(root.KingdomSim, root.KingdomNetCommands, rec)
+  };
   core.installed = install(root.KingdomSim);
   debugButton();
   root.KingdomCore = core;

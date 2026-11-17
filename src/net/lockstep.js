@@ -57,15 +57,22 @@ export class LockstepClient {
     return true;
   }
   /* Message for the relay; the caller passes the returned token back to sent()/failed(). */
-  outgoing({ wait = true, seats = false } = {}) {
+  outgoing({ wait = true, turns = true, seats = false } = {}) {
     const cmds = this.outbox.splice(0, 32), hashes = this.hashQueue.splice(0, 16);
     const body = { a: this.sealed, x: this.nextTurn - 1 };
     if (!wait) body.w = 0;
+    if (!turns) body.q = 0;
     if (this.rtt !== null) body.r = Math.round(this.rtt);
     if (cmds.length) body.c = cmds.map((c) => [c.seq, c.cmd]);
     if (hashes.length) body.h = hashes;
     if (seats) body.s = 1;
     return { body, cmds, hashes, sentAt: this.now() };
+  }
+  /* Commands sent but not yet seen in a delivered turn go back to the front of the queue (after a reconnect or a transport
+     switch); the relay ignores a seat+seq it already stored. */
+  requeueUnconfirmed() {
+    const waiting = [...this.issued.values()].filter((i) => !this.seen.has(this.seat + ':' + i.seq) && !this.outbox.includes(i));
+    this.outbox.unshift(...waiting.sort((a, b) => a.seq - b.seq));
   }
   failed(token) {
     this.stats.failures++;
@@ -93,7 +100,7 @@ export class LockstepClient {
       let list = this.turns.get(turn); if (!list) this.turns.set(turn, list = []);
       list.push({ seat, seq, cmd });
     }
-    if (Number.isFinite(msg.se) && msg.se > this.sealed) this.sealed = msg.se;
+    if (Number.isFinite(msg.se) && msg.t && msg.se > this.sealed) this.sealed = msg.se;
   }
 
   /* ---- simulation ---- */

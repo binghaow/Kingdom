@@ -9,6 +9,8 @@
 
 import { checksum, fnvString } from './core/hash.js';
 import * as replay from './replay/replay.js';
+import { startBrowserLockstep } from './net/browser.js';
+import { replayLockstep } from './net/lockstep.js';
 
 const root = typeof window !== 'undefined' ? window : globalThis;
 const query = (() => { try { return new URLSearchParams(root.location?.search || ''); } catch { return new URLSearchParams(''); } })();
@@ -89,6 +91,13 @@ function debugButton() {
   };
   if (document.body) add(); else document.addEventListener('DOMContentLoaded', add);
 }
+
+/* P3 lockstep (beta, opt-in from the lobby): network-ui.js calls start() when a lockstep room begins. */
+core.lockstep = {
+  current: null,
+  start(opts) { core.lockstep.current?.stop(); return (core.lockstep.current = startBrowserLockstep(root, opts)); },
+  replay: (rec) => replayLockstep(root.KingdomSim, root.KingdomNetCommands, rec),
+};
 
 core.installed = install(root.KingdomSim);
 debugButton();

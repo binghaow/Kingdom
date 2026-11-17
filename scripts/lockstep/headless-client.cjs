@@ -28,13 +28,14 @@ function faultyFetch(f) {
 
 (async () => {
   const { LockstepClient } = await import(pathToFileURL(path.join(ROOT, 'src/net/lockstep.js')).href);
-  const { HttpTransport } = await import(pathToFileURL(path.join(ROOT, 'src/net/http-transport.js')).href);
+  const { AutoTransport } = await import(pathToFileURL(path.join(ROOT, 'src/net/auto-transport.js')).href);
   const now = () => performance.timeOrigin + performance.now();
   const t0 = Date.now();
   const client = new LockstepClient({ K, commands, setup: cfg.setup, seat: cfg.seat, seats: cfg.seats, startAt: cfg.startAt, period: cfg.period, now });
   const buildMs = Date.now() - t0;
   const fetch = faultyFetch((...a) => globalThis.fetch(...a));
-  const transport = new HttpTransport({ url: cfg.base + '/api/lockstep/' + cfg.room, token: cfg.token, client, fetch, period: cfg.period, timeout: cfg.timeout || 4000 });
+  const transport = new AutoTransport({ mode: cfg.transport || 'http', httpUrl: cfg.base + '/api/lockstep/' + cfg.room, wsUrl: cfg.base.replace(/^http/, 'ws') + '/api/lockstep/' + cfg.room + '/ws' + (cfg.wsPath || ''), token: cfg.token, client, fetch, timeout: cfg.timeout || 4000, onSwitch: (r) => { switched = r; } });
+  let switched = null;
   const bot = createBot(K, cfg.seat, client.team, cfg.botSeed || 1);
   const endTurn = cfg.turns, samples = []; let stepMs = 0, steps = 0, maxStep = 0;
   const run = client.runTurn.bind(client);
@@ -51,6 +52,6 @@ function faultyFetch(f) {
   process.stdout.write(JSON.stringify({ seat: cfg.seat, team: client.team, turns: client.nextTurn, steps: client.step, desync: client.desync, fatal: transport.fatal?.message || null,
     hashes: client.hashLog, final: (await import(pathToFileURL(path.join(ROOT, 'src/core/hash.js')).href)).checksum(client.sim).hash, units: client.sim.s.units.length,
     stats: { ...client.stats, latency: undefined, latencyN: lat.length, latencyP50: q(0.5), latencyP90: q(0.9), latencyMax: lat.length ? Math.round(lat[lat.length - 1]) : null, latencyAll: cfg.keepLatency ? lat : undefined },
-    lost: fetch.stats, buildMs, wall, simMsPerTurn: steps ? stepMs / steps : 0, maxTurnMs: maxStep, rtt: client.rtt, delay: client.delay, samples, log: cfg.keepLog ? client.log : undefined }) + '\n');
+    lost: fetch.stats, transport: transport.mode, fallback: switched, reconnects: client.stats.reconnects || 0, buildMs, wall, simMsPerTurn: steps ? stepMs / steps : 0, maxTurnMs: maxStep, rtt: client.rtt, delay: client.delay, samples, log: cfg.keepLog ? client.log : undefined }) + '\n');
   process.exit(0);
 })().catch((e) => { process.stdout.write(JSON.stringify({ seat: cfg.seat, error: String(e && e.stack || e) }) + '\n'); process.exit(1); });
