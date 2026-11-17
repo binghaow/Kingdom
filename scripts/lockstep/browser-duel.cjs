@@ -11,14 +11,14 @@
        delivered (Playwright route), i.e. MS extra round-trip time.
    usage: node scripts/lockstep/browser-duel.cjs [--seconds 65] [--port 8765] [--delay 100] [--json out.json] */
 const fs = require('node:fs'), argv = process.argv.slice(2), get = (k, d) => { const i = argv.indexOf('--' + k); return i >= 0 ? argv[i + 1] : d; };
-const SECONDS = +get('seconds', 65), PORT = +get('port', 8765), DELAY = +get('delay', 0), jsonOut = get('json', null);
+const VIEW = (get('viewport', '1280x720')).split('x').map(Number), SECONDS = +get('seconds', 65), PORT = +get('port', 8765), DELAY = +get('delay', 0), jsonOut = get('json', null);
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 (async () => {
   const { chromium } = require('playwright'), browser = await chromium.launch({ args: ['--disable-gpu'] });
   const errors = [], bad = [], statuses = {};
   async function tab(name) {
-    const ctx = await browser.newContext({ viewport: { width: 1280, height: 720 } }), page = await ctx.newPage();
+    const ctx = await browser.newContext({ viewport: { width: VIEW[0], height: VIEW[1] } }), page = await ctx.newPage();
     page.on('pageerror', (e) => errors.push(name + ': ' + e.message));
     page.on('response', (r) => { const u = new URL(r.url()); if (!u.pathname.startsWith('/api/')) return; const k = u.pathname.split('/')[2] + ' ' + r.status(); statuses[k] = (statuses[k] || 0) + 1; if (r.status() >= 300) bad.push(`${name} ${r.status()} ${u.pathname}`); });
     if (DELAY > 0) await ctx.route('**/api/lockstep/**', async (route) => { await sleep(DELAY / 2); const resp = await route.fetch().catch(() => null); if (!resp) return route.abort().catch(() => {}); await sleep(DELAY / 2); await route.fulfill({ response: resp }).catch(() => {}); });
@@ -34,9 +34,8 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
     await A.page.click('#net-create');
     await A.page.waitForFunction(() => document.getElementById('net-room-code')?.textContent?.trim(), null, { timeout: 20000 });
     const code = (await A.page.textContent('#net-room-code')).trim();
-    await B.page.goto(`http://127.0.0.1:${PORT}/?room=${code}`);
-    await B.page.waitForFunction(() => window.KingdomArt && KingdomArt.loaded && window.KingdomCore, null, { timeout: 120000 });
-    await B.page.fill('#net-name', '乙'); await B.page.click('#net-join');
+    await B.page.click('#open-online'); await sleep(400);
+    await B.page.fill('#net-name', '乙'); await B.page.fill('#net-code', code); await B.page.click('#net-join');
     await B.page.waitForFunction(() => !document.getElementById('net-lobby').hidden, null, { timeout: 20000 });
     await B.page.click('#net-ready'); await A.page.click('#net-ready'); await sleep(1500);
     await A.page.waitForFunction(() => !document.getElementById('net-start').disabled, null, { timeout: 20000 });
@@ -59,6 +58,9 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
     }
     await sleep(1500);
     const state = async (t) => t.page.evaluate(() => { const L = KingdomCore.lockstep.current, c = L.client; return { turn: c.nextTurn, step: c.step, hashes: c.hashLog, desync: c.desync, executed: L.executed, stats: { ...c.stats, latency: c.stats.latency }, rtt: c.rtt, delay: c.delay, lag: c.lagTurns(), view: L.stats, time: window.frontier.state.time, units: window.frontier.state.units.length }; });
+    // Main-thread frame interval of each tab (headless Chromium renders in software on this VM; real devices use the GPU).
+    const frames = async (t) => t.page.evaluate(() => new Promise((res) => { const ts = []; const f = (x) => { ts.push(x); if (ts.length < 40) requestAnimationFrame(f); else { const d = ts.slice(1).map((v, i) => v - ts[i]).sort((a, b) => a - b); res({ p50: Math.round(d[d.length >> 1]), p90: Math.round(d[Math.floor(d.length * 0.9)]) }); } }; requestAnimationFrame(f); }));
+    const fa = await frames(A), fb = await frames(B);
     const sa = await state(A), sb = await state(B);
     // Click -> execution: the first command of that tab executed after the click (orders issued by that click).
     const lat = [];
@@ -73,6 +75,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
       clickToExecute: { n: lat.length, of: clicks.length, p50: q(lat, 0.5), p90: q(lat, 0.9), max: lat.at(-1) ?? null },
       issueToExecute: { n: internal.length, p50: q(internal, 0.5), p90: q(internal, 0.9), max: internal.length ? Math.round(internal.at(-1)) : null },
       tabs: [sa, sb].map((s, i) => ({ tab: 'AB'[i], turn: s.turn, gameTime: +s.time.toFixed(1), units: s.units, rtt: Math.round(s.rtt), delay: s.delay, lagTurns: +s.lag.toFixed(2), stalls: s.stats.stalls, stallMs: Math.round(s.stats.stallMs), catchup: s.stats.catchup, requests: s.stats.requests, failures: s.stats.failures, upBps: Math.round(s.stats.up / (s.turn / 10)), downBps: Math.round(s.stats.down / (s.turn / 10)), rejected: s.stats.rejected, commands: s.stats.commands, viewMsAvg: +(s.view.viewMs / Math.max(1, s.view.views)).toFixed(2), viewMsMax: +s.view.maxViewMs.toFixed(1) })) };
+    res.frameIntervalMs = { A: fa, B: fb };
     res.pass = !bad.length && !errors.length && !mismatch && !sa.desync && !sb.desync && n >= SECONDS - 5 && lat.length >= clicks.length * 0.8;
     console.log(JSON.stringify(res, null, 1)); if (jsonOut) fs.writeFileSync(jsonOut, JSON.stringify(res, null, 1));
     if (!res.pass) process.exitCode = 1;

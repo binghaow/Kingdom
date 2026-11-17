@@ -34,7 +34,7 @@ export class LockstepClient {
     this.nextTurn = 0; this.step = 0; this.sealed = -1; this.delay = 2; this.turns = new Map(); this.seen = new Set();
     this.outbox = []; this.sentCmds = new Map(); this.seq = 0; this.issued = new Map(); this.hashQueue = []; this.hashLog = [];
     this.offset = null; this.samples = []; this.rtt = null; this.seatInfo = null; this.desync = null;
-    this.waitingSince = null; this.log = [];
+    this.waitingSince = null; this.log = []; this.margin = 30;
     this.stats = { requests: 0, failures: 0, up: 0, down: 0, latency: [], turnLatency: [], catchup: 0, stalls: 0, stallMs: 0, commands: 0, rejected: 0 };
   }
 
@@ -42,17 +42,19 @@ export class LockstepClient {
   serverNow() { return this.now() + (this.offset ?? 0); }
   clockTurn() { return (this.serverNow() - this.startAt) / this.period; }
   /* Playback horizon (design section 4): a command reaching the relay in turn T's window runs about D*period after it was
-     issued; never closer to the seal than half a round trip plus 30 ms of jitter margin. */
+     issued; never closer to the seal than half a round trip plus a jitter margin. The margin starts at 30 ms, grows after
+     each wait longer than 50 ms (turn not here yet when due) and shrinks again by 5 ms per second, so a jittery link or a busy device trades a little
+     delay for smooth playback instead of stopping and starting. */
   lagTurns() {
     const rtt = this.rtt ?? 100, half = rtt / 2;
-    return Math.max((half + 30) / this.period, this.delay - (half + this.period / 2) / this.period);
+    return Math.max((half + this.margin) / this.period, this.delay - (half + this.period / 2) / this.period);
   }
   horizon() { return Math.floor(this.clockTurn() - 1 - this.lagTurns()); }
 
   /* ---- outgoing ---- */
   issue(type, args) {
     if (this.team < 0 || this.desync) return false;
-    const item = { seq: ++this.seq, cmd: { type, args: args || {} }, at: this.now() };
+    const item = { seq: ++this.seq, cmd: { type, args: args || {} }, at: this.now(), clock: this.clockTurn() };
     this.outbox.push(item); this.issued.set(item.seq, item); this.stats.commands++;
     return true;
   }
@@ -115,6 +117,7 @@ export class LockstepClient {
         const mine = this.issued.get(r.seq); this.issued.delete(r.seq);
         const latency = mine ? now - mine.at : null;
         if (latency !== null) this.stats.latency.push(latency);
+        if (mine && this.stats.trace) this.stats.trace.push([+(mine.clock).toFixed(2), turn, +this.clockTurn().toFixed(2)]);
         this.onResult?.(result, r.cmd, latency);
       }
     }
@@ -138,7 +141,8 @@ export class LockstepClient {
     if (n > 1) this.stats.catchup += n - 1;
     const due = this.horizon() >= this.nextTurn && this.nextTurn > this.sealed;
     if (due && !this.desync) { if (this.waitingSince === null) { this.waitingSince = this.now(); this.stats.stalls++; } }
-    else if (this.waitingSince !== null) { this.stats.stallMs += this.now() - this.waitingSince; this.waitingSince = null; }
+    else if (this.waitingSince !== null) { const ms = this.now() - this.waitingSince; this.stats.stallMs += ms; this.waitingSince = null; if (ms > 50) this.margin = Math.min(250, this.margin + Math.min(40, ms / 2)); }
+    if (n) this.margin = Math.max(30, this.margin - 0.5 * n);
     return n;
   }
   /* Who the game is waiting for, once a wait exceeds 1 s (design section 6): the slowest seat that is behind, else the network. */

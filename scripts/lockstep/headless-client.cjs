@@ -36,6 +36,7 @@ function faultyFetch(f) {
   const fetch = faultyFetch((...a) => globalThis.fetch(...a));
   const transport = new AutoTransport({ mode: cfg.transport || 'http', httpUrl: cfg.base + '/api/lockstep/' + cfg.room, wsUrl: cfg.base.replace(/^http/, 'ws') + '/api/lockstep/' + cfg.room + '/ws' + (cfg.wsPath || ''), token: cfg.token, client, fetch, timeout: cfg.timeout || 4000, onSwitch: (r) => { switched = r; } });
   let switched = null;
+  if (cfg.trace) client.stats.trace = [];
   const bot = createBot(K, cfg.seat, client.team, cfg.botSeed || 1);
   const hashMod = await import(pathToFileURL(path.join(ROOT, 'src/core/hash.js')).href);
   let finalAtEnd = null;
