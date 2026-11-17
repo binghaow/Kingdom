@@ -2,9 +2,13 @@
   "name": "frontier-kingdom",
   "private": true,
   "scripts": {
-    "build": "node scripts/build.cjs",
+    "build": "node scripts/build-core.cjs && node scripts/build.cjs",
     "dev": "node preview.cjs",
     "test": "node check-all.cjs",
-    "release-check": "node scripts/release/release-check.cjs"
+    "release-check": "node scripts/release/release-check.cjs",
+    "build:core": "node scripts/build-core.cjs"
+  },
+  "devDependencies": {
+    "esbuild": "0.28.2"
   }
 }
