@@ -1,0 +1,56 @@
+{
+ "desktop": {
+  "profile": "desktop",
+  "setup": {
+   "units": 412,
+   "nations": [
+    "?",
+    "?",
+    "?",
+    "?"
+   ],
+   "kinds": 12
+  },
+  "dpr": 1,
+  "pssMB": 1880,
+  "rendererMB": 1397,
+  "jsHeapMB": 13,
+  "imageMB": 125,
+  "images": 22,
+  "canvasMB": 397,
+  "canvases": 2184,
+  "attack": {
+   "sets": 17,
+   "mb": 23
+  },
+  "assets": null,
+  "errors": []
+ },
+ "phone": {
+  "profile": "phone",
+  "setup": {
+   "units": 412,
+   "nations": [
+    "?",
+    "?",
+    "?",
+    "?"
+   ],
+   "kinds": 12
+  },
+  "dpr": 1.275,
+  "pssMB": 1880,
+  "rendererMB": 1410,
+  "jsHeapMB": 15,
+  "imageMB": 125,
+  "images": 22,
+  "canvasMB": 403,
+  "canvases": 2249,
+  "attack": {
+   "sets": 19,
+   "mb": 28
+  },
+  "assets": null,
+  "errors": []
+ }
+}
