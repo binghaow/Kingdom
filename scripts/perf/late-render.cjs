@@ -12,7 +12,7 @@ const ROOT=process.env.KINGDOM_ROOT||path.resolve(__dirname,'../..');
 process.env.KINGDOM_ROOT=ROOT;
 const {serve}=require(path.join(__dirname,'../release/render-cost.cjs'));
 const {pct,median,r1,args}=require(path.join(__dirname,'../release/lib.cjs'));
-async function run({secs=10,profile,shot,warm=4,stacks:stacksMode=false}={}){let chromium;try{({chromium}=require('playwright'))}catch(e){return {skipped:'playwright not available: '+e.message}}
+async function run({secs=10,profile,shot,warm=4,stacks:stacksMode=false,pre=null}={}){let chromium;try{({chromium}=require('playwright'))}catch(e){return {skipped:'playwright not available: '+e.message}}
   const server=await serve(),browser=await chromium.launch({args:['--disable-gpu'],...(process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH?{executablePath:process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH}:{})});
   const ctx=await browser.newContext({viewport:{width:1920,height:1080}}),p=await ctx.newPage(),errors=[];p.on('pageerror',e=>errors.push(e.message));
   try{await p.goto(`http://127.0.0.1:${server.address().port}/?perf=1`);await p.waitForFunction(()=>window.KingdomArt&&KingdomArt.loaded,null,{timeout:120000});
@@ -31,7 +31,7 @@ async function run({secs=10,profile,shot,warm=4,stacks:stacksMode=false}={}){let
       sim.grid=null;sim._gateGrids=null;return {made,units:s.units.length,towns:towns.filter(Boolean).length,battle:{x:Math.round(bx),y:Math.round(by)},camera:window.frontier.camera}});
     await p.waitForFunction(()=>!(KingdomArt.attackStatus?.().pending>0),null,{timeout:120000,polling:250}).catch(()=>{});await p.waitForTimeout(warm*1000);
     let cdp;if(profile){cdp=await ctx.newCDPSession(p);await cdp.send('Profiler.enable');await cdp.send('Profiler.setSamplingInterval',{interval:200});await cdp.send('Profiler.start')}
-    if(stacksMode)await p.evaluate(()=>{window.__lateStacks=true});const sample=await p.evaluate(({secs})=>new Promise(done=>{window.__simMs.length=0;const P=CanvasRenderingContext2D.prototype,orig={drawImage:P.drawImage,save:P.save,getImageData:P.getImageData},n={drawImage:0,save:0,getImageData:0};
+    if(stacksMode)await p.evaluate(()=>{window.__lateStacks=true});if(pre)await p.evaluate(pre);const sample=await p.evaluate(({secs})=>new Promise(done=>{window.__simMs.length=0;const P=CanvasRenderingContext2D.prototype,orig={drawImage:P.drawImage,save:P.save,getImageData:P.getImageData},n={drawImage:0,save:0,getImageData:0};
       const stacks={};for(const k of Object.keys(orig))P[k]=function(...a){n[k]++;if(window.__lateStacks&&n[k]%7===0){const f=(new Error().stack||'').split('\n').slice(2,4).map(l=>l.trim().replace(/^at /,'').replace(/https?:\/\/[^/]+\//,'').replace(/\)$/,'')).join(' < ');const key=k+' '+f;stacks[key]=(stacks[key]||0)+7}return orig[k].apply(this,a)};window.__lateStackOut=stacks;const t=[],per={drawImage:[],save:[],getImageData:[]};let start=0;
       function f(now){if(start)for(const k in n)per[k].push(n[k]);for(const k in n)n[k]=0;if(!start)start=now;t.push(now);if(now-start<secs*1000)requestAnimationFrame(f);else{Object.assign(P,orig);done({t,per,sim:window.__simMs.slice(),stacks:Object.entries(stacks).sort((a,b)=>b[1]-a[1]).slice(0,30)})}}requestAnimationFrame(f)}),{secs});
     let top=null;if(profile){const {profile:pr}=await cdp.send('Profiler.stop');fs.writeFileSync(profile,JSON.stringify(pr));const by={},self={};let total=0;for(const nd of pr.nodes)by[nd.id]=nd;pr.samples.forEach((id,i)=>{const nd=by[id],k=(nd.callFrame.functionName||'(anon)')+' '+path.basename(nd.callFrame.url||'')+':'+(nd.callFrame.lineNumber+1),d=pr.timeDeltas[i]||0;self[k]=(self[k]||0)+d;total+=d});top=Object.entries(self).sort((a,b)=>b[1]-a[1]).slice(0,25).map(([k,v])=>`${(v/total*100).toFixed(1)}% ${k}`)}
@@ -43,4 +43,4 @@ async function run({secs=10,profile,shot,warm=4,stacks:stacksMode=false}={}){let
       hudRender:g(/render ([\d.]+)\/([\d.]+)/),hudScene:g(/scene ([\d.]+)\/([\d.]+)/),hudUpdate:g(/update ([\d.]+)\/([\d.]+)/),hud:hud.replace(/\s+/g,' ').slice(0,600),errors,top,...(stacksMode?{stacks:sample.stacks.map(([k,v])=>`${Math.round(v/Math.max(1,iv.length))}/frame ${k}`)}:{})}}
   finally{await browser.close();server.close()}}
 module.exports={run};
-if(require.main===module){const a=args();run({secs:+(a.secs||10),profile:a.profile,shot:a.shot,stacks:!!a.stacks}).then(r=>{if(a.json)fs.writeFileSync(a.json,JSON.stringify(r,null,1));console.log(JSON.stringify(r,null,1))}).catch(e=>{console.error(e);process.exit(1)})}
+if(require.main===module){const a=args();run({secs:+(a.secs||10),profile:a.profile,shot:a.shot,stacks:!!a.stacks,pre:a.pre||null}).then(r=>{if(a.json)fs.writeFileSync(a.json,JSON.stringify(r,null,1));console.log(JSON.stringify(r,null,1))}).catch(e=>{console.error(e);process.exit(1)})}

@@ -778,7 +778,42 @@
     ],
     "assumptions": "RTT 40/100/200 ms 与 D1 往返 20 ms 为假设值；CPU 为本机 Node 实测（内存 SQLite），不是 Cloudflare Worker / D1 实测。"
    },
-   "calibrationMs": 32.78
+   "calibrationMs": 32.78,
+   "late": {
+    "sim": {
+     "units": 397,
+     "steps": 600,
+     "reps": 3,
+     "meanMs": 6.38,
+     "p50": 4.61,
+     "p95": 14.19,
+     "max": 106.82,
+     "fingerprint": "115364dd"
+    },
+    "browser": {
+     "viewport": "1920x1080",
+     "units": 412,
+     "unitsAlive": 376,
+     "frames": [
+      122,
+      111
+     ],
+     "fps": 12,
+     "frameP50": 64.14,
+     "frameP95": 96.13,
+     "simP50": 4.38,
+     "simP95": 10.69,
+     "renderP50": 14.84,
+     "renderP95": 27.84,
+     "updateP50": 8.77,
+     "updateP95": 20.61,
+     "drawImagePerFrame": 656,
+     "savePerFrame": 1268.5,
+     "getImageDataPerFrame": 0.5,
+     "errors": []
+    },
+    "note": "v44 late-game scene added 2026-11-17 on feature/late-game-perf; timings normalised to this mode's calibrationMs (speed factor 1.300); other baseline entries unchanged"
+   }
   }
  },
  "meta": {
@@ -1419,7 +1454,41 @@
     ],
     "assumptions": "RTT 40/100/200 ms 与 D1 往返 20 ms 为假设值；CPU 为本机 Node 实测（内存 SQLite），不是 Cloudflare Worker / D1 实测。"
    },
-   "calibrationMs": 37.97
+   "calibrationMs": 37.97,
+   "late": {
+    "sim": {
+     "units": 397,
+     "steps": 400,
+     "reps": 2,
+     "meanMs": 7.6,
+     "p50": 5.11,
+     "p95": 17.36,
+     "max": 113.27,
+     "fingerprint": "e2b0e441"
+    },
+    "browser": {
+     "viewport": "1920x1080",
+     "units": 412,
+     "unitsAlive": 387,
+     "frames": [
+      85
+     ],
+     "fps": 10,
+     "frameP50": 89,
+     "frameP95": 118.84,
+     "simP50": 5.7,
+     "simP95": 18.26,
+     "renderP50": 20.13,
+     "renderP95": 51.13,
+     "updateP50": 12.29,
+     "updateP95": 30.29,
+     "drawImagePerFrame": 621,
+     "savePerFrame": 1256,
+     "getImageDataPerFrame": 0,
+     "errors": []
+    },
+    "note": "v44 late-game scene added 2026-11-17 on feature/late-game-perf; timings normalised to this mode's calibrationMs (speed factor 1.123); other baseline entries unchanged"
+   }
   }
  }
 }

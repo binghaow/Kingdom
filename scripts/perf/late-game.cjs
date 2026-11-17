@@ -25,9 +25,15 @@ function setup(){const sim=new K.Sim('normal',null,{nations:['britain','france',
   const live=towns.filter(Boolean),mid={x:live.reduce((a,b)=>a+b.x,0)/live.length,y:live.reduce((a,b)=>a+b.y,0)/live.length};
   for(let t=0;t<4;t++){const army=sim.s.units.filter(u=>u.team===t&&u.kind!=='villager'&&K.defs[u.kind].damage>0&&!sim.sea?.(u)&&!sim.air?.(u));
     sim.order(army.filter((_,i)=>i%3!==2),{type:'advance',x:mid.x+(t-1.5)*60,y:mid.y})}
-  return {sim,towns:live.length}}
-const {sim,towns}=setup();sim.getGrid?.(null);
-const ticks=[],prints=[];for(let i=1;i<=steps;i++){const t=now();sim.tick(.05);ticks.push(now()-t);if(i%every===0)prints.push({step:i,...fingerprint(sim.s)})}
+  return {sim,towns:live.length,mid}}
+/* Fixed player command script (same on both code versions): step 300 team 0 attacks the nearest enemy unit with its idle soldiers,
+   step 600 team 1 retreats half of its army home, step 900 team 2 attack-moves on team 3's town. */
+function commands(sim,step,mid){const s=sim.s,army=t=>s.units.filter(u=>u.team===t&&u.hp>0&&u.kind!=='villager'&&K.defs[u.kind].damage>0&&!sim.sea?.(u)&&!sim.air?.(u));
+  if(step===300){const a=army(0),e=s.units.filter(u=>u.team!==0&&u.hp>0).sort((x,y)=>Math.hypot(x.x-mid.x,x.y-mid.y)-Math.hypot(y.x-mid.x,y.y-mid.y)||x.id-y.id)[0];if(a.length&&e)sim.order(a.filter(u=>!u.order),{type:'attack',id:e.id})}
+  if(step===600){const a=army(1),home=sim.townOf(1);if(home)sim.order(a.filter((_,i)=>i%2===0),{type:'move',x:home.x,y:home.y+120,retreat:true})}
+  if(step===900){const a=army(2),t=sim.townOf(3);if(t)sim.order(a,{type:'advance',x:t.x,y:t.y})}}
+const {sim,towns,mid}=setup();sim.getGrid?.(null);
+const ticks=[],prints=[];for(let i=1;i<=steps;i++){commands(sim,i,mid);const t=now();sim.tick(.05);ticks.push(now()-t);if(i%every===0)prints.push({step:i,...fingerprint(sim.s)})}
 const sorted=[...ticks].sort((a,b)=>a-b),res={root:ROOT,seed,mapId,towns,steps,units:sim.s.units.length,alive:sim.s.units.filter(u=>u.hp>0).length,
   meanMs:+(ticks.reduce((a,b)=>a+b,0)/steps).toFixed(2),p50:+sorted[steps>>1].toFixed(2),p95:+sorted[Math.floor(steps*.95)].toFixed(2),max:+sorted.at(-1).toFixed(1),prints};
 if(out)fs.writeFileSync(out,JSON.stringify(res,null,1));
