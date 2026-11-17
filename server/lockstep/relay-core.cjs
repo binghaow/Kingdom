@@ -32,8 +32,10 @@ function sealLimit(startAt, period, now, seats, ahead = AHEAD, activeMs = ACTIVE
   return slowest === Infinity ? elapsed : Math.min(elapsed, slowest + ahead);
 }
 
-/* Turn a command reaching the relay now is assigned to. */
-function assignTurn(sealed, startAt, period, now) { return Math.max(sealed + 1, clockTurn(startAt, period, now)); }
+/* Turn a command reaching the relay now is assigned to: the current clock turn, but never a sealed one, and never past the
+   first turn the hold rule still keeps open (limit = sealLimit(...)) — otherwise, while everyone waits for a slow seat, a
+   command would be parked at the far-ahead wall-clock turn and run seconds late once the hold ends. */
+function assignTurn(sealed, startAt, period, now, limit = Infinity) { return Math.max(sealed + 1, Math.min(clockTurn(startAt, period, now), limit + 1)); }
 
 /* Recommended delay in turns: ceil((p90 rtt + 50 ms) / period), clamped to [D_MIN, D_MAX], moved one turn at a time. */
 function adaptDelay(current, rtts, period = PERIOD) {

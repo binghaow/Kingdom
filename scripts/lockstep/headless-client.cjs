@@ -37,10 +37,13 @@ function faultyFetch(f) {
   const transport = new AutoTransport({ mode: cfg.transport || 'http', httpUrl: cfg.base + '/api/lockstep/' + cfg.room, wsUrl: cfg.base.replace(/^http/, 'ws') + '/api/lockstep/' + cfg.room + '/ws' + (cfg.wsPath || ''), token: cfg.token, client, fetch, timeout: cfg.timeout || 4000, onSwitch: (r) => { switched = r; } });
   let switched = null;
   const bot = createBot(K, cfg.seat, client.team, cfg.botSeed || 1);
+  const hashMod = await import(pathToFileURL(path.join(ROOT, 'src/core/hash.js')).href);
+  let finalAtEnd = null;
   const endTurn = cfg.turns, samples = []; let stepMs = 0, steps = 0, maxStep = 0;
   const run = client.runTurn.bind(client);
   client.runTurn = () => { const turn = client.nextTurn, a = performance.now(); run(); const d = performance.now() - a; stepMs += d; steps++; if (d > maxStep) maxStep = d;
     for (const [type, args] of bot(client.sim, turn)) if (client.issue(type, args)) transport.kick();
+    if (client.nextTurn === endTurn) finalAtEnd = hashMod.checksum(client.sim).hash;
     if (turn % 600 === 0) samples.push({ turn, units: client.sim.s.units.length, t: Date.now() }); };
   transport.start();
   while (client.nextTurn < endTurn && !client.desync && !transport.fatal) { client.advance(cfg.budget || 40); await sleep(cfg.loop || 4); }
@@ -50,7 +53,7 @@ function faultyFetch(f) {
   const lat = client.stats.latency.slice().sort((a, b) => a - b), q = (p) => (lat.length ? Math.round(lat[Math.min(lat.length - 1, Math.floor(p * lat.length))]) : null);
   const wall = (Date.now() - t0) / 1000;
   process.stdout.write(JSON.stringify({ seat: cfg.seat, team: client.team, turns: client.nextTurn, steps: client.step, desync: client.desync, fatal: transport.fatal?.message || null,
-    hashes: client.hashLog, final: (await import(pathToFileURL(path.join(ROOT, 'src/core/hash.js')).href)).checksum(client.sim).hash, units: client.sim.s.units.length,
+    hashes: client.hashLog, final: finalAtEnd, units: client.sim.s.units.length,
     stats: { ...client.stats, latency: undefined, latencyN: lat.length, latencyP50: q(0.5), latencyP90: q(0.9), latencyMax: lat.length ? Math.round(lat[lat.length - 1]) : null, latencyAll: cfg.keepLatency ? lat : undefined },
     lost: fetch.stats, transport: transport.mode, fallback: switched, reconnects: client.stats.reconnects || 0, buildMs, wall, simMsPerTurn: steps ? stepMs / steps : 0, maxTurnMs: maxStep, rtt: client.rtt, delay: client.delay, samples, log: cfg.keepLog ? client.log : undefined }) + '\n');
   process.exit(0);

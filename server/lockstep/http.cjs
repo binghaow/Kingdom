@@ -68,7 +68,8 @@ async function lookup(raw, id, tokenHash) { await ensureSchema(raw); return sess
 async function exchange(raw, id, head, msg, now, held = 0) {
   const db = session(raw), c = core.clockTurn(head.startAt, head.period, now), seat = head.seat;
   const statements = [db.prepare('UPDATE lockstep_seats SET seen = ?3, at = MAX(at, ?4), rtt = COALESCE(?5, rtt) WHERE room = ?1 AND seat = ?2').bind(id, seat, now, msg.at, msg.rtt)];
-  for (const cmd of msg.cmds) statements.push(db.prepare("INSERT INTO lockstep_cmds (room, seat, seq, turn, cmd) SELECT ?1, ?2, ?3, MAX(sealed + 1, ?4), ?5 FROM lockstep_rooms WHERE id = ?1 AND status = 'playing' ON CONFLICT (room, seat, seq) DO NOTHING").bind(id, seat, cmd.seq, c, cmd.text));
+  // Turn = MAX(sealed + 1, MIN(clock turn, hold limit + 1)) (relay-core assignTurn), computed inside the INSERT so it is atomic.
+  for (const cmd of msg.cmds) statements.push(db.prepare("INSERT INTO lockstep_cmds (room, seat, seq, turn, cmd) SELECT ?1, ?2, ?3, MAX(sealed + 1, MIN(?4, COALESCE((SELECT MIN(at) FROM lockstep_seats WHERE room = ?1 AND human = 1 AND seen >= ?6), ?4) + ?7 + 1)), ?5 FROM lockstep_rooms WHERE id = ?1 AND status = 'playing' ON CONFLICT (room, seat, seq) DO NOTHING").bind(id, seat, cmd.seq, c, cmd.text, now - core.ACTIVE_MS, core.AHEAD));
   const sealAt = statements.length;
   statements.push(db.prepare('UPDATE lockstep_rooms SET sealed = MAX(sealed, MIN(?2, COALESCE((SELECT MIN(at) FROM lockstep_seats WHERE room = ?1 AND human = 1 AND seen >= ?3), ?2) + ?4)) WHERE id = ?1 RETURNING sealed, delay, status, desync').bind(id, c - 1, now - core.ACTIVE_MS, core.AHEAD));
   const hashAt = statements.length;

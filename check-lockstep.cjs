@@ -13,7 +13,7 @@ const done = [];
   assert.equal(core.sealLimit(0, 100, 1050, [{ human: true, seen: 1000, at: 3 }]), 9);
   assert.equal(core.sealLimit(0, 100, 5000, [{ human: true, seen: 4900, at: 10 }]), 10 + core.AHEAD, 'a slow active seat holds sealing');
   assert.equal(core.sealLimit(0, 100, 20000, [{ human: true, seen: 1000, at: 10 }]), 199, 'a seat silent for ACTIVE_MS no longer holds');
-  assert.equal(core.assignTurn(7, 0, 100, 650), 8); assert.equal(core.assignTurn(3, 0, 100, 650), 6);
+  assert.equal(core.assignTurn(7, 0, 100, 650), 8); assert.equal(core.assignTurn(3, 0, 100, 650), 6); assert.equal(core.assignTurn(3, 0, 100, 9000, 13), 14, 'held relay: next open turn, not the wall-clock turn');
   assert.equal(core.adaptDelay(2, [40, 50, 60]), 2); assert.equal(core.adaptDelay(2, [400, 420]), 3, 'one step at a time'); assert.equal(core.adaptDelay(5, [900]), 5); assert.equal(core.adaptDelay(4, [10]), 3);
   assert.throws(() => core.parseClient({ c: [[0, { type: 'train' }]] })); assert.throws(() => core.parseClient({ c: [[1, { type: 'x y' }]] }));
   assert.equal(core.parseClient({ h: [[21, 'abcdef01'], [20, 'zz'], [40, 'abcdef01']] }).hashes.length, 1, 'only well-formed checksums on 20-step marks');
