@@ -18,6 +18,8 @@ const KINDS=['infantry','archer','cavalry','musketeer','cannon','halberd','longb
 async function measure(browser,port,name,{warm,secs,shots}){const v=VIEWPORTS[name];const ctx=await browser.newContext({viewport:{width:v.w,height:v.h},deviceScaleFactor:v.dpr,hasTouch:v.touch,isMobile:v.touch});const p=await ctx.newPage();const errors=[];p.on('pageerror',e=>errors.push(e.message));
   try{await p.goto(`http://127.0.0.1:${port}/?perf=1`);await p.waitForFunction(()=>window.KingdomArt&&KingdomArt.loaded,null,{timeout:90000});
     await p.evaluate(()=>{const P=KingdomSim.Sim.prototype,t=P.tick;P.tick=function(...a){window.__releaseSim=this;return t.apply(this,a)}});
+    // Pin the benchmark setting so the compared releases use the same fog workload.
+    await p.locator('#world-fog').check();
     await p.click('#start');await p.waitForFunction(()=>!!window.__releaseSim,null,{timeout:30000});await p.waitForTimeout(800);
     const n=await p.evaluate(({kinds})=>{const sim=window.__releaseSim,s=sim.s;sim.ai=()=>{};sim.raids=()=>{};s.units=s.units.filter(u=>u.team===0&&u.kind==='villager').slice(0,3);s.effects=[];
       const base=s.buildings.find(b=>b.team===0&&b.kind==='town'),cx=base.x+80,cy=base.y-80;for(const b of s.buildings){b.x+=1500;b.y+=1100}

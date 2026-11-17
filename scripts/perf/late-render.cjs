@@ -19,6 +19,8 @@ async function run({secs=10,profile,shot,warm=4,stacks:stacksMode=false,pre=null
     await p.evaluate(()=>{const P=KingdomSim.Sim.prototype,t=P.tick;window.__simMs=[];P.tick=function(...a){window.__lateSim=this;const t0=performance.now();const r=t.apply(this,a);window.__simMs.push(performance.now()-t0);return r}});
     await p.evaluate(()=>{const set=(id,v)=>{const e=document.getElementById(id);if(!e)return;if(e.tagName==='SELECT'&&![...e.options].some(o=>o.value===String(v))){const o=document.createElement('option');o.value=String(v);o.textContent=String(v);e.append(o)}e.value=String(v);e.dispatchEvent(new Event('change',{bubbles:true}))};
       set('ai-count',3);for(const t of [1,2,3])set('ai-group-'+t,t+1);set('world-map','coast_l')});
+    // Pin the benchmark setting so the compared releases use the same fog workload.
+    await p.locator('#world-fog').check();
     await p.click('#start');await p.waitForFunction(()=>!!window.__lateSim,null,{timeout:30000});await p.waitForTimeout(500);
     const setup=await p.evaluate(()=>{const sim=window.__lateSim,s=sim.s,D=KingdomSim.defs,soldiers=['infantry','archer','musketeer','cavalry','halberd','pikeman','longbow'];
       const towns=s.nations.map((_,t)=>s.buildings.find(b=>b.team===t&&b.kind==='town'));const home=towns[0],cx=s.world?s.world.width/2:home.x,cy=s.world?s.world.height/2:home.y,d=Math.hypot(cx-home.x,cy-home.y)||1;
