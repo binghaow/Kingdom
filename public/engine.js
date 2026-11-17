@@ -46,7 +46,10 @@ class Sim{
  get state(){return this.s}rand(a=0,b=1){this.s.rng=this.s.rng*16807%2147483647;return a+(this.s.rng-1)/2147483646*(b-a)}
  emit(type,data={}){this.events.push({type,...data});if(this.events.length>100)this.events.shift()}
  fx(type,data,life=.6){this.s.effects.push({type,...data,life,max:life});if(this.s.effects.length>400)this.s.effects.shift()}
- byId(id){return this.s.units.find(e=>e.id===id)||this.s.buildings.find(e=>e.id===id)||this.s.nodes.find(e=>e.id===id)}
+ /* id -> entity index (v44 late-game perf). Same answer as units.find || buildings.find || nodes.find: the first entity with that id in
+    units, then buildings, then nodes, including dead entities still in the arrays. The arrays are only ever replaced (filter/assign) or
+    appended to (push), so the index is rebuilt whenever an array's identity or length differs from the last build. */
+ byId(id){const s=this.s,U=s.units,B=s.buildings,N=s.nodes;let x=this._idIndex;if(!x||x.u!==U||x.b!==B||x.n!==N||x.ul!==U.length||x.bl!==B.length||x.nl!==N.length){const m=x?.map||new Map();m.clear();for(const list of [U,B,N])for(let i=0;i<list.length;i++){const e=list[i];if(!m.has(e.id))m.set(e.id,e)}x=this._idIndex={map:m,u:U,b:B,n:N,ul:U.length,bl:B.length,nl:N.length}}return x.map.get(id)}
  afterBuild(b,last){/* player builders do not stand idle after finishing: next unfinished site nearby, else work the building they made (AI seats keep their own planner) */const s=this.s;if(b.team!==0&&!s.humanTeams?.includes(b.team))return;const crew=s.units.filter(w=>w.team===b.team&&w.hp>0&&w.kind==='villager'&&(w===last||w.order?.type==='build'&&w.order.id===b.id));const res=k=>s.nodes.filter(n=>n.amount>0&&n.subtype!=='fish'&&(Array.isArray(k)?k.includes(n.kind):n.kind===k));const farmBusy=f=>s.units.some(w=>w.team===b.team&&w.order?.type==='gather'&&w.order.id===f.id);for(const w of crew){w.order=null;const site=this.nearest(w,s.buildings.filter(x=>x.team===b.team&&!x.complete&&x.hp>0&&distance(x,w)<520));if(site){w.order={type:'build',id:site.id};continue}let n=null;if(b.kind==='farm'&&!farmBusy(b))n=b;else if(b.kind==='farm'||b.kind==='mill'){n=this.nearest(w,s.buildings.filter(f=>f.team===b.team&&f.kind==='farm'&&f.complete&&f.hp>0&&distance(f,w)<420&&!farmBusy(f)))||this.nearest(w,res('food'))}else if(b.kind==='lumbercamp')n=this.nearest(w,res('wood'));else if(b.kind==='miningcamp'||b.kind==='quarry')n=this.nearest(w,res(['gold','stone']));if(n&&distance(n,w)<560)w.order={type:'gather',id:n.id,resource:n.resource||n.kind}}}
  nearest(p,list){return list.reduce((a,e)=>!a||distance(p,e)<distance(p,a)?e:a,null)}
  building(e){return !!D[e?.kind]?.building}
@@ -108,8 +111,8 @@ class Sim{
   let best=null,bestPriority=Infinity,bestDistance=radius2;
   for(const candidate of this.autoTargetRoster){
    if(candidate.id===u.id||candidate.team===u.team||candidate.hp<=0||candidate.embarkedOn)continue;
+   const dx=candidate.x-u.x,dy=candidate.y-u.y,gap2=dx*dx+dy*dy;if(gap2>radius2)continue;/* v44: cheap range test before the (pure) canTarget chain */
    if(this.canTarget&&!this.canTarget(u,candidate))continue;
-   const dx=candidate.x-u.x,dy=candidate.y-u.y,gap2=dx*dx+dy*dy;if(gap2>radius2)continue;
    if(candidate.id===state.ignoredId){const a=state.ignoredAnchor;if(a){const ax=candidate.x-a.x,ay=candidate.y-a.y;if(ax*ax+ay*ay>radius2*.8)continue}state.ignoredId=null;state.ignoredAnchor=null}
    if(!this.autoTargetReachable(u,candidate))continue;
    const priority=this.autoTargetPriority(candidate);if(priority>bestPriority||(priority===bestPriority&&gap2>=bestDistance))continue;
