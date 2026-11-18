@@ -3,6 +3,13 @@
 恢复联机房间|Resume Multiplayer Room
 2–4 人 · 免注册 · 组队 / 各自为战 / 自由外交|2–4 players · No sign-up · Teams / Free-for-all / Diplomacy
 多人联机|Multiplayer
+新联机（测试）|Lockstep (beta)
+每台设备运行同一局模拟，服务器只转发指令（测试版）|Every device runs the same simulation; the server only relays commands (beta)
+等待网络…|Waiting for the network…
+等待|Waiting for
+电脑|Computer
+联机不同步，本局已停止（测试版）|Multiplayer desync: this match has stopped (beta)
+新联机即将开始…|Lockstep match is about to start…
 2 人|2 Players
 3 人|3 Players
 4 人|4 Players
