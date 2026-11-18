@@ -1,11 +1,11 @@
 {
  "seconds": 20,
  "delayMs": 0,
- "room": "6A3V",
+ "room": "809",
  "join": {
   "mode": "id",
-  "code": "6A3V",
-  "roomId": "HLZCKTK8"
+  "code": "809",
+  "roomId": "9Q2P7V6R"
  },
  "transport": {
   "A": {
@@ -18,85 +18,85 @@
   }
  },
  "statuses": {
-  "rooms 200": 15,
+  "rooms 200": 13,
   "rooms 201": 1
  },
  "nonOk": [],
  "pageErrors": [],
  "consistency": {
-  "comparedChecksums": 28,
+  "comparedChecksums": 27,
   "mismatch": null,
   "desyncA": null,
   "desyncB": null,
-  "lastStep": 570,
+  "lastStep": 550,
   "lastHash": [
-   560,
-   "34b4f535"
+   540,
+   "77bf984a"
   ]
  },
  "clickToExecute": {
   "n": 10,
   "of": 10,
-  "p50": 246,
-  "p90": 331,
-  "max": 331
+  "p50": 251,
+  "p90": 4402,
+  "max": 4402
  },
  "issueToExecute": {
-  "n": 14,
-  "p50": 226,
-  "p90": 308,
-  "max": 326
+  "n": 13,
+  "p50": 212,
+  "p90": 268,
+  "max": 300
  },
  "tabs": [
   {
    "tab": "A",
-   "turn": 285,
-   "gameTime": 28.5,
+   "turn": 275,
+   "gameTime": 27.6,
    "units": 31,
-   "rtt": 29,
+   "rtt": 36,
    "delay": 2,
-   "lagTurns": 1.36,
+   "lagTurns": 1.32,
    "stalls": 4,
-   "stallMs": 454,
-   "catchup": 10,
-   "requests": 601,
+   "stallMs": 374,
+   "catchup": 6,
+   "requests": 582,
    "failures": 0,
-   "upBps": 198,
-   "downBps": 606,
+   "upBps": 199,
+   "downBps": 603,
    "rejected": 0,
    "commands": 7,
-   "viewMsAvg": 2.87,
-   "viewMsMax": 30.2
+   "viewMsAvg": 3.16,
+   "viewMsMax": 13
   },
   {
    "tab": "B",
-   "turn": 285,
-   "gameTime": 28.5,
+   "turn": 275,
+   "gameTime": 27.6,
    "units": 31,
-   "rtt": 27,
+   "rtt": 31,
    "delay": 2,
-   "lagTurns": 1.36,
-   "stalls": 3,
-   "stallMs": 301,
-   "catchup": 16,
-   "requests": 601,
+   "lagTurns": 1.35,
+   "stalls": 4,
+   "stallMs": 451,
+   "catchup": 15,
+   "requests": 582,
    "failures": 0,
-   "upBps": 193,
-   "downBps": 606,
+   "upBps": 186,
+   "downBps": 604,
    "rejected": 0,
-   "commands": 7,
-   "viewMsAvg": 3.02,
-   "viewMsMax": 19.9
+   "commands": 6,
+   "viewMsAvg": 3.39,
+   "viewMsMax": 26.9
   }
  ],
  "frameIntervalMs": {
   "A": {
    "p50": 33,
-   "p90": 33
+   "p90": 50
   },
   "B": {
-   "p50": 33,
-   "p90": 50
+   "p50": 17,
+   "p90": 33
   }
  },
  "pass": true

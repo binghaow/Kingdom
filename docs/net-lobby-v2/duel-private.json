@@ -1,11 +1,11 @@
 {
  "seconds": 20,
  "delayMs": 0,
- "room": "BHV6",
+ "room": "812",
  "join": {
   "mode": "invite-link",
-  "code": "BHV6",
-  "roomId": "F5QW93PM",
+  "code": "812",
+  "roomId": "KL92DZH5",
   "listedWhilePrivate": false,
   "listText": "暂时没有开放房间。你可以创建一个，或用房间码加入。"
  },
@@ -20,85 +20,85 @@
   }
  },
  "statuses": {
-  "rooms 200": 33,
+  "rooms 200": 35,
   "rooms 201": 1
  },
  "nonOk": [],
  "pageErrors": [],
  "consistency": {
-  "comparedChecksums": 27,
+  "comparedChecksums": 28,
   "mismatch": null,
   "desyncA": null,
   "desyncB": null,
-  "lastStep": 556,
+  "lastStep": 560,
   "lastHash": [
-   540,
-   "8267db48"
+   560,
+   "19f2a5e3"
   ]
  },
  "clickToExecute": {
   "n": 10,
   "of": 10,
-  "p50": 259,
-  "p90": 357,
-  "max": 357
+  "p50": 262,
+  "p90": 338,
+  "max": 338
  },
  "issueToExecute": {
   "n": 14,
-  "p50": 246,
-  "p90": 282,
-  "max": 292
+  "p50": 239,
+  "p90": 303,
+  "max": 304
  },
  "tabs": [
   {
    "tab": "A",
-   "turn": 278,
-   "gameTime": 27.9,
+   "turn": 280,
+   "gameTime": 28,
    "units": 31,
-   "rtt": 27,
+   "rtt": 31,
    "delay": 2,
-   "lagTurns": 1.36,
+   "lagTurns": 1.35,
    "stalls": 5,
-   "stallMs": 317,
-   "catchup": 6,
-   "requests": 589,
+   "stallMs": 547,
+   "catchup": 10,
+   "requests": 586,
    "failures": 0,
-   "upBps": 200,
-   "downBps": 609,
+   "upBps": 197,
+   "downBps": 601,
    "rejected": 0,
    "commands": 7,
-   "viewMsAvg": 3.18,
-   "viewMsMax": 15.2
+   "viewMsAvg": 3.74,
+   "viewMsMax": 59.6
   },
   {
    "tab": "B",
-   "turn": 279,
+   "turn": 280,
    "gameTime": 28,
    "units": 31,
-   "rtt": 27,
+   "rtt": 29,
    "delay": 2,
    "lagTurns": 1.36,
    "stalls": 4,
-   "stallMs": 936,
-   "catchup": 15,
-   "requests": 588,
+   "stallMs": 628,
+   "catchup": 14,
+   "requests": 586,
    "failures": 0,
-   "upBps": 191,
-   "downBps": 604,
+   "upBps": 192,
+   "downBps": 601,
    "rejected": 0,
    "commands": 7,
-   "viewMsAvg": 3.84,
-   "viewMsMax": 37.8
+   "viewMsAvg": 2.89,
+   "viewMsMax": 13.5
   }
  ],
  "frameIntervalMs": {
   "A": {
-   "p50": 33,
+   "p50": 17,
    "p90": 50
   },
   "B": {
-   "p50": 33,
-   "p90": 34
+   "p50": 17,
+   "p90": 50
   }
  },
  "pass": true

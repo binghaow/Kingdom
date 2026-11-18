@@ -1,5 +1,6 @@
 'use strict';
-/* Net lobby v2: open-room list (GET /api/rooms/open), invite-only rooms, 4-character codes with legacy 8-character ids,
+/* Net lobby v2: open-room list (GET /api/rooms/open), invite-only rooms, 3-digit codes (lease, freeing, 4-digit fallback,
+   guess rate limit) with legacy 8-character ids,
    no token / token hash / private data in the public list, rate limit, cache, index use, default lockstep transport. */
 const assert = require('node:assert/strict'), fs = require('node:fs'), { DatabaseSync } = require('node:sqlite'), { sqliteD1 } = require('./scripts/sqlite-d1.cjs');
 const S = require('./server/service.cjs'), Lobby = require('./server/lobby.cjs');
@@ -19,9 +20,9 @@ async function openList(ip = '10.0.0.1', expected = 200) {
 async function test(n, f) { await f(); done.push(n); }
 (async () => {
   const tokens = [];
-  await test('create returns a 4-character code from the unambiguous alphabet and keeps the 8-character id', async () => {
+  await test('create returns a 3-digit code and keeps the 8-character id', async () => {
     const c = await call('/api/rooms', { name: '房主甲', nation: 'china', config: { capacity: 2, mapId: 'coast_s', fillAI: true } }, null, 201);
-    assert.match(c.room.id, /^[A-HJ-NP-Z2-9]{8}$/); assert.match(c.room.code, /^[A-HJ-NP-Z2-9]{4}$/); assert(!/[01OI]/.test(c.room.code));
+    assert.match(c.room.id, /^[A-HJ-NP-Z2-9]{8}$/); assert.match(c.room.code, /^[0-9]{3}$/);
     tokens.push(c);
   });
   await test('open list shows the public waiting room with only public fields', async () => {
@@ -41,7 +42,7 @@ async function test(n, f) { await f(); done.push(n); }
     const c2 = await call('/api/rooms', { name: '私密2', nation: 'japan', config: { capacity: 2, mapId: 'coast_s', private: true } }, null, 201);
     const j2 = await call('/api/rooms/' + c2.room.code + '/join', { name: '客人2', nation: 'france' }); assert.equal(j2.room.id, c2.room.id);
   });
-  await test('4-character code joins and resolves to the room id; full room leaves the list', async () => {
+  await test('3-digit code joins and resolves to the room id; full room leaves the list', async () => {
     const j = await call('/api/rooms/' + tokens[0].room.code + '/join', { name: '乙', nation: 'japan' });
     assert.equal(j.room.id, tokens[0].room.id); assert(j.token);
     const { json } = await openList(); assert(!json.rooms.some((r) => r.id === tokens[0].room.id), 'full room still listed');
@@ -53,7 +54,8 @@ async function test(n, f) { await f(); done.push(n); }
     await new S.Store(env.DB).create(legacy, clock);
     const j = await call('/api/rooms/ABCDEFGH/join', { name: '老客', nation: 'japan' }); assert.equal(j.room.id, 'ABCDEFGH'); assert.equal(j.room.code, undefined);
     const { json } = await openList(); assert(!json.rooms.some((r) => r.id === 'ABCDEFGH'));
-    await call('/api/rooms/ZZZZ/join', { name: 'x' }, null, 404); await call('/api/rooms/ABC0/join', { name: 'x' }, null, 404);
+    const used = new Set(db.prepare('SELECT code FROM multiplayer_lobby WHERE expires_at > ?').all(clock).map((r) => r.code)); let free = '000'; for (let n = 0; n < 1000; n++) { const c = String(n).padStart(3, '0'); if (!used.has(c)) { free = c; break; } }
+    await call('/api/rooms/' + free + '/join', { name: 'x' }, null, 404, '10.4.4.4'); await call('/api/rooms/ABC0/join', { name: 'x' }, null, 404); await call('/api/rooms/12/join', { name: 'x' }, null, 404);
   });
   await test('lockstep flag, leave, staleness and the 10-minute window', async () => {
     const c = await call('/api/rooms', { name: '新', nation: 'britain', config: { capacity: 3, mapId: 'coast_l', lockstep: true } }, null, 201);
@@ -92,6 +94,39 @@ async function test(n, f) { await f(); done.push(n); }
     const plan = db.prepare('EXPLAIN QUERY PLAN ' + Lobby.LIST_SQL).all(0, 0).map((r) => r.detail).join(' | ');
     assert.match(plan, /USING INDEX multiplayer_lobby_open/, plan);
   });
+  await test('code guessing is limited to 20 lookups per minute per IP', async () => {
+    const raw = async (path, ip) => (await S.handle(new Request('https://kingdom.test' + path, { method: 'POST', headers: { 'cf-connecting-ip': ip }, body: JSON.stringify({ name: 'g' }) }), env)).status;
+    for (let i = 0; i < 20; i++) assert.notEqual(await raw('/api/rooms/' + String(900 + i) + '/join', '10.7.7.7'), 429);
+    assert.equal(await raw('/api/rooms/999/join', '10.7.7.7'), 429);
+    assert.notEqual(await raw('/api/rooms/998/join', '10.7.7.8'), 429, 'other IPs unaffected');
+    assert.equal(await raw('/api/rooms/' + tokens[0].room.id, '10.7.7.7'), 401, '8-character ids are not counted');
+    clock += 61000; assert.notEqual(await raw('/api/rooms/999/join', '10.7.7.7'), 429, 'limit resets after a minute');
+  });
+  await test('code is freed when the room ends/closes or after 30 idle minutes; held while in progress', async () => {
+    const a = await call('/api/rooms', { name: '甲', nation: 'china', config: { capacity: 2, mapId: 'coast_s' } }, null, 201);
+    await call('/api/rooms/' + a.room.id, { action: 'leave' }, a.token); // last player leaves -> closed
+    assert.equal(db.prepare('SELECT COUNT(*) n FROM multiplayer_lobby WHERE code = ? AND expires_at > ?').get(a.room.code, clock).n, 0, 'closed room still holds code');
+    const b = await call('/api/rooms', { name: '乙', nation: 'china', config: { capacity: 2, mapId: 'coast_s', fillAI: true } }, null, 201);
+    await call('/api/rooms/' + b.room.id, { action: 'settings', ready: true }, b.token); await call('/api/rooms/' + b.room.id, { action: 'start' }, b.token);
+    clock += 25 * 60 * 1000; await call('/api/rooms/' + b.room.id, {}, b.token); clock += 25 * 60 * 1000;
+    assert.equal((await call('/api/rooms/' + b.room.code + '/join', { name: 'z' }, null, 409, '10.5.5.' + (clock % 200))).error, '战局已开始，只有原席位可以重连', 'playing room code released while polled');
+    clock += 31 * 60 * 1000;
+    await call('/api/rooms/' + b.room.code + '/join', { name: 'z' }, null, 404, '10.5.6.1');
+    const c = await call('/api/rooms', { name: '丙', nation: 'china', config: { capacity: 2, mapId: 'coast_s' } }, null, 201); // may take b's freed code
+    const back = await call('/api/rooms/' + b.room.id, {}, b.token); assert.match(back.room.code, /^[0-9]{3,4}$/);
+    if (c.room.code === b.room.code) assert.notEqual(back.room.code, b.room.code, 'stale code reused');
+    const owners = db.prepare('SELECT code, COUNT(*) n FROM multiplayer_lobby WHERE expires_at > ? GROUP BY code HAVING n > 1').all(clock); assert.equal(owners.length, 0);
+    assert.equal((await call('/api/rooms/' + back.room.code + '/join', { name: 'z' }, null, 409, '10.5.6.2')).error, '战局已开始，只有原席位可以重连');
+  });
+  await test('all 1000 3-digit codes held -> unused 3-digit picked, then 4-digit fallback', async () => {
+    const ins = db.prepare("INSERT OR IGNORE INTO multiplayer_lobby (id, code, listed, waiting, host, nation, map, capacity, joined, lockstep, created_at, seen_at, expires_at) VALUES (?, ?, 0, 0, 'x', 'china', 'coast_s', 2, 1, 0, ?, ?, ?)");
+    db.prepare('DELETE FROM multiplayer_lobby WHERE expires_at <= ?').run(clock); db.exec('BEGIN'); for (let n = 0; n < 1000; n++) if (n !== 437) ins.run('FAKE' + String(n).padStart(4, '0'), String(n).padStart(3, '0'), clock, clock, clock + 3600000); db.exec('COMMIT');
+    db.prepare("DELETE FROM multiplayer_lobby WHERE code = '437' AND id NOT LIKE 'FAKE%'").run(); db.prepare("UPDATE multiplayer_lobby SET expires_at = ? WHERE code = '437'").run(clock - 1);
+    const one = await call('/api/rooms', { name: '满', nation: 'china', config: { capacity: 2, mapId: 'coast_s' } }, null, 201); assert.equal(one.room.code, '437');
+    const two = await call('/api/rooms', { name: '满2', nation: 'china', config: { capacity: 2, mapId: 'coast_s' } }, null, 201); assert.match(two.room.code, /^[0-9]{4}$/);
+    const j = await call('/api/rooms/' + two.room.code + '/join', { name: '四', nation: 'japan' }, null, 200, '10.6.6.6'); assert.equal(j.room.id, two.room.id);
+    db.prepare("DELETE FROM multiplayer_lobby WHERE id LIKE 'FAKE%'").run();
+  });
   await test('cleanup removes expired lobby rows', async () => {
     clock += 7 * 60 * 60 * 1000;
     for (let i = 0; i < 3; i++) await new S.Store(env.DB).cleanup(clock);
@@ -100,8 +135,9 @@ async function test(n, f) { await f(); done.push(n); }
   await test('UI wiring: open list, collapsed code entry, private option, share, locale entries', async () => {
     const ui = fs.readFileSync('public/network-ui.js', 'utf8'), loc = fs.readFileSync('public/network-locale.js', 'utf8');
     for (const id of ['net-open-list', 'net-code-box', 'net-private', 'net-copy']) assert(ui.includes('id="' + id + '"'), id);
+    assert(ui.includes('inputmode="numeric"') && !ui.includes('<details id="net-code-box"'), 'code box numeric and not collapsed'); assert(ui.includes('oninput'), 'auto-join on 3 digits');
     assert(ui.includes("fetch('/api/rooms/open'")); assert(ui.includes('navigator.share'));
-    for (const t of ['开放房间', '用房间码加入', '仅邀请（不出现在列表）', '分享邀请', '旧联机', '分钟前', '刚刚创建']) assert(loc.includes('\n' + t + '|'), t);
+    for (const t of ['开放房间', '输入房间码', '仅邀请（不出现在列表）', '分享邀请', '旧联机', '分钟前', '刚刚创建']) assert(loc.includes('\n' + t + '|'), t);
   });
   console.log('PASS lobby v2: ' + done.length + ' checks — ' + done.join('; '));
 })().catch((e) => { console.error(e); process.exitCode = 1; });

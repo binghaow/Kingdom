@@ -14,8 +14,14 @@
 .net-open-tag{align-self:flex-start;font-size:10px;padding:1px 6px;border-radius:8px;border:1px solid #bda26988;color:#d8c690}
 .net-open-tag.net-open-new{border-color:#8fc7a488;color:#a8dcb7}
 .net-entry-grid .net-open-room .primary{width:auto;min-width:72px;min-height:40px;margin:0;flex:none}
-#net-code-box{margin-top:8px;border-top:1px solid #bda26933;padding-top:6px}
-#net-code-box summary{cursor:pointer;min-height:36px;display:flex;align-items:center;color:#e3cf98;font-size:13px}
-#net-code-box[open] summary{margin-bottom:2px}
-@media(max-width:500px){.net-entry-grid>.net-open-section{order:-1;border-top:0;padding-top:0}.net-entry-grid>.net-open-section+section,.net-entry-grid>section:first-child{border-top:1px solid #bda26944;padding-top:9px}#net-open-list{max-height:38dvh}}
+#net-code-box{margin:4px 0 10px;padding:10px 12px;background:#0f2a22cc;border:1px solid #bda26988;border-radius:5px}
+#net-code-box>label{display:block;font-size:13px;color:#e3cf98;margin-bottom:6px}
+.net-code-row{display:flex;gap:8px;align-items:stretch}
+#net-code{flex:1 1 0;width:0;min-width:0;min-height:48px;box-sizing:border-box;font:700 26px ui-monospace,monospace;letter-spacing:8px;text-align:center;background:#102a23;color:#f7d989;border:1px solid #bda269;border-radius:4px;padding:4px 8px}
+#net-code::placeholder{font:14px system-ui;letter-spacing:0;color:#9aa58f}
+.net-entry-grid .net-code-row .primary{width:auto;min-width:84px;min-height:48px;margin:0;flex:none}
+#net-code-box .net-help{margin:6px 0 0}
+.net-open-head{margin:10px 0 2px;font:700 15px Georgia,serif;color:#f3e6c3}
+.net-invite strong{font-size:40px;letter-spacing:8px;line-height:1.1}
+@media(max-width:500px){.net-entry-grid>.net-open-section{order:-1;border-top:0;padding-top:0}.net-entry-grid>.net-open-section+section,.net-entry-grid>section:first-child{border-top:1px solid #bda26944;padding-top:9px}#net-open-list{max-height:38dvh}.net-invite strong{font-size:34px;letter-spacing:6px}}
 @media(orientation:landscape) and (max-height:600px){#net-open-list{max-height:52dvh}.net-open-room{padding:5px 8px}}

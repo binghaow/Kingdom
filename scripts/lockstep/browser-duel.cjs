@@ -9,7 +9,7 @@
        (same machine clock), plus the client's own issue->execute numbers;
      - with --delay MS: every /api/lockstep request of both tabs is held MS/2 before it is sent and MS/2 before its reply is
        delivered (Playwright route), i.e. MS extra round-trip time.
-        --join list (default: B taps "Join" in the open-room list) | code (4-character code) | id (legacy 8-character code)
+        --join list (default: B taps "Join" in the open-room list) | code (types the 3-digit code; joins automatically) | id (legacy 8-character code + Join)
      --legacy: the old server-authoritative online mode (no lockstep checkbox) with computer seats; checks 2xx/no page errors
      --private: host ticks "invite only"; B checks the room is NOT in the list and enters through the invite link
    usage: node scripts/lockstep/browser-duel.cjs [--seconds 65] [--port 8765] [--delay 100] [--join list|code|id] [--legacy] [--private] [--json out.json] */
@@ -50,7 +50,8 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
       await B.page.click('#open-online'); await sleep(400);
       await B.page.fill('#net-name', '乙');
       if (JOIN === 'list') { const t = Date.now(); await B.page.waitForSelector('#net-open-list [data-room="' + roomId + '"]', { timeout: 15000 }); joinInfo.listMs = Date.now() - t; await B.page.click('#net-open-list [data-room="' + roomId + '"]'); }
-      else { await B.page.click('#net-code-box summary'); await B.page.fill('#net-code', JOIN === 'id' ? roomId : code); await B.page.click('#net-join'); }
+      else if (JOIN === 'code') { await B.page.click('#net-code'); await B.page.keyboard.type(code, { delay: 120 }); /* auto-joins after 3 digits */ }
+      else { await B.page.fill('#net-code', roomId); await B.page.click('#net-join'); }
     }
     await B.page.waitForFunction(() => !document.getElementById('net-lobby').hidden, null, { timeout: 20000 });
     await B.page.click('#net-ready'); await A.page.click('#net-ready'); await sleep(1500);

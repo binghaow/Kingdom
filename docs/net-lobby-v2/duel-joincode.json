@@ -1,11 +1,11 @@
 {
  "seconds": 20,
  "delayMs": 0,
- "room": "566X",
+ "room": "582",
  "join": {
   "mode": "code",
-  "code": "566X",
-  "roomId": "XV23F8Z9"
+  "code": "582",
+  "roomId": "GEHVRXWJ"
  },
  "transport": {
   "A": {
@@ -24,79 +24,79 @@
  "nonOk": [],
  "pageErrors": [],
  "consistency": {
-  "comparedChecksums": 28,
+  "comparedChecksums": 27,
   "mismatch": null,
   "desyncA": null,
   "desyncB": null,
-  "lastStep": 568,
+  "lastStep": 554,
   "lastHash": [
-   560,
-   "90cae478"
+   540,
+   "601489fd"
   ]
  },
  "clickToExecute": {
   "n": 10,
   "of": 10,
-  "p50": 281,
-  "p90": 315,
-  "max": 315
+  "p50": 261,
+  "p90": 325,
+  "max": 325
  },
  "issueToExecute": {
   "n": 14,
-  "p50": 236,
-  "p90": 274,
-  "max": 279
+  "p50": 247,
+  "p90": 281,
+  "max": 284
  },
  "tabs": [
   {
    "tab": "A",
-   "turn": 284,
-   "gameTime": 28.4,
+   "turn": 277,
+   "gameTime": 27.8,
    "units": 31,
-   "rtt": 45,
+   "rtt": 39,
    "delay": 2,
-   "lagTurns": 1.28,
+   "lagTurns": 1.31,
    "stalls": 4,
-   "stallMs": 432,
+   "stallMs": 873,
    "catchup": 13,
-   "requests": 599,
+   "requests": 587,
    "failures": 0,
    "upBps": 199,
-   "downBps": 606,
+   "downBps": 609,
    "rejected": 0,
    "commands": 7,
-   "viewMsAvg": 3.82,
-   "viewMsMax": 26
+   "viewMsAvg": 3.81,
+   "viewMsMax": 18.5
   },
   {
    "tab": "B",
-   "turn": 284,
-   "gameTime": 28.5,
+   "turn": 277,
+   "gameTime": 27.8,
    "units": 31,
-   "rtt": 31,
+   "rtt": 27,
    "delay": 2,
-   "lagTurns": 1.35,
-   "stalls": 4,
-   "stallMs": 1292,
-   "catchup": 16,
-   "requests": 600,
+   "lagTurns": 1.37,
+   "stalls": 3,
+   "stallMs": 717,
+   "catchup": 19,
+   "requests": 586,
    "failures": 0,
-   "upBps": 194,
-   "downBps": 607,
+   "upBps": 191,
+   "downBps": 606,
    "rejected": 0,
    "commands": 7,
-   "viewMsAvg": 2.93,
-   "viewMsMax": 16.3
+   "viewMsAvg": 2.91,
+   "viewMsMax": 24.3
   }
  ],
  "frameIntervalMs": {
   "A": {
    "p50": 17,
-   "p90": 33
+   "p90": 50
   },
   "B": {
    "p50": 33,
-   "p90": 33
+   "p90": 50
   }
  },
  "pass": true

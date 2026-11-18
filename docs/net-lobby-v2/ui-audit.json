@@ -1,0 +1,594 @@
+[
+ {
+  "lang": "zh",
+  "view": "phone-portrait",
+  "size": "390x844",
+  "screenshot": "docs/net-lobby-v2/lobby-phone-portrait-zh.png",
+  "rows": [
+   {
+    "text": "Hiro · 日本 群岛王庭 · 玩家 1/3 · 刚刚创建 旧联机 加入",
+    "btn": [
+     72,
+     42
+    ],
+    "inside": true
+   },
+   {
+    "text": "王小明 · 中国 风岬海岸 · 玩家 1/2 · 刚刚创建 旧联机 加入",
+    "btn": [
+     72,
+     42
+    ],
+    "inside": true
+   },
+   {
+    "text": "Lena · 法国 群岛王庭 · 玩家 1/4 · 刚刚创建 新联机（测试） 加入",
+    "btn": [
+     72,
+     42
+    ],
+    "inside": true
+   }
+  ],
+  "summary": {
+   "inputmode": "numeric",
+   "w": 206,
+   "h": 48,
+   "join": [
+    84,
+    48
+   ],
+   "visibleWithoutScroll": true
+  },
+  "dialogOverflowX": false,
+  "entryFindings": 0,
+  "entryProbe": {
+   "viewport": {
+    "width": 390,
+    "height": 844
+   },
+   "language": "zh-CN",
+   "scope": "#network-dialog",
+   "collapsed": false,
+   "findings": []
+  },
+  "lobbyFindings": 0,
+  "lobbyProbe": {
+   "viewport": {
+    "width": 390,
+    "height": 844
+   },
+   "language": "zh-CN",
+   "scope": "#network-dialog",
+   "collapsed": false,
+   "findings": []
+  },
+  "share": {
+   "text": "分享邀请",
+   "w": 324,
+   "h": 36,
+   "onScreen": true
+  },
+  "code": "358",
+  "codeFont": "34px",
+  "errors": []
+ },
+ {
+  "lang": "zh",
+  "view": "phone-landscape",
+  "size": "844x390",
+  "screenshot": "docs/net-lobby-v2/lobby-phone-landscape-zh.png",
+  "rows": [
+   {
+    "text": "Hiro · 日本 群岛王庭 · 玩家 1/3 · 刚刚创建 旧联机 加入",
+    "btn": [
+     72,
+     41
+    ],
+    "inside": true
+   },
+   {
+    "text": "王小明 · 中国 风岬海岸 · 玩家 1/2 · 刚刚创建 旧联机 加入",
+    "btn": [
+     72,
+     41
+    ],
+    "inside": true
+   },
+   {
+    "text": "Lena · 法国 群岛王庭 · 玩家 1/4 · 刚刚创建 新联机（测试） 加入",
+    "btn": [
+     72,
+     41
+    ],
+    "inside": true
+   }
+  ],
+  "summary": {
+   "inputmode": "numeric",
+   "w": 189,
+   "h": 48,
+   "join": [
+    84,
+    48
+   ],
+   "visibleWithoutScroll": true
+  },
+  "dialogOverflowX": false,
+  "entryFindings": 0,
+  "entryProbe": {
+   "viewport": {
+    "width": 844,
+    "height": 390
+   },
+   "language": "zh-CN",
+   "scope": "#network-dialog",
+   "collapsed": true,
+   "findings": []
+  },
+  "lobbyFindings": 0,
+  "lobbyProbe": {
+   "viewport": {
+    "width": 844,
+    "height": 390
+   },
+   "language": "zh-CN",
+   "scope": "#network-dialog",
+   "collapsed": true,
+   "findings": []
+  },
+  "share": {
+   "text": "分享邀请",
+   "w": 638,
+   "h": 36,
+   "onScreen": true
+  },
+  "code": "358",
+  "codeFont": "40px",
+  "errors": []
+ },
+ {
+  "lang": "zh",
+  "view": "ipad-landscape",
+  "size": "1180x820",
+  "screenshot": "docs/net-lobby-v2/lobby-ipad-landscape-zh.png",
+  "rows": [
+   {
+    "text": "Hiro · 日本 群岛王庭 · 玩家 1/3 · 刚刚创建 旧联机 加入",
+    "btn": [
+     72,
+     42
+    ],
+    "inside": true
+   },
+   {
+    "text": "王小明 · 中国 风岬海岸 · 玩家 1/2 · 刚刚创建 旧联机 加入",
+    "btn": [
+     72,
+     42
+    ],
+    "inside": true
+   },
+   {
+    "text": "Lena · 法国 群岛王庭 · 玩家 1/4 · 刚刚创建 新联机（测试） 加入",
+    "btn": [
+     72,
+     42
+    ],
+    "inside": true
+   }
+  ],
+  "summary": {
+   "inputmode": "numeric",
+   "w": 164,
+   "h": 48,
+   "join": [
+    84,
+    48
+   ],
+   "visibleWithoutScroll": true
+  },
+  "dialogOverflowX": false,
+  "entryFindings": 0,
+  "entryProbe": {
+   "viewport": {
+    "width": 1180,
+    "height": 820
+   },
+   "language": "zh-CN",
+   "scope": "#network-dialog",
+   "collapsed": false,
+   "findings": []
+  },
+  "lobbyFindings": 0,
+  "lobbyProbe": {
+   "viewport": {
+    "width": 1180,
+    "height": 820
+   },
+   "language": "zh-CN",
+   "scope": "#network-dialog",
+   "collapsed": false,
+   "findings": []
+  },
+  "share": {
+   "text": "分享邀请",
+   "w": 632,
+   "h": 36,
+   "onScreen": true
+  },
+  "code": "358",
+  "codeFont": "40px",
+  "errors": []
+ },
+ {
+  "lang": "zh",
+  "view": "desktop",
+  "size": "1280x800",
+  "screenshot": "docs/net-lobby-v2/lobby-desktop-zh.png",
+  "rows": [
+   {
+    "text": "Hiro · 日本 群岛王庭 · 玩家 1/3 · 刚刚创建 旧联机 加入",
+    "btn": [
+     72,
+     42
+    ],
+    "inside": true
+   },
+   {
+    "text": "王小明 · 中国 风岬海岸 · 玩家 1/2 · 刚刚创建 旧联机 加入",
+    "btn": [
+     72,
+     42
+    ],
+    "inside": true
+   },
+   {
+    "text": "Lena · 法国 群岛王庭 · 玩家 1/4 · 刚刚创建 新联机（测试） 加入",
+    "btn": [
+     72,
+     42
+    ],
+    "inside": true
+   }
+  ],
+  "summary": {
+   "inputmode": "numeric",
+   "w": 164,
+   "h": 48,
+   "join": [
+    84,
+    48
+   ],
+   "visibleWithoutScroll": true
+  },
+  "dialogOverflowX": false,
+  "entryFindings": 0,
+  "entryProbe": {
+   "viewport": {
+    "width": 1280,
+    "height": 800
+   },
+   "language": "zh-CN",
+   "scope": "#network-dialog",
+   "collapsed": false,
+   "findings": []
+  },
+  "lobbyFindings": 0,
+  "lobbyProbe": {
+   "viewport": {
+    "width": 1280,
+    "height": 800
+   },
+   "language": "zh-CN",
+   "scope": "#network-dialog",
+   "collapsed": false,
+   "findings": []
+  },
+  "share": {
+   "text": "分享邀请",
+   "w": 632,
+   "h": 36,
+   "onScreen": true
+  },
+  "code": "358",
+  "codeFont": "40px",
+  "errors": []
+ },
+ {
+  "lang": "en",
+  "view": "phone-portrait",
+  "size": "390x844",
+  "screenshot": "docs/net-lobby-v2/lobby-phone-portrait-en.png",
+  "rows": [
+   {
+    "text": "Hiro · Japan Isles of the Crown · Player 1/3 · just created Classic online Join",
+    "btn": [
+     72,
+     42
+    ],
+    "inside": true
+   },
+   {
+    "text": "王小明 · China Windcape Coast · Player 1/2 · just created Classic online Join",
+    "btn": [
+     72,
+     42
+    ],
+    "inside": true
+   },
+   {
+    "text": "Lena · France Isles of the Crown · Player 1/4 · just created Lockstep (beta) Join",
+    "btn": [
+     72,
+     42
+    ],
+    "inside": true
+   }
+  ],
+  "summary": {
+   "inputmode": "numeric",
+   "w": 206,
+   "h": 48,
+   "join": [
+    84,
+    48
+   ],
+   "visibleWithoutScroll": true
+  },
+  "dialogOverflowX": false,
+  "entryFindings": 0,
+  "entryProbe": {
+   "viewport": {
+    "width": 390,
+    "height": 844
+   },
+   "language": "en",
+   "scope": "#network-dialog",
+   "collapsed": false,
+   "findings": []
+  },
+  "lobbyFindings": 0,
+  "lobbyProbe": {
+   "viewport": {
+    "width": 390,
+    "height": 844
+   },
+   "language": "en",
+   "scope": "#network-dialog",
+   "collapsed": false,
+   "findings": []
+  },
+  "share": {
+   "text": "Share Invite",
+   "w": 324,
+   "h": 36,
+   "onScreen": true
+  },
+  "code": "358",
+  "codeFont": "34px",
+  "errors": []
+ },
+ {
+  "lang": "en",
+  "view": "phone-landscape",
+  "size": "844x390",
+  "screenshot": "docs/net-lobby-v2/lobby-phone-landscape-en.png",
+  "rows": [
+   {
+    "text": "Hiro · Japan Isles of the Crown · Player 1/3 · just created Classic online Join",
+    "btn": [
+     72,
+     42
+    ],
+    "inside": true
+   },
+   {
+    "text": "王小明 · China Windcape Coast · Player 1/2 · just created Classic online Join",
+    "btn": [
+     72,
+     42
+    ],
+    "inside": true
+   },
+   {
+    "text": "Lena · France Isles of the Crown · Player 1/4 · just created Lockstep (beta) Join",
+    "btn": [
+     72,
+     42
+    ],
+    "inside": true
+   }
+  ],
+  "summary": {
+   "inputmode": "numeric",
+   "w": 189,
+   "h": 48,
+   "join": [
+    84,
+    48
+   ],
+   "visibleWithoutScroll": true
+  },
+  "dialogOverflowX": false,
+  "entryFindings": 0,
+  "entryProbe": {
+   "viewport": {
+    "width": 844,
+    "height": 390
+   },
+   "language": "en",
+   "scope": "#network-dialog",
+   "collapsed": true,
+   "findings": []
+  },
+  "lobbyFindings": 0,
+  "lobbyProbe": {
+   "viewport": {
+    "width": 844,
+    "height": 390
+   },
+   "language": "en",
+   "scope": "#network-dialog",
+   "collapsed": true,
+   "findings": []
+  },
+  "share": {
+   "text": "Share Invite",
+   "w": 638,
+   "h": 36,
+   "onScreen": true
+  },
+  "code": "358",
+  "codeFont": "40px",
+  "errors": []
+ },
+ {
+  "lang": "en",
+  "view": "ipad-landscape",
+  "size": "1180x820",
+  "screenshot": "docs/net-lobby-v2/lobby-ipad-landscape-en.png",
+  "rows": [
+   {
+    "text": "Hiro · Japan Isles of the Crown · Player 1/3 · 1 min ago Classic online Join",
+    "btn": [
+     72,
+     42
+    ],
+    "inside": true
+   },
+   {
+    "text": "王小明 · China Windcape Coast · Player 1/2 · 1 min ago Classic online Join",
+    "btn": [
+     72,
+     42
+    ],
+    "inside": true
+   },
+   {
+    "text": "Lena · France Isles of the Crown · Player 1/4 · 1 min ago Lockstep (beta) Join",
+    "btn": [
+     72,
+     42
+    ],
+    "inside": true
+   }
+  ],
+  "summary": {
+   "inputmode": "numeric",
+   "w": 164,
+   "h": 48,
+   "join": [
+    84,
+    48
+   ],
+   "visibleWithoutScroll": true
+  },
+  "dialogOverflowX": false,
+  "entryFindings": 0,
+  "entryProbe": {
+   "viewport": {
+    "width": 1180,
+    "height": 820
+   },
+   "language": "en",
+   "scope": "#network-dialog",
+   "collapsed": false,
+   "findings": []
+  },
+  "lobbyFindings": 0,
+  "lobbyProbe": {
+   "viewport": {
+    "width": 1180,
+    "height": 820
+   },
+   "language": "en",
+   "scope": "#network-dialog",
+   "collapsed": false,
+   "findings": []
+  },
+  "share": {
+   "text": "Share Invite",
+   "w": 632,
+   "h": 36,
+   "onScreen": true
+  },
+  "code": "358",
+  "codeFont": "40px",
+  "errors": []
+ },
+ {
+  "lang": "en",
+  "view": "desktop",
+  "size": "1280x800",
+  "screenshot": "docs/net-lobby-v2/lobby-desktop-en.png",
+  "rows": [
+   {
+    "text": "Hiro · Japan Isles of the Crown · Player 1/3 · 1 min ago Classic online Join",
+    "btn": [
+     72,
+     42
+    ],
+    "inside": true
+   },
+   {
+    "text": "王小明 · China Windcape Coast · Player 1/2 · 1 min ago Classic online Join",
+    "btn": [
+     72,
+     42
+    ],
+    "inside": true
+   },
+   {
+    "text": "Lena · France Isles of the Crown · Player 1/4 · 1 min ago Lockstep (beta) Join",
+    "btn": [
+     72,
+     42
+    ],
+    "inside": true
+   }
+  ],
+  "summary": {
+   "inputmode": "numeric",
+   "w": 164,
+   "h": 48,
+   "join": [
+    84,
+    48
+   ],
+   "visibleWithoutScroll": true
+  },
+  "dialogOverflowX": false,
+  "entryFindings": 0,
+  "entryProbe": {
+   "viewport": {
+    "width": 1280,
+    "height": 800
+   },
+   "language": "en",
+   "scope": "#network-dialog",
+   "collapsed": false,
+   "findings": []
+  },
+  "lobbyFindings": 0,
+  "lobbyProbe": {
+   "viewport": {
+    "width": 1280,
+    "height": 800
+   },
+   "language": "en",
+   "scope": "#network-dialog",
+   "collapsed": false,
+   "findings": []
+  },
+  "share": {
+   "text": "Share Invite",
+   "w": 632,
+   "h": 36,
+   "onScreen": true
+  },
+  "code": "358",
+  "codeFont": "40px",
+  "errors": []
+ }
+]

@@ -11,10 +11,14 @@
 联机不同步，本局已停止（测试版）|Multiplayer desync: this match has stopped (beta)
 新联机即将开始…|Lockstep match is about to start…
 开放房间|Open Rooms
+输入房间码|Enter Room Code
+3 位数字|3 digits
+输满 3 位数字自动加入。也可以直接打开朋友发来的邀请链接。|Joins automatically after 3 digits. You can also open an invite link from a friend.
+请输入 3 位数字房间码|Enter the 3-digit room code
+房间码尝试太频繁，请 1 分钟后再试|Too many room-code attempts. Try again in 1 minute
+房间码不存在或房间已结束|No room with this code, or the room has ended
+战争迷雾|Fog of War
 最近 10 分钟创建、仍在等人的公开房间，点“加入”即可。|Public rooms created in the last 10 minutes that still have space. Tap “Join” to enter.
-用房间码加入|Join with a Room Code
-4 位房间码|4-character Room Code
-请输入有效的 4 位房间码|Enter a valid 4-character room code
 仅邀请（不出现在列表）|Invite only (not listed)
 房间不会出现在开放房间列表，只能通过邀请链接或房间码加入|The room is hidden from the open-room list; friends join with the invite link or room code
 分享邀请|Share Invite
