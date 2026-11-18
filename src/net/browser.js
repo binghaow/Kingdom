@@ -18,7 +18,7 @@ export function startBrowserLockstep(root, opts) {
   const client = new LockstepClient({ K, commands, setup: ls.setup, seat: opts.seat, seats: ls.seats, startAt: ls.startAt, period: ls.period, now,
     onResult: (result, cmd, latency) => { executed.push({ type: cmd.type, latency, at: now() }); if (executed.length > 500) executed.shift(); opts.onResult?.(result, cmd, latency); } });
   const executed = [];
-  // Feature switch: the room's transport (set by the server from LOCKSTEP_TRANSPORT, default http); ?lockstep=ws|http overrides.
+  // Feature switch: the room's transport (set by the server: default ws since net lobby v2, LOCKSTEP_TRANSPORT=http forces HTTP); ?lockstep=ws|http overrides.
   let mode = ls.transport === 'ws' ? 'ws' : 'http';
   try { const q = new URLSearchParams(root.location.search).get('lockstep'); if (q === 'ws' || q === 'http') mode = q; } catch { /* keep */ }
   const wsUrl = root.location ? (root.location.protocol === 'https:' ? 'wss://' : 'ws://') + root.location.host + '/api/lockstep/' + opts.room.id + '/ws' : null;

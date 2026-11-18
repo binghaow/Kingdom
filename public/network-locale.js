@@ -10,6 +10,25 @@
 电脑|Computer
 联机不同步，本局已停止（测试版）|Multiplayer desync: this match has stopped (beta)
 新联机即将开始…|Lockstep match is about to start…
+开放房间|Open Rooms
+最近 10 分钟创建、仍在等人的公开房间，点“加入”即可。|Public rooms created in the last 10 minutes that still have space. Tap “Join” to enter.
+用房间码加入|Join with a Room Code
+4 位房间码|4-character Room Code
+请输入有效的 4 位房间码|Enter a valid 4-character room code
+仅邀请（不出现在列表）|Invite only (not listed)
+房间不会出现在开放房间列表，只能通过邀请链接或房间码加入|The room is hidden from the open-room list; friends join with the invite link or room code
+分享邀请|Share Invite
+邀请已发送|Invitation sent
+来《边境王国》和我联机|Join me in Frontier Kingdom
+边境王国 · 联机邀请|Frontier Kingdom · Multiplayer Invite
+刚刚创建|just created
+分钟前|min ago
+旧联机|Classic online
+加入|Join
+暂时没有开放房间。你可以创建一个，或用房间码加入。|No open rooms right now. Create one, or join with a room code.
+暂时无法获取房间列表，可用房间码或邀请链接加入|Cannot load the room list right now. Join with a room code or invite link
+刷新太频繁，请稍后再试|Refreshing too often. Please try again shortly
+请使用 GET|Use GET
 2 人|2 Players
 3 人|3 Players
 4 人|4 Players

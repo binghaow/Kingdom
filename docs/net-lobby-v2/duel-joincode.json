@@ -1,0 +1,103 @@
+{
+ "seconds": 20,
+ "delayMs": 0,
+ "room": "566X",
+ "join": {
+  "mode": "code",
+  "code": "566X",
+  "roomId": "XV23F8Z9"
+ },
+ "transport": {
+  "A": {
+   "mode": "ws",
+   "fallbackReason": null
+  },
+  "B": {
+   "mode": "ws",
+   "fallbackReason": null
+  }
+ },
+ "statuses": {
+  "rooms 200": 16,
+  "rooms 201": 1
+ },
+ "nonOk": [],
+ "pageErrors": [],
+ "consistency": {
+  "comparedChecksums": 28,
+  "mismatch": null,
+  "desyncA": null,
+  "desyncB": null,
+  "lastStep": 568,
+  "lastHash": [
+   560,
+   "90cae478"
+  ]
+ },
+ "clickToExecute": {
+  "n": 10,
+  "of": 10,
+  "p50": 281,
+  "p90": 315,
+  "max": 315
+ },
+ "issueToExecute": {
+  "n": 14,
+  "p50": 236,
+  "p90": 274,
+  "max": 279
+ },
+ "tabs": [
+  {
+   "tab": "A",
+   "turn": 284,
+   "gameTime": 28.4,
+   "units": 31,
+   "rtt": 45,
+   "delay": 2,
+   "lagTurns": 1.28,
+   "stalls": 4,
+   "stallMs": 432,
+   "catchup": 13,
+   "requests": 599,
+   "failures": 0,
+   "upBps": 199,
+   "downBps": 606,
+   "rejected": 0,
+   "commands": 7,
+   "viewMsAvg": 3.82,
+   "viewMsMax": 26
+  },
+  {
+   "tab": "B",
+   "turn": 284,
+   "gameTime": 28.5,
+   "units": 31,
+   "rtt": 31,
+   "delay": 2,
+   "lagTurns": 1.35,
+   "stalls": 4,
+   "stallMs": 1292,
+   "catchup": 16,
+   "requests": 600,
+   "failures": 0,
+   "upBps": 194,
+   "downBps": 607,
+   "rejected": 0,
+   "commands": 7,
+   "viewMsAvg": 2.93,
+   "viewMsMax": 16.3
+  }
+ ],
+ "frameIntervalMs": {
+  "A": {
+   "p50": 17,
+   "p90": 33
+  },
+  "B": {
+   "p50": 33,
+   "p90": 33
+  }
+ },
+ "pass": true
+}

@@ -1,0 +1,29 @@
+{
+ "legacy": true,
+ "seconds": 65,
+ "join": {
+  "mode": "list",
+  "code": "5GCU",
+  "roomId": "Y273242C",
+  "listMs": 44
+ },
+ "statuses": {
+  "rooms 200": 437,
+  "rooms 201": 1
+ },
+ "nonOk": [],
+ "pageErrors": [],
+ "tabs": [
+  {
+   "time": 71,
+   "nations": 3,
+   "connected": true
+  },
+  {
+   "time": 71.1,
+   "nations": 3,
+   "connected": true
+  }
+ ],
+ "pass": true
+}

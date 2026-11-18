@@ -9,8 +9,12 @@
        (same machine clock), plus the client's own issue->execute numbers;
      - with --delay MS: every /api/lockstep request of both tabs is held MS/2 before it is sent and MS/2 before its reply is
        delivered (Playwright route), i.e. MS extra round-trip time.
-   usage: node scripts/lockstep/browser-duel.cjs [--seconds 65] [--port 8765] [--delay 100] [--json out.json] */
+        --join list (default: B taps "Join" in the open-room list) | code (4-character code) | id (legacy 8-character code)
+     --legacy: the old server-authoritative online mode (no lockstep checkbox) with computer seats; checks 2xx/no page errors
+     --private: host ticks "invite only"; B checks the room is NOT in the list and enters through the invite link
+   usage: node scripts/lockstep/browser-duel.cjs [--seconds 65] [--port 8765] [--delay 100] [--join list|code|id] [--legacy] [--private] [--json out.json] */
 const fs = require('node:fs'), argv = process.argv.slice(2), get = (k, d) => { const i = argv.indexOf('--' + k); return i >= 0 ? argv[i + 1] : d; };
+const JOIN = get('join', 'list'), LEGACY = argv.includes('--legacy'), PRIVATE = argv.includes('--private');
 const VIEW = (get('viewport', '1280x720')).split('x').map(Number), SECONDS = +get('seconds', 65), PORT = +get('port', 8765), DELAY = +get('delay', 0), jsonOut = get('json', null);
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -29,17 +33,39 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   try {
     const A = await tab('A'), B = await tab('B');
     await A.page.click('#open-online'); await sleep(400);
-    await A.page.fill('#net-name', '甲'); await A.page.selectOption('#net-capacity', '2');
-    await A.page.check('#net-lockstep');
+    await A.page.fill('#net-name', '甲'); await A.page.selectOption('#net-capacity', LEGACY ? '3' : '2');
+    if (LEGACY) await A.page.check('#net-fill'); else await A.page.check('#net-lockstep');
+    if (PRIVATE) await A.page.check('#net-private');
     await A.page.click('#net-create');
     await A.page.waitForFunction(() => document.getElementById('net-room-code')?.textContent?.trim(), null, { timeout: 20000 });
-    const code = (await A.page.textContent('#net-room-code')).trim();
-    await B.page.click('#open-online'); await sleep(400);
-    await B.page.fill('#net-name', '乙'); await B.page.fill('#net-code', code); await B.page.click('#net-join');
+    const code = (await A.page.textContent('#net-room-code')).trim(), roomId = await A.page.evaluate(() => KingdomOnline.room.id), invite = await A.page.inputValue('#net-invite-link');
+    const joinInfo = { mode: PRIVATE ? 'invite-link' : JOIN, code, roomId };
+    if (PRIVATE) {
+      await B.page.click('#open-online'); await sleep(5000);
+      joinInfo.listedWhilePrivate = await B.page.evaluate((id) => !!document.querySelector('#net-open-list [data-room="' + id + '"]'), roomId);
+      joinInfo.listText = await B.page.textContent('#net-open-list');
+      await B.page.evaluate(() => localStorage.setItem('kingdom-player-name', '乙'));
+      await B.page.goto(invite); await B.page.waitForFunction(() => window.KingdomArt && KingdomArt.loaded && window.KingdomCore, null, { timeout: 120000 });
+    } else {
+      await B.page.click('#open-online'); await sleep(400);
+      await B.page.fill('#net-name', '乙');
+      if (JOIN === 'list') { const t = Date.now(); await B.page.waitForSelector('#net-open-list [data-room="' + roomId + '"]', { timeout: 15000 }); joinInfo.listMs = Date.now() - t; await B.page.click('#net-open-list [data-room="' + roomId + '"]'); }
+      else { await B.page.click('#net-code-box summary'); await B.page.fill('#net-code', JOIN === 'id' ? roomId : code); await B.page.click('#net-join'); }
+    }
     await B.page.waitForFunction(() => !document.getElementById('net-lobby').hidden, null, { timeout: 20000 });
     await B.page.click('#net-ready'); await A.page.click('#net-ready'); await sleep(1500);
     await A.page.waitForFunction(() => !document.getElementById('net-start').disabled, null, { timeout: 20000 });
     await A.page.click('#net-start');
+    if (LEGACY) {
+      for (const t of [A, B]) await t.page.waitForFunction(() => window.frontier?.state?.networked && window.frontier.state.time > 1, null, { timeout: 60000 });
+      const t0 = Date.now();
+      while (Date.now() - t0 < SECONDS * 1000) { for (const t of [A, B]) { const p = t.page; await p.keyboard.press('q'); const pt = await p.evaluate(() => { const c = document.getElementById('world').getBoundingClientRect(); return { x: c.left + c.width / 2 + ((Math.random() * 300) | 0) - 150, y: c.top + c.height / 2 + 60 }; }); await p.mouse.click(pt.x, pt.y, { button: 'right' }); await p.keyboard.press('Escape'); } await sleep(4000); }
+      const st = async (t) => t.page.evaluate(() => ({ time: +window.frontier.state.time.toFixed(1), nations: window.frontier.state.nations?.length, connected: KingdomOnline.connected }));
+      const res = { legacy: true, seconds: SECONDS, join: joinInfo, statuses, nonOk: bad, pageErrors: errors, tabs: [await st(A), await st(B)] };
+      res.pass = !bad.length && !errors.length && res.tabs.every((x) => x.time > SECONDS * 0.8 && x.connected) && !joinInfo.listedWhilePrivate;
+      console.log(JSON.stringify(res, null, 1)); if (jsonOut) fs.writeFileSync(jsonOut, JSON.stringify(res, null, 1));
+      await browser.close(); process.exitCode = res.pass ? 0 : 1; return;
+    }
     for (const t of [A, B]) await t.page.waitForFunction(() => KingdomCore.lockstep.current && KingdomCore.lockstep.current.client.nextTurn > 20 && window.frontier?.state?.networked, null, { timeout: 60000 });
     const clicks = [];
     const t0 = Date.now(); let round = 0;
@@ -70,13 +96,14 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
     const n = Math.min(sa.hashes.length, sb.hashes.length); let mismatch = null;
     for (let i = 0; i < n; i++) if (sa.hashes[i][1] !== sb.hashes[i][1]) { mismatch = { step: sa.hashes[i][0], a: sa.hashes[i][1], b: sb.hashes[i][1] }; break; }
     const internal = [...sa.stats.latency, ...sb.stats.latency].sort((a, b) => a - b);
-    const res = { seconds: SECONDS, delayMs: DELAY, room: code, statuses, nonOk: bad, pageErrors: errors,
+    const transport = async (t) => t.page.evaluate(() => { const tr = KingdomCore.lockstep.current.transport; return { mode: tr.mode, fallbackReason: tr.fallbackReason || null }; });
+    const res = { seconds: SECONDS, delayMs: DELAY, room: code, join: joinInfo, transport: { A: await transport(A), B: await transport(B) }, statuses, nonOk: bad, pageErrors: errors,
       consistency: { comparedChecksums: n, mismatch, desyncA: sa.desync, desyncB: sb.desync, lastStep: Math.min(sa.step, sb.step), lastHash: sa.hashes[n - 1] },
       clickToExecute: { n: lat.length, of: clicks.length, p50: q(lat, 0.5), p90: q(lat, 0.9), max: lat.at(-1) ?? null },
       issueToExecute: { n: internal.length, p50: q(internal, 0.5), p90: q(internal, 0.9), max: internal.length ? Math.round(internal.at(-1)) : null },
       tabs: [sa, sb].map((s, i) => ({ tab: 'AB'[i], turn: s.turn, gameTime: +s.time.toFixed(1), units: s.units, rtt: Math.round(s.rtt), delay: s.delay, lagTurns: +s.lag.toFixed(2), stalls: s.stats.stalls, stallMs: Math.round(s.stats.stallMs), catchup: s.stats.catchup, requests: s.stats.requests, failures: s.stats.failures, upBps: Math.round(s.stats.up / (s.turn / 10)), downBps: Math.round(s.stats.down / (s.turn / 10)), rejected: s.stats.rejected, commands: s.stats.commands, viewMsAvg: +(s.view.viewMs / Math.max(1, s.view.views)).toFixed(2), viewMsMax: +s.view.maxViewMs.toFixed(1) })) };
     res.frameIntervalMs = { A: fa, B: fb };
-    res.pass = !bad.length && !errors.length && !mismatch && !sa.desync && !sb.desync && n >= SECONDS - 5 && lat.length >= clicks.length * 0.8;
+    res.pass = !joinInfo.listedWhilePrivate && !bad.length && !errors.length && !mismatch && !sa.desync && !sb.desync && n >= SECONDS - 5 && lat.length >= clicks.length * 0.8;
     console.log(JSON.stringify(res, null, 1)); if (jsonOut) fs.writeFileSync(jsonOut, JSON.stringify(res, null, 1));
     if (!res.pass) process.exitCode = 1;
   } finally { await browser.close(); }

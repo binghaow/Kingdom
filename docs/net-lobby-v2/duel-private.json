@@ -1,0 +1,105 @@
+{
+ "seconds": 20,
+ "delayMs": 0,
+ "room": "BHV6",
+ "join": {
+  "mode": "invite-link",
+  "code": "BHV6",
+  "roomId": "F5QW93PM",
+  "listedWhilePrivate": false,
+  "listText": "暂时没有开放房间。你可以创建一个，或用房间码加入。"
+ },
+ "transport": {
+  "A": {
+   "mode": "ws",
+   "fallbackReason": null
+  },
+  "B": {
+   "mode": "ws",
+   "fallbackReason": null
+  }
+ },
+ "statuses": {
+  "rooms 200": 33,
+  "rooms 201": 1
+ },
+ "nonOk": [],
+ "pageErrors": [],
+ "consistency": {
+  "comparedChecksums": 27,
+  "mismatch": null,
+  "desyncA": null,
+  "desyncB": null,
+  "lastStep": 556,
+  "lastHash": [
+   540,
+   "8267db48"
+  ]
+ },
+ "clickToExecute": {
+  "n": 10,
+  "of": 10,
+  "p50": 259,
+  "p90": 357,
+  "max": 357
+ },
+ "issueToExecute": {
+  "n": 14,
+  "p50": 246,
+  "p90": 282,
+  "max": 292
+ },
+ "tabs": [
+  {
+   "tab": "A",
+   "turn": 278,
+   "gameTime": 27.9,
+   "units": 31,
+   "rtt": 27,
+   "delay": 2,
+   "lagTurns": 1.36,
+   "stalls": 5,
+   "stallMs": 317,
+   "catchup": 6,
+   "requests": 589,
+   "failures": 0,
+   "upBps": 200,
+   "downBps": 609,
+   "rejected": 0,
+   "commands": 7,
+   "viewMsAvg": 3.18,
+   "viewMsMax": 15.2
+  },
+  {
+   "tab": "B",
+   "turn": 279,
+   "gameTime": 28,
+   "units": 31,
+   "rtt": 27,
+   "delay": 2,
+   "lagTurns": 1.36,
+   "stalls": 4,
+   "stallMs": 936,
+   "catchup": 15,
+   "requests": 588,
+   "failures": 0,
+   "upBps": 191,
+   "downBps": 604,
+   "rejected": 0,
+   "commands": 7,
+   "viewMsAvg": 3.84,
+   "viewMsMax": 37.8
+  }
+ ],
+ "frameIntervalMs": {
+  "A": {
+   "p50": 33,
+   "p90": 50
+  },
+  "B": {
+   "p50": 33,
+   "p90": 34
+  }
+ },
+ "pass": true
+}
