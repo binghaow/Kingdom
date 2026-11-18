@@ -103,6 +103,8 @@ For changes to HUD, responsive layout, touch input, selection, camera, sprites o
 
 仍需真机验证（release-check 不能代替）：
 
+- **凡是改动图片解码、画布、缓存或内存策略的版本，上线前必须在 iPad 或 iPhone 的 Safari 上实际玩到后期（≥ 8 分钟、≥ 100 人口），确认战场和小地图没有变空白。** WebKit 对所有画布的总内存有上限，超出后画布会静默变空白，headless Chromium 测不出来（2026-11-17 事故：P2 之后把所有图集解码进画布，iPad 玩到 5 分钟时画面空白）。
+
 - iPhone 17 / iPad 实机 `?perf=1` 的帧率、render/scene 分项、长时间对局的发热与降频。
 - Safari/WebKit 的 Canvas 渲染（尤其 `ctx.filter` 的开销）与内存；release-check 只测 Chromium。
 - Cloudflare Worker / D1 线上 CPU、isolate 复用率、D1 往返、真实冲突率；跨设备、弱网、丢包、后台恢复。
