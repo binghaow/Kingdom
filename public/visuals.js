@@ -14,7 +14,13 @@ const assetSrc=url=>{const m=/^(?:\.\/)?assets\/([^/?#]+\.(?:png|jpg))([?#].*)?$
    pressure, about 2x the pixels) long after the module cut its frames and dropped the element; the canvas is ordinary memory that is
    freed as soon as the module drops it. The returned canvas behaves like an Image for the art modules: onload/onerror, src, complete,
    naturalWidth/naturalHeight, decode(). Falls back to an <img> drawn into the canvas when createImageBitmap or fetch is missing. */
-function decodedImage(){const c=make(1,1);let src='',done=false,nw=0,nh=0,seq=0;
+/* iPad/iPhone hotfix (2026-11-17): Safari/WebKit caps the TOTAL memory of all canvases (a few hundred MB). Decoding every atlas into a
+   canvas pushed WebKit over that cap after ~5 minutes (more atlases load on demand) and the battlefield and minimap canvases went blank
+   while the HTML HUD kept working. Canvas decoding is therefore used only in Chromium (the browser it was measured in, detected by the
+   Chromium-only navigator.userAgentData); Safari, iOS (all iOS browsers are WebKit) and Firefox get a plain <img>, as before P2.
+   ?canvasDecode=0/1 forces either path for testing. */
+const CANVAS_DECODE=(()=>{const q=/[?&]canvasDecode=([01])/.exec(location.search);return q?q[1]==='1':!!navigator.userAgentData})();
+function decodedImage(){if(!CANVAS_DECODE){const i=new Image();i.decoding='async';return i}const c=make(1,1);let src='',done=false,nw=0,nh=0,seq=0;
   const finish=(ok,id)=>{if(id!==seq)return;done=true;c.dispatchEvent(new Event(ok?'load':'error'))};
   const viaImg=url=>new Promise((ok,no)=>{const i=new Image();i.onload=()=>{nw=i.naturalWidth;nh=i.naturalHeight;c.width=nw;c.height=nh;c.getContext('2d').drawImage(i,0,0);i.onload=i.onerror=null;i.removeAttribute('src');ok()};i.onerror=()=>no(Error('image '+url));i.src=url});
   const viaBitmap=url=>fetch(url).then(r=>{if(!r.ok)throw Error('HTTP '+r.status+' '+url);return r.blob()}).then(b=>createImageBitmap(b)).then(bm=>{nw=bm.width;nh=bm.height;c.width=nw;c.height=nh;c.getContext('2d').drawImage(bm,0,0);if(bm.close)bm.close()});
