@@ -202,7 +202,7 @@
 玩家|Player
 秒|seconds
 联机存档 · 录像|Online Saves · Replays
-游戏中“保存联机进度”（每 2 分钟也会自动保存）。房主可用存档恢复联机房间：朋友用新房间码加入并认领原席位，大家快速回放到存档点继续，没人认领的席位由电脑接管。也可以单人观看回放。|Use “Save online progress” in a match (it also saves automatically every 2 minutes). The host can restore the online room from a save: friends join with the new room code and claim their old seats, everyone fast-replays to the save point and play continues; unclaimed seats are taken over by the computer. You can also watch the replay alone.
+游戏中“保存联机进度”（每 2 分钟也会自动保存）。房主可“从存档恢复房间”：朋友用新房间码加入并认领原席位，大家快速回放到存档点继续，没人认领的席位由电脑接管。也可以单人观看回放。|Use “Save online progress” in a match (it also saves automatically every 2 minutes). The host can “Restore room from save”: friends join with the new room code and claim their old seats, everyone fast-replays to the save point and play continues; unclaimed seats are taken over by the computer. You can also watch the replay alone.
 从文件载入存档或录像|Load a save or replay file
 换设备继续|Continue on another device
 复制一条带本席位凭据的链接，在另一台设备打开即可接着玩（不要发给别人）|Copies a link with this seat's credentials; open it on another device to keep playing (do not share it)
@@ -261,6 +261,7 @@
 存档分段无效|Invalid save segment
 存档指令无效|Invalid command in the save
 存档无效|Invalid save
+从存档恢复房间|Restore room from save
 存档轮次无效|Invalid save turn count
 存档开局参数无效|Invalid save setup
 存档座位无效|Invalid save seats

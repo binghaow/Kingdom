@@ -1,0 +1,33 @@
+{
+ "seconds": 65,
+ "room": "265",
+ "statuses": {
+  "GET 200": 1,
+  "POST 201": 1,
+  "POST 200": 248
+ },
+ "nonOk": [],
+ "pageErrors": [],
+ "start": 1.5500000000000003,
+ "end": {
+  "time": 75.45,
+  "units": 70,
+  "humans": [
+   0
+  ],
+  "nations": 4
+ },
+ "uiActions": 16,
+ "recordersBefore": 1,
+ "recordersAfter": 1,
+ "recordingAttachedToOnlineGame": false,
+ "log": [
+  "open online",
+  "fill computer seats",
+  "create room",
+  "room 265",
+  "ready + start",
+  "game running, time 1.6"
+ ],
+ "pass": true
+}

@@ -97,7 +97,7 @@ const VIEWS = [['phone-portrait', 390, 844], ['phone-landscape', 844, 390], ['ip
     // 3. B reloads (CPU 6x slower so the catch-up bar is visible) and catches up from turn 0.
     await sleep(15000);
     await B.cdp.send('Emulation.setCPUThrottlingRate', { rate: 6 });
-    await B.page.reload(); await ready(B.page);
+    await B.page.reload({ timeout: 180000 }); await ready(B.page);
     await B.page.waitForFunction(() => !document.getElementById('net-catchup')?.hidden && KingdomCore.lockstep.current?.client.progress(), null, { timeout: 90000 });
     step('catchup-visible', { bar: await B.page.textContent('#net-catchup') });
     await shoot(B, 'catchup-progress');
