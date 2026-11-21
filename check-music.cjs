@@ -1,7 +1,7 @@
 /* Background music director: calm rotation with gaps, tension during fighting, settings respected. */
 const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
-const CALM=['music/kings-orchard','music/sunlight-orchard','music/cobblestone-celebration','bards-tale'],TENSION='music/unseen-gambit';
-for(const k of [...CALM,TENSION]){const f='public/audio/'+k+'.mp3';assert(fs.existsSync(f),'missing '+f);assert(fs.statSync(f).size<4.5*1048576,'too large for mobile '+f)}
+const CALM=['music/kings-orchard','music/sunlight-orchard','music/cobblestone-celebration','music/morning-estate','music/river-bends','bards-tale'],TENSION='music/unseen-gambit',TENSIONS=['music/unseen-gambit','music/stone-gates','music/breach-gate','music/walls-fall','music/untitled-1120'];
+for(const k of [...CALM,...TENSIONS]){const f='public/audio/'+k+'.mp3';assert(fs.existsSync(f),'missing '+f);assert(fs.statSync(f).size<4.5*1048576,'too large for mobile '+f)}
 let now=0,timers=[],hidden=false;const listeners={},gains=[],A={};
 class Param{constructor(){this.value=0}setTargetAtTime(v){this.value=v}setValueAtTime(v){this.value=v}linearRampToValueAtTime(v){this.value=v}}
 class Node{constructor(){for(const k of ['gain','pan','threshold','ratio','frequency'])this[k]=new Param();this.playbackRate={value:1}}connect(){}disconnect(){}start(){}}
@@ -20,7 +20,7 @@ function finishTrack(){const e=els.find(x=>!x.paused&&!x.loop);e.duration=100;e.
  assert.equal(new Set(order).size,CALM.length,'rotation covers every calm piece: '+order.join(','));
  for(let i=0;i<3;i++){A.sound('melee',0,1,true);now+=500}await advance(1000);assert.equal(status().musicMood,'calm','preview sounds never start tension');
  A.sound('melee');now+=1000;A.sound('melee');await advance(1000);assert.equal(status().musicMood,'calm','two isolated hits are not a battle');
- A.sound('underAttack');await advance(1000);assert.equal(status().musicMood,'tension');/* main 6560353 rotates the battle pieces (unseen-gambit, stone-gates, breach-gate); any of them is the tension track */assert(['music/unseen-gambit','music/stone-gates','music/breach-gate'].includes(status().musicTrack),'tension piece: '+status().musicTrack);const tense=els.find(e=>!e.paused&&e.loop);assert(tense,'tension piece loops');
+ A.sound('underAttack');await advance(1000);assert.equal(status().musicMood,'tension');/* main 6560353 rotates the battle pieces (unseen-gambit, stone-gates, breach-gate); any of them is the tension track */assert(TENSIONS.includes(status().musicTrack),'tension piece: '+status().musicTrack);const tense=els.find(e=>!e.paused&&e.loop);assert(tense,'tension piece loops');
  for(let i=0;i<10;i++){A.sound('melee');await advance(5000)}assert.equal(status().musicMood,'tension','continued fighting holds tension');
  await advance(20000);assert.equal(status().musicMood,'tension','no flip-flop right after the last hit');await advance(7000);assert.equal(status().musicMood,'calm');assert.equal(status().musicTrack,null,'fade to silence after the battle');
  await advance(16000);assert(CALM.includes(status().musicTrack),'calm returns after the battle');
