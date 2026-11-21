@@ -66,7 +66,7 @@ async function createRoom(raw, { id, setup, seats, startAt, period = core.PERIOD
     .bind(id, startAt, period, base - 1, core.D_MIN, JSON.stringify(setup), JSON.stringify(seats.map((s) => ({ seat: s.seat, team: s.team, human: s.human !== false }))), now + LIFETIME, base));
   for (const s of seats) statements.push(db.prepare('INSERT INTO lockstep_seats (room, seat, team, token, human, seen, at, rtt, mode) VALUES (?, ?, ?, ?, ?, ?, -1, NULL, ?)').bind(id, s.seat, s.team, s.token, s.human === false ? 0 : 1, now, s.mode || 0));
   // System commands at the first live turn of a restored room (takeover of unclaimed seats, release of reclaimed ones).
-  system.forEach((cmd, i) => statements.push(db.prepare('INSERT INTO lockstep_cmds (room, seat, seq, turn, cmd) VALUES (?, ?, ?, ?, ?)').bind(id, core.SYSTEM_SEAT, cmd.seq ?? 100000 + i, base, cmd.text)));
+  system.forEach((cmd, i) => statements.push(db.prepare('INSERT INTO lockstep_cmds (room, seat, seq, turn, cmd) VALUES (?, ?, ?, ?, ?)').bind(id, core.SYSTEM_SEAT, base * 100 + i, base, cmd.text)));
   await batch(db, statements);
 }
 
@@ -91,7 +91,9 @@ const HOLD = (active, catchup, clock) => `COALESCE((SELECT MIN(at) FROM lockstep
 function switchStatements(db, id, seat, from, to, cmd, silentBefore = null) {
   return [
     db.prepare('UPDATE lockstep_seats SET mode = ?3, flag = 1 WHERE room = ?1 AND seat = ?2 AND mode = ?4' + (silentBefore === null ? '' : ' AND seen < ?5')).bind(...[id, seat, to, from, ...(silentBefore === null ? [] : [silentBefore])]),
-    db.prepare('INSERT INTO lockstep_cmds (room, seat, seq, turn, cmd) SELECT ?1, ?3, COALESCE((SELECT MAX(seq) FROM lockstep_cmds WHERE room = ?1 AND seat = ?3), 0) + 1, (SELECT sealed + 1 FROM lockstep_rooms WHERE id = ?1), ?4 FROM lockstep_seats WHERE room = ?1 AND seat = ?2 AND flag = 1').bind(id, seat, core.SYSTEM_SEAT, cmd),
+    // seq = turn * 100 + n: unique, and larger than every system seq of earlier turns, including those inside a restored
+    // room's recording segments (clients drop a seat+seq they have already seen).
+    db.prepare('INSERT INTO lockstep_cmds (room, seat, seq, turn, cmd) SELECT ?1, ?3, t.turn * 100 + (SELECT COUNT(*) FROM lockstep_cmds WHERE room = ?1 AND seat = ?3 AND turn = t.turn), t.turn, ?4 FROM lockstep_seats, (SELECT sealed + 1 AS turn FROM lockstep_rooms WHERE id = ?1) t WHERE room = ?1 AND seat = ?2 AND flag = 1').bind(id, seat, core.SYSTEM_SEAT, cmd),
     db.prepare('UPDATE lockstep_seats SET flag = 0 WHERE room = ?1 AND seat = ?2 AND flag = 1').bind(id, seat),
   ];
 }

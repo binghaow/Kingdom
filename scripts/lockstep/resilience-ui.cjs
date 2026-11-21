@@ -3,7 +3,7 @@
 /* P3 step 3c browser run + UI audit (frontier-ui-audit) against `node preview.cjs` (started here on --port, default 8766, with
    the D1 latency model and a shortened takeover time). Two Playwright contexts play a lockstep room with a computer seat
    through the real lobby UI, then:
-     - B's page is frozen (CDP Page.setWebLifecycleState, the backgrounded-tab state) for a few seconds -> A shows
+     - B's page is frozen (main thread blocked 9 s, socket left open: the backgrounded-tab state) -> A shows
        "等待 乙… · N 秒后由电脑接管";
      - B goes offline (context offline + socket closed) longer than the takeover time -> computer takeover toast on A, then
        B comes back, reconnects, catches up and reclaims;
@@ -44,6 +44,7 @@ const VIEWS = [['phone-portrait', 390, 844], ['phone-landscape', 844, 390], ['ip
   async function shoot(t, state, lang = 'zh', views = VIEWS) {
     for (const [label, w, h] of views) {
       await t.page.setViewportSize({ width: w, height: h }); await sleep(350);
+      if (state === 'saves-list') await t.page.evaluate(() => document.getElementById('net-saves')?.scrollIntoView({ block: 'end' }));
       const file = path.join(OUT, `${state}-${label}-${lang}.png`); await t.page.screenshot({ path: file });
       const p = await t.page.evaluate(probe).catch((e) => ({ error: String(e) }));
       const extra = await t.page.evaluate(() => { const box = (sel) => { const e = document.querySelector(sel); if (!e || e.hidden || !e.offsetParent && getComputedStyle(e).position !== 'fixed') return null; const r = e.getBoundingClientRect(); return { x: Math.round(r.x), y: Math.round(r.y), w: Math.round(r.width), h: Math.round(r.height), inView: r.left >= 0 && r.right <= innerWidth + 1 && r.top >= 0 && r.bottom <= innerHeight + 1, text: e.innerText.replace(/\s+/g, ' ').slice(0, 120) }; }; return { badge: box('#network-badge'), catchup: box('#net-catchup'), replay: box('#net-replay-bar'), desync: box('#net-desync[open]'), toast: document.getElementById('toast')?.classList.contains('show') ? document.getElementById('toast').innerText : null, hscroll: document.documentElement.scrollWidth > innerWidth + 1 }; });
@@ -71,11 +72,12 @@ const VIEWS = [['phone-portrait', 390, 844], ['phone-landscape', 844, 390], ['ip
     for (let i = 0; i < 3; i++) { await playSome(A, 2); await playSome(B, 2); }
 
     // 1. B's page frozen (background) -> A waits with the takeover countdown.
-    await B.cdp.send('Page.setWebLifecycleState', { state: 'frozen' });
+    // Frozen tab: B's main thread is blocked (no timers, no socket handling, socket stays open) — what a backgrounded iPad tab does.
+    const frozen = B.page.evaluate(() => { const end = Date.now() + 9000; while (Date.now() < end); }).catch(() => {});
     await A.page.waitForFunction(() => document.getElementById('network-badge').classList.contains('net-waiting') && /电脑接管/.test(document.getElementById('network-badge').textContent), null, { timeout: 15000 });
     step('wait-hint', { badge: await A.page.textContent('#network-badge') });
     await shoot(A, 'wait-takeover-countdown');
-    await B.cdp.send('Page.setWebLifecycleState', { state: 'active' });
+    await frozen;
     await A.page.waitForFunction(() => !document.getElementById('network-badge').classList.contains('net-waiting'), null, { timeout: 20000 });
     step('freeze-recovered', { A: (await lsState(A)).turn, B: (await lsState(B)).turn, aiB: (await lsState(A)).ai });
 
@@ -118,6 +120,7 @@ const VIEWS = [['phone-portrait', 390, 844], ['phone-landscape', 844, 390], ['ip
     await A.page.click('#resume').catch(() => {});
 
     // 5. Restore: A opens a new room from the save; B joins with the new code and gets its old seat.
+    const original = await lsState(A); // checksums of the original room up to now (compared at steps <= the save point)
     await A.page.goto(base + '/'); await ready(A.page); await A.page.click('#open-online');
     await A.page.waitForSelector('#net-save-list .net-save-row', { timeout: 15000 }); await sleep(500);
     await shoot(A, 'saves-list');
@@ -133,9 +136,10 @@ const VIEWS = [['phone-portrait', 390, 844], ['phone-landscape', 844, 390], ['ip
     await A.page.waitForFunction(() => !document.getElementById('net-start').disabled, null, { timeout: 20000 }); await A.page.click('#net-start');
     for (const t of [A, B]) await t.page.waitForFunction((n) => { const c = KingdomCore.lockstep.current?.client; return c && !c.progress() && c.nextTurn > n + 30; }, save.turns, { timeout: 180000 });
     await playSome(A, 2); await playSome(B, 2); await sleep(3000);
-    const sa = await lsState(A), sb = await lsState(B), atSave = (s) => new Map(s.hashes).get(save.turns * 2) ?? null;
-    const cmp2 = compare(sa, sb);
-    step('restored', { code2, seatB, turnA: sa.turn, turnB: sb.turn, hashAtSaveA: atSave(sa), hashAtSaveB: atSave(sb), saveHash: save.hash, ...cmp2 });
+    const sa = await lsState(A), sb = await lsState(B), full = (t) => t.page.evaluate(() => KingdomCore.lockstep.current.client.hashLog);
+    const cmp2 = compare(sa, sb), upTo = save.turns * 2, orig = new Map(original.hashes.filter(([st]) => st <= upTo));
+    const vsOriginal = (await full(A)).filter(([st]) => orig.has(st)).map(([st, h]) => [st, h === orig.get(st)]);
+    step('restored', { code2, seatB, turnA: sa.turn, turnB: sb.turn, saveStep: upTo, vsOriginal, ...cmp2 });
 
     // 6. Desync: B corrupts its checksums -> tie goes to the host; B sees the dialog.
     await B.page.evaluate(() => { const c = KingdomCore.lockstep.current.client, push = c.hashQueue.push.bind(c.hashQueue); c.hashQueue.push = (...items) => push(...items.map(([s, h]) => [s, (h[0] === 'f' ? '0' : 'f') + h.slice(1)])); });
@@ -162,7 +166,7 @@ const VIEWS = [['phone-portrait', 390, 844], ['phone-landscape', 844, 390], ['ip
 
     const bad5xx = Object.entries(statuses).filter(([k]) => / 5\d\d$/.test(k));
     const s = (n) => steps.find((x) => x.name === n) || {};
-    result.pass = !errors.length && !bad5xx.length && s('reload-caught-up').mismatchAt === null && s('reload-caught-up').compared > 10 && s('restored').mismatchAt === null && s('restored').hashAtSaveA === save.hash && s('restored').hashAtSaveB === save.hash && s('restored').seatB === 1 && !!s('desync').aOnTime && shots.every((x) => !x.hscroll);
+    result.pass = !errors.length && !bad5xx.length && s('reload-caught-up').mismatchAt === null && s('reload-caught-up').compared > 10 && s('restored').mismatchAt === null && s('restored').vsOriginal?.length > 0 && s('restored').vsOriginal.every(([, ok]) => ok) && s('restored').seatB === 1 && !!s('desync').aOnTime && shots.every((x) => !x.hscroll);
     Object.assign(result, { steps, statuses, pageErrors: errors, shots: shots.map(({ probe, ...x }) => x), probes: shots.map((x) => ({ state: x.state, view: x.view, lang: x.lang, probe: x.probe })) });
   } catch (e) {
     Object.assign(result, { error: String(e && e.stack || e), steps, statuses, pageErrors: errors, shots: shots.map(({ probe, ...x }) => x) });

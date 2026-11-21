@@ -1,0 +1,1607 @@
+{
+ "pass": true,
+ "steps": [
+  {
+   "name": "started",
+   "at": "2026-11-21T04:59:59.058Z",
+   "code": "812"
+  },
+  {
+   "name": "wait-hint",
+   "at": "2026-11-21T05:00:10.622Z",
+   "badge": "等待 乙… 1s · 59 秒后由电脑接管"
+  },
+  {
+   "name": "freeze-recovered",
+   "at": "2026-11-21T05:00:21.630Z",
+   "A": 258,
+   "B": 259,
+   "aiB": []
+  },
+  {
+   "name": "takeover",
+   "at": "2026-11-21T05:00:37.290Z",
+   "toast": "乙 掉线超过 60 秒，由电脑接管"
+  },
+  {
+   "name": "reclaimed",
+   "at": "2026-11-21T05:00:43.887Z",
+   "B": {
+    "turn": 483,
+    "reconnects": 1,
+    "transport": "ws"
+   },
+   "toastB": "已收回控制权"
+  },
+  {
+   "name": "catchup-visible",
+   "at": "2026-11-21T05:01:42.577Z",
+   "bar": "正在追赶联机进度 4%0:03 / 1:08"
+  },
+  {
+   "name": "reload-caught-up",
+   "at": "2026-11-21T05:02:13.371Z",
+   "msAfterThrottleOff": 5715,
+   "compared": 12,
+   "mismatchAt": null
+  },
+  {
+   "name": "saved",
+   "at": "2026-11-21T05:02:17.248Z",
+   "file": "kingdom-online-812-2min.json",
+   "turns": 1415,
+   "commands": 18,
+   "bytes": 4064,
+   "hash": "27a88e36"
+  },
+  {
+   "name": "restored",
+   "at": "2026-11-21T05:03:05.013Z",
+   "code2": "648",
+   "seatB": 1,
+   "turnA": 1545,
+   "turnB": 1545,
+   "saveStep": 2830,
+   "vsOriginal": [
+    [
+     600,
+     true
+    ],
+    [
+     1200,
+     true
+    ],
+    [
+     1800,
+     true
+    ],
+    [
+     2400,
+     true
+    ],
+    [
+     2740,
+     true
+    ],
+    [
+     2760,
+     true
+    ],
+    [
+     2780,
+     true
+    ],
+    [
+     2800,
+     true
+    ],
+    [
+     2820,
+     true
+    ]
+   ],
+   "compared": 22,
+   "mismatchAt": null
+  },
+  {
+   "name": "desync",
+   "at": "2026-11-21T05:03:05.946Z",
+   "dialog": "本机的计算结果与多数玩家不同，已退出本局，你的国家由电脑接管。录像和各方校验值已保存，可下载发给开发者排查。 (155 s)",
+   "aOnTime": true
+  },
+  {
+   "name": "replay",
+   "at": "2026-11-21T05:03:30.400Z",
+   "turn": 392,
+   "bar": "录像回放0:39 / 2:21暂停1×2×4×8×+1 分钟退出回放"
+  }
+ ],
+ "statuses": {
+  "A rooms 200": 37,
+  "A rooms 201": 2,
+  "B rooms 200": 19
+ },
+ "pageErrors": [],
+ "shots": [
+  {
+   "state": "wait-takeover-countdown",
+   "lang": "zh",
+   "view": "phone-portrait",
+   "size": "390x844",
+   "file": "docs/p3c/wait-takeover-countdown-phone-portrait-zh.png",
+   "findings": 0,
+   "badge": {
+    "x": 104,
+    "y": 110,
+    "w": 182,
+    "h": 27,
+    "inView": true,
+    "text": "等待 乙… 1s · 58 秒后由电脑接管"
+   },
+   "catchup": null,
+   "replay": null,
+   "desync": null,
+   "toast": null,
+   "hscroll": false
+  },
+  {
+   "state": "wait-takeover-countdown",
+   "lang": "zh",
+   "view": "phone-landscape",
+   "size": "844x390",
+   "file": "docs/p3c/wait-takeover-countdown-phone-landscape-zh.png",
+   "findings": 0,
+   "badge": {
+    "x": 552,
+    "y": 42,
+    "w": 182,
+    "h": 27,
+    "inView": true,
+    "text": "等待 乙… 1s · 58 秒后由电脑接管"
+   },
+   "catchup": null,
+   "replay": null,
+   "desync": null,
+   "toast": null,
+   "hscroll": false
+  },
+  {
+   "state": "wait-takeover-countdown",
+   "lang": "zh",
+   "view": "ipad-landscape",
+   "size": "1180x820",
+   "file": "docs/p3c/wait-takeover-countdown-ipad-landscape-zh.png",
+   "findings": 0,
+   "badge": {
+    "x": 498,
+    "y": 49,
+    "w": 184,
+    "h": 27,
+    "inView": true,
+    "text": "等待 乙… 2s · 57 秒后由电脑接管"
+   },
+   "catchup": null,
+   "replay": null,
+   "desync": null,
+   "toast": null,
+   "hscroll": false
+  },
+  {
+   "state": "wait-takeover-countdown",
+   "lang": "zh",
+   "view": "desktop",
+   "size": "1280x800",
+   "file": "docs/p3c/wait-takeover-countdown-desktop-zh.png",
+   "findings": 0,
+   "badge": {
+    "x": 548,
+    "y": 49,
+    "w": 184,
+    "h": 27,
+    "inView": true,
+    "text": "等待 乙… 3s · 57 秒后由电脑接管"
+   },
+   "catchup": null,
+   "replay": null,
+   "desync": null,
+   "toast": null,
+   "hscroll": false
+  },
+  {
+   "state": "takeover-toast",
+   "lang": "zh",
+   "view": "phone-portrait",
+   "size": "390x844",
+   "file": "docs/p3c/takeover-toast-phone-portrait-zh.png",
+   "findings": 0,
+   "badge": {
+    "x": 100,
+    "y": 110,
+    "w": 189,
+    "h": 27,
+    "inView": true,
+    "text": "等待 乙… 16s · 45 秒后由电脑接管"
+   },
+   "catchup": null,
+   "replay": null,
+   "desync": null,
+   "toast": "乙 掉线超过 60 秒，由电脑接管",
+   "hscroll": false
+  },
+  {
+   "state": "takeover-toast",
+   "lang": "zh",
+   "view": "desktop",
+   "size": "1280x800",
+   "file": "docs/p3c/takeover-toast-desktop-zh.png",
+   "findings": 0,
+   "badge": {
+    "x": 593,
+    "y": 49,
+    "w": 94,
+    "h": 27,
+    "inView": true,
+    "text": "等待网络… 16s"
+   },
+   "catchup": null,
+   "replay": null,
+   "desync": null,
+   "toast": "乙 掉线超过 60 秒，由电脑接管",
+   "hscroll": false
+  },
+  {
+   "state": "reclaimed-toast",
+   "lang": "zh",
+   "view": "phone-portrait",
+   "size": "390x844",
+   "file": "docs/p3c/reclaimed-toast-phone-portrait-zh.png",
+   "findings": 0,
+   "badge": {
+    "x": 144,
+    "y": 110,
+    "w": 102,
+    "h": 23,
+    "inView": true,
+    "text": "联机房间 9FP9YZGJ"
+   },
+   "catchup": null,
+   "replay": null,
+   "desync": null,
+   "toast": "已收回控制权",
+   "hscroll": false
+  },
+  {
+   "state": "reclaimed-toast",
+   "lang": "zh",
+   "view": "desktop",
+   "size": "1280x800",
+   "file": "docs/p3c/reclaimed-toast-desktop-zh.png",
+   "findings": 0,
+   "badge": {
+    "x": 589,
+    "y": 49,
+    "w": 102,
+    "h": 23,
+    "inView": true,
+    "text": "联机房间 9FP9YZGJ"
+   },
+   "catchup": null,
+   "replay": null,
+   "desync": null,
+   "toast": "已收回控制权",
+   "hscroll": false
+  },
+  {
+   "state": "catchup-progress",
+   "lang": "zh",
+   "view": "phone-portrait",
+   "size": "390x844",
+   "file": "docs/p3c/catchup-progress-phone-portrait-zh.png",
+   "findings": 1,
+   "badge": {
+    "x": 98,
+    "y": 110,
+    "w": 194,
+    "h": 23,
+    "inView": true,
+    "text": "正在重连，暂不能下达指令 · 无回应 · 13s ⓘ"
+   },
+   "catchup": {
+    "x": 16,
+    "y": 104,
+    "w": 358,
+    "h": 72,
+    "inView": true,
+    "text": "正在追赶联机进度 6% 0:07 / 1:58"
+   },
+   "replay": null,
+   "desync": null,
+   "toast": null,
+   "hscroll": false
+  },
+  {
+   "state": "catchup-progress",
+   "lang": "zh",
+   "view": "phone-landscape",
+   "size": "844x390",
+   "file": "docs/p3c/catchup-progress-phone-landscape-zh.png",
+   "findings": 0,
+   "badge": {
+    "x": 560,
+    "y": 42,
+    "w": 174,
+    "h": 21,
+    "inView": true,
+    "text": "正在重连，暂不能下达指令 · 无回应 · 13s ⓘ"
+   },
+   "catchup": {
+    "x": 242,
+    "y": 84,
+    "w": 360,
+    "h": 72,
+    "inView": true,
+    "text": "正在追赶联机进度 9% 0:11 / 2:03"
+   },
+   "replay": null,
+   "desync": null,
+   "toast": null,
+   "hscroll": false
+  },
+  {
+   "state": "catchup-progress",
+   "lang": "zh",
+   "view": "ipad-landscape",
+   "size": "1180x820",
+   "file": "docs/p3c/catchup-progress-ipad-landscape-zh.png",
+   "findings": 0,
+   "badge": {
+    "x": 493,
+    "y": 49,
+    "w": 194,
+    "h": 23,
+    "inView": true,
+    "text": "正在重连，暂不能下达指令 · 无回应 · 13s ⓘ"
+   },
+   "catchup": {
+    "x": 410,
+    "y": 84,
+    "w": 360,
+    "h": 72,
+    "inView": true,
+    "text": "正在追赶联机进度 14% 0:18 / 2:06"
+   },
+   "replay": null,
+   "desync": null,
+   "toast": null,
+   "hscroll": false
+  },
+  {
+   "state": "catchup-progress",
+   "lang": "zh",
+   "view": "desktop",
+   "size": "1280x800",
+   "file": "docs/p3c/catchup-progress-desktop-zh.png",
+   "findings": 0,
+   "badge": {
+    "x": 543,
+    "y": 49,
+    "w": 194,
+    "h": 23,
+    "inView": true,
+    "text": "正在重连，暂不能下达指令 · 无回应 · 13s ⓘ"
+   },
+   "catchup": {
+    "x": 460,
+    "y": 84,
+    "w": 360,
+    "h": 72,
+    "inView": true,
+    "text": "正在追赶联机进度 20% 0:26 / 2:11"
+   },
+   "replay": null,
+   "desync": null,
+   "toast": null,
+   "hscroll": false
+  },
+  {
+   "state": "pause-save-buttons",
+   "lang": "zh",
+   "view": "phone-portrait",
+   "size": "390x844",
+   "file": "docs/p3c/pause-save-buttons-phone-portrait-zh.png",
+   "findings": 0,
+   "badge": {
+    "x": 144,
+    "y": 110,
+    "w": 102,
+    "h": 23,
+    "inView": true,
+    "text": "联机房间 9FP9YZGJ"
+   },
+   "catchup": null,
+   "replay": null,
+   "desync": null,
+   "toast": null,
+   "hscroll": false
+  },
+  {
+   "state": "pause-save-buttons",
+   "lang": "zh",
+   "view": "phone-landscape",
+   "size": "844x390",
+   "file": "docs/p3c/pause-save-buttons-phone-landscape-zh.png",
+   "findings": 0,
+   "badge": {
+    "x": 642,
+    "y": 42,
+    "w": 92,
+    "h": 21,
+    "inView": true,
+    "text": "联机房间 9FP9YZGJ"
+   },
+   "catchup": null,
+   "replay": null,
+   "desync": null,
+   "toast": null,
+   "hscroll": false
+  },
+  {
+   "state": "pause-save-buttons",
+   "lang": "zh",
+   "view": "ipad-landscape",
+   "size": "1180x820",
+   "file": "docs/p3c/pause-save-buttons-ipad-landscape-zh.png",
+   "findings": 0,
+   "badge": {
+    "x": 539,
+    "y": 49,
+    "w": 102,
+    "h": 23,
+    "inView": true,
+    "text": "联机房间 9FP9YZGJ"
+   },
+   "catchup": null,
+   "replay": null,
+   "desync": null,
+   "toast": null,
+   "hscroll": false
+  },
+  {
+   "state": "pause-save-buttons",
+   "lang": "zh",
+   "view": "desktop",
+   "size": "1280x800",
+   "file": "docs/p3c/pause-save-buttons-desktop-zh.png",
+   "findings": 0,
+   "badge": {
+    "x": 589,
+    "y": 49,
+    "w": 102,
+    "h": 23,
+    "inView": true,
+    "text": "联机房间 9FP9YZGJ"
+   },
+   "catchup": null,
+   "replay": null,
+   "desync": null,
+   "toast": null,
+   "hscroll": false
+  },
+  {
+   "state": "saves-list",
+   "lang": "zh",
+   "view": "phone-portrait",
+   "size": "390x844",
+   "file": "docs/p3c/saves-list-phone-portrait-zh.png",
+   "findings": 0,
+   "badge": null,
+   "catchup": null,
+   "replay": null,
+   "desync": null,
+   "toast": null,
+   "hscroll": false
+  },
+  {
+   "state": "saves-list",
+   "lang": "zh",
+   "view": "phone-landscape",
+   "size": "844x390",
+   "file": "docs/p3c/saves-list-phone-landscape-zh.png",
+   "findings": 0,
+   "badge": null,
+   "catchup": null,
+   "replay": null,
+   "desync": null,
+   "toast": null,
+   "hscroll": false
+  },
+  {
+   "state": "saves-list",
+   "lang": "zh",
+   "view": "ipad-landscape",
+   "size": "1180x820",
+   "file": "docs/p3c/saves-list-ipad-landscape-zh.png",
+   "findings": 0,
+   "badge": null,
+   "catchup": null,
+   "replay": null,
+   "desync": null,
+   "toast": null,
+   "hscroll": false
+  },
+  {
+   "state": "saves-list",
+   "lang": "zh",
+   "view": "desktop",
+   "size": "1280x800",
+   "file": "docs/p3c/saves-list-desktop-zh.png",
+   "findings": 0,
+   "badge": null,
+   "catchup": null,
+   "replay": null,
+   "desync": null,
+   "toast": null,
+   "hscroll": false
+  },
+  {
+   "state": "restore-lobby",
+   "lang": "zh",
+   "view": "phone-portrait",
+   "size": "390x844",
+   "file": "docs/p3c/restore-lobby-phone-portrait-zh.png",
+   "findings": 0,
+   "badge": null,
+   "catchup": null,
+   "replay": null,
+   "desync": null,
+   "toast": null,
+   "hscroll": false
+  },
+  {
+   "state": "restore-lobby",
+   "lang": "zh",
+   "view": "phone-landscape",
+   "size": "844x390",
+   "file": "docs/p3c/restore-lobby-phone-landscape-zh.png",
+   "findings": 0,
+   "badge": null,
+   "catchup": null,
+   "replay": null,
+   "desync": null,
+   "toast": null,
+   "hscroll": false
+  },
+  {
+   "state": "restore-lobby",
+   "lang": "zh",
+   "view": "ipad-landscape",
+   "size": "1180x820",
+   "file": "docs/p3c/restore-lobby-ipad-landscape-zh.png",
+   "findings": 0,
+   "badge": null,
+   "catchup": null,
+   "replay": null,
+   "desync": null,
+   "toast": null,
+   "hscroll": false
+  },
+  {
+   "state": "restore-lobby",
+   "lang": "zh",
+   "view": "desktop",
+   "size": "1280x800",
+   "file": "docs/p3c/restore-lobby-desktop-zh.png",
+   "findings": 0,
+   "badge": null,
+   "catchup": null,
+   "replay": null,
+   "desync": null,
+   "toast": null,
+   "hscroll": false
+  },
+  {
+   "state": "desync-dialog",
+   "lang": "zh",
+   "view": "phone-portrait",
+   "size": "390x844",
+   "file": "docs/p3c/desync-dialog-phone-portrait-zh.png",
+   "findings": 0,
+   "badge": {
+    "x": 136,
+    "y": 110,
+    "w": 117,
+    "h": 23,
+    "inView": true,
+    "text": "联机不同步，已退出本局"
+   },
+   "catchup": null,
+   "replay": null,
+   "desync": {
+    "x": 12,
+    "y": 331,
+    "w": 366,
+    "h": 183,
+    "inView": true,
+    "text": "联机不同步 本机的计算结果与多数玩家不同，已退出本局，你的国家由电脑接管。录像和各方校验值已保存，可下载发给开发者排查。 (155 s) 下载录像文件 返回大厅"
+   },
+   "toast": null,
+   "hscroll": false
+  },
+  {
+   "state": "desync-dialog",
+   "lang": "zh",
+   "view": "phone-landscape",
+   "size": "844x390",
+   "file": "docs/p3c/desync-dialog-phone-landscape-zh.png",
+   "findings": 0,
+   "badge": {
+    "x": 628,
+    "y": 42,
+    "w": 106,
+    "h": 21,
+    "inView": true,
+    "text": "联机不同步，已退出本局"
+   },
+   "catchup": null,
+   "replay": null,
+   "desync": {
+    "x": 202,
+    "y": 114,
+    "w": 440,
+    "h": 162,
+    "inView": true,
+    "text": "联机不同步 本机的计算结果与多数玩家不同，已退出本局，你的国家由电脑接管。录像和各方校验值已保存，可下载发给开发者排查。 (155 s) 下载录像文件 返回大厅"
+   },
+   "toast": null,
+   "hscroll": false
+  },
+  {
+   "state": "desync-dialog",
+   "lang": "zh",
+   "view": "ipad-landscape",
+   "size": "1180x820",
+   "file": "docs/p3c/desync-dialog-ipad-landscape-zh.png",
+   "findings": 0,
+   "badge": {
+    "x": 531,
+    "y": 49,
+    "w": 117,
+    "h": 23,
+    "inView": true,
+    "text": "联机不同步，已退出本局"
+   },
+   "catchup": null,
+   "replay": null,
+   "desync": {
+    "x": 370,
+    "y": 329,
+    "w": 440,
+    "h": 162,
+    "inView": true,
+    "text": "联机不同步 本机的计算结果与多数玩家不同，已退出本局，你的国家由电脑接管。录像和各方校验值已保存，可下载发给开发者排查。 (155 s) 下载录像文件 返回大厅"
+   },
+   "toast": null,
+   "hscroll": false
+  },
+  {
+   "state": "desync-dialog",
+   "lang": "zh",
+   "view": "desktop",
+   "size": "1280x800",
+   "file": "docs/p3c/desync-dialog-desktop-zh.png",
+   "findings": 0,
+   "badge": {
+    "x": 581,
+    "y": 49,
+    "w": 117,
+    "h": 23,
+    "inView": true,
+    "text": "联机不同步，已退出本局"
+   },
+   "catchup": null,
+   "replay": null,
+   "desync": {
+    "x": 420,
+    "y": 319,
+    "w": 440,
+    "h": 162,
+    "inView": true,
+    "text": "联机不同步 本机的计算结果与多数玩家不同，已退出本局，你的国家由电脑接管。录像和各方校验值已保存，可下载发给开发者排查。 (155 s) 下载录像文件 返回大厅"
+   },
+   "toast": null,
+   "hscroll": false
+  },
+  {
+   "state": "replay-bar",
+   "lang": "zh",
+   "view": "phone-portrait",
+   "size": "390x844",
+   "file": "docs/p3c/replay-bar-phone-portrait-zh.png",
+   "findings": 2,
+   "badge": {
+    "x": 158,
+    "y": 110,
+    "w": 75,
+    "h": 23,
+    "inView": true,
+    "text": "联机房间 回放"
+   },
+   "catchup": null,
+   "replay": {
+    "x": 98,
+    "y": 96,
+    "w": 195,
+    "h": 139,
+    "inView": true,
+    "text": "录像回放 0:43 / 2:21 暂停 1× 2× 4× 8× +1 分钟 退出回放"
+   },
+   "desync": null,
+   "toast": null,
+   "hscroll": false
+  },
+  {
+   "state": "replay-bar",
+   "lang": "zh",
+   "view": "phone-landscape",
+   "size": "844x390",
+   "file": "docs/p3c/replay-bar-phone-landscape-zh.png",
+   "findings": 0,
+   "badge": {
+    "x": 666,
+    "y": 42,
+    "w": 68,
+    "h": 21,
+    "inView": true,
+    "text": "联机房间 回放"
+   },
+   "catchup": null,
+   "replay": {
+    "x": 211,
+    "y": 78,
+    "w": 422,
+    "h": 81,
+    "inView": true,
+    "text": "录像回放 0:47 / 2:21 暂停 1× 2× 4× 8× +1 分钟 退出回放"
+   },
+   "desync": null,
+   "toast": null,
+   "hscroll": false
+  },
+  {
+   "state": "replay-bar",
+   "lang": "zh",
+   "view": "ipad-landscape",
+   "size": "1180x820",
+   "file": "docs/p3c/replay-bar-ipad-landscape-zh.png",
+   "findings": 0,
+   "badge": {
+    "x": 553,
+    "y": 49,
+    "w": 75,
+    "h": 23,
+    "inView": true,
+    "text": "联机房间 回放"
+   },
+   "catchup": null,
+   "replay": {
+    "x": 328,
+    "y": 78,
+    "w": 524,
+    "h": 44,
+    "inView": true,
+    "text": "录像回放 0:55 / 2:21 暂停 1× 2× 4× 8× +1 分钟 退出回放"
+   },
+   "desync": null,
+   "toast": null,
+   "hscroll": false
+  },
+  {
+   "state": "replay-bar",
+   "lang": "zh",
+   "view": "desktop",
+   "size": "1280x800",
+   "file": "docs/p3c/replay-bar-desktop-zh.png",
+   "findings": 0,
+   "badge": {
+    "x": 603,
+    "y": 49,
+    "w": 75,
+    "h": 23,
+    "inView": true,
+    "text": "联机房间 回放"
+   },
+   "catchup": null,
+   "replay": {
+    "x": 378,
+    "y": 78,
+    "w": 524,
+    "h": 44,
+    "inView": true,
+    "text": "录像回放 1:04 / 2:21 暂停 1× 2× 4× 8× +1 分钟 退出回放"
+   },
+   "desync": null,
+   "toast": null,
+   "hscroll": false
+  },
+  {
+   "state": "saves-list",
+   "lang": "en",
+   "view": "phone-portrait",
+   "size": "390x844",
+   "file": "docs/p3c/saves-list-phone-portrait-en.png",
+   "findings": 0,
+   "badge": null,
+   "catchup": null,
+   "replay": null,
+   "desync": null,
+   "toast": null,
+   "hscroll": false
+  },
+  {
+   "state": "saves-list",
+   "lang": "en",
+   "view": "desktop",
+   "size": "1280x800",
+   "file": "docs/p3c/saves-list-desktop-en.png",
+   "findings": 0,
+   "badge": null,
+   "catchup": null,
+   "replay": null,
+   "desync": null,
+   "toast": null,
+   "hscroll": false
+  },
+  {
+   "state": "replay-bar",
+   "lang": "en",
+   "view": "phone-portrait",
+   "size": "390x844",
+   "file": "docs/p3c/replay-bar-phone-portrait-en.png",
+   "findings": 4,
+   "badge": {
+    "x": 134,
+    "y": 110,
+    "w": 123,
+    "h": 23,
+    "inView": true,
+    "text": "Multiplayer Room Replay"
+   },
+   "catchup": null,
+   "replay": {
+    "x": 98,
+    "y": 96,
+    "w": 195,
+    "h": 139,
+    "inView": true,
+    "text": "Replay 0:05 / 2:21 Pause 1× 2× 4× 8× +1 min Exit replay"
+   },
+   "desync": null,
+   "toast": "Multiplayer battle started",
+   "hscroll": false
+  },
+  {
+   "state": "replay-bar",
+   "lang": "en",
+   "view": "desktop",
+   "size": "1280x800",
+   "file": "docs/p3c/replay-bar-desktop-en.png",
+   "findings": 3,
+   "badge": {
+    "x": 579,
+    "y": 49,
+    "w": 123,
+    "h": 23,
+    "inView": true,
+    "text": "Multiplayer Room Replay"
+   },
+   "catchup": null,
+   "replay": {
+    "x": 374,
+    "y": 78,
+    "w": 533,
+    "h": 44,
+    "inView": true,
+    "text": "Replay 0:06 / 2:21 Pause 1× 2× 4× 8× +1 min Exit replay"
+   },
+   "desync": null,
+   "toast": null,
+   "hscroll": false
+  }
+ ],
+ "probes": [
+  {
+   "state": "wait-takeover-countdown",
+   "view": "phone-portrait",
+   "lang": "zh",
+   "probe": {
+    "viewport": {
+     "width": 390,
+     "height": 844
+    },
+    "language": "zh-CN",
+    "scope": "game",
+    "collapsed": false,
+    "findings": []
+   }
+  },
+  {
+   "state": "wait-takeover-countdown",
+   "view": "phone-landscape",
+   "lang": "zh",
+   "probe": {
+    "viewport": {
+     "width": 844,
+     "height": 390
+    },
+    "language": "zh-CN",
+    "scope": "game",
+    "collapsed": true,
+    "findings": []
+   }
+  },
+  {
+   "state": "wait-takeover-countdown",
+   "view": "ipad-landscape",
+   "lang": "zh",
+   "probe": {
+    "viewport": {
+     "width": 1180,
+     "height": 820
+    },
+    "language": "zh-CN",
+    "scope": "game",
+    "collapsed": true,
+    "findings": []
+   }
+  },
+  {
+   "state": "wait-takeover-countdown",
+   "view": "desktop",
+   "lang": "zh",
+   "probe": {
+    "viewport": {
+     "width": 1280,
+     "height": 800
+    },
+    "language": "zh-CN",
+    "scope": "game",
+    "collapsed": true,
+    "findings": []
+   }
+  },
+  {
+   "state": "takeover-toast",
+   "view": "phone-portrait",
+   "lang": "zh",
+   "probe": {
+    "viewport": {
+     "width": 390,
+     "height": 844
+    },
+    "language": "zh-CN",
+    "scope": "game",
+    "collapsed": true,
+    "findings": []
+   }
+  },
+  {
+   "state": "takeover-toast",
+   "view": "desktop",
+   "lang": "zh",
+   "probe": {
+    "viewport": {
+     "width": 1280,
+     "height": 800
+    },
+    "language": "zh-CN",
+    "scope": "game",
+    "collapsed": true,
+    "findings": []
+   }
+  },
+  {
+   "state": "reclaimed-toast",
+   "view": "phone-portrait",
+   "lang": "zh",
+   "probe": {
+    "viewport": {
+     "width": 390,
+     "height": 844
+    },
+    "language": "zh-CN",
+    "scope": "game",
+    "collapsed": false,
+    "findings": []
+   }
+  },
+  {
+   "state": "reclaimed-toast",
+   "view": "desktop",
+   "lang": "zh",
+   "probe": {
+    "viewport": {
+     "width": 1280,
+     "height": 800
+    },
+    "language": "zh-CN",
+    "scope": "game",
+    "collapsed": false,
+    "findings": []
+   }
+  },
+  {
+   "state": "catchup-progress",
+   "view": "phone-portrait",
+   "lang": "zh",
+   "probe": {
+    "viewport": {
+     "width": 390,
+     "height": 844
+    },
+    "language": "zh-CN",
+    "scope": "game",
+    "collapsed": false,
+    "findings": [
+     {
+      "type": "text-clipped",
+      "severity": "review",
+      "element": "#selected-info",
+      "text": "训练村民（军械工程师已并入村民）；推进时代，扩展人口与经济。II 时代起村民可建造新的城镇中心（275 木材 + 100 石料）：每方最多 3 座，须离己方城镇中心至少 700；新城同样训练村民、接收",
+      "rect": {
+       "x": 67,
+       "y": 606,
+       "w": 165,
+       "h": 12.5,
+       "right": 232,
+       "bottom": 618.5
+      },
+      "detail": "Check screenshot and Details access; deliberate ellipsis may be acceptable"
+     }
+    ]
+   }
+  },
+  {
+   "state": "catchup-progress",
+   "view": "phone-landscape",
+   "lang": "zh",
+   "probe": {
+    "viewport": {
+     "width": 844,
+     "height": 390
+    },
+    "language": "zh-CN",
+    "scope": "game",
+    "collapsed": true,
+    "findings": []
+   }
+  },
+  {
+   "state": "catchup-progress",
+   "view": "ipad-landscape",
+   "lang": "zh",
+   "probe": {
+    "viewport": {
+     "width": 1180,
+     "height": 820
+    },
+    "language": "zh-CN",
+    "scope": "game",
+    "collapsed": true,
+    "findings": []
+   }
+  },
+  {
+   "state": "catchup-progress",
+   "view": "desktop",
+   "lang": "zh",
+   "probe": {
+    "viewport": {
+     "width": 1280,
+     "height": 800
+    },
+    "language": "zh-CN",
+    "scope": "game",
+    "collapsed": true,
+    "findings": []
+   }
+  },
+  {
+   "state": "pause-save-buttons",
+   "view": "phone-portrait",
+   "lang": "zh",
+   "probe": {
+    "viewport": {
+     "width": 390,
+     "height": 844
+    },
+    "language": "zh-CN",
+    "scope": "pause",
+    "collapsed": true,
+    "findings": []
+   }
+  },
+  {
+   "state": "pause-save-buttons",
+   "view": "phone-landscape",
+   "lang": "zh",
+   "probe": {
+    "viewport": {
+     "width": 844,
+     "height": 390
+    },
+    "language": "zh-CN",
+    "scope": "pause",
+    "collapsed": true,
+    "findings": []
+   }
+  },
+  {
+   "state": "pause-save-buttons",
+   "view": "ipad-landscape",
+   "lang": "zh",
+   "probe": {
+    "viewport": {
+     "width": 1180,
+     "height": 820
+    },
+    "language": "zh-CN",
+    "scope": "pause",
+    "collapsed": true,
+    "findings": []
+   }
+  },
+  {
+   "state": "pause-save-buttons",
+   "view": "desktop",
+   "lang": "zh",
+   "probe": {
+    "viewport": {
+     "width": 1280,
+     "height": 800
+    },
+    "language": "zh-CN",
+    "scope": "pause",
+    "collapsed": true,
+    "findings": []
+   }
+  },
+  {
+   "state": "saves-list",
+   "view": "phone-portrait",
+   "lang": "zh",
+   "probe": {
+    "viewport": {
+     "width": 390,
+     "height": 844
+    },
+    "language": "zh-CN",
+    "scope": "#network-dialog",
+    "collapsed": false,
+    "findings": []
+   }
+  },
+  {
+   "state": "saves-list",
+   "view": "phone-landscape",
+   "lang": "zh",
+   "probe": {
+    "viewport": {
+     "width": 844,
+     "height": 390
+    },
+    "language": "zh-CN",
+    "scope": "#network-dialog",
+    "collapsed": true,
+    "findings": []
+   }
+  },
+  {
+   "state": "saves-list",
+   "view": "ipad-landscape",
+   "lang": "zh",
+   "probe": {
+    "viewport": {
+     "width": 1180,
+     "height": 820
+    },
+    "language": "zh-CN",
+    "scope": "#network-dialog",
+    "collapsed": true,
+    "findings": []
+   }
+  },
+  {
+   "state": "saves-list",
+   "view": "desktop",
+   "lang": "zh",
+   "probe": {
+    "viewport": {
+     "width": 1280,
+     "height": 800
+    },
+    "language": "zh-CN",
+    "scope": "#network-dialog",
+    "collapsed": true,
+    "findings": []
+   }
+  },
+  {
+   "state": "restore-lobby",
+   "view": "phone-portrait",
+   "lang": "zh",
+   "probe": {
+    "viewport": {
+     "width": 390,
+     "height": 844
+    },
+    "language": "zh-CN",
+    "scope": "#network-dialog",
+    "collapsed": true,
+    "findings": []
+   }
+  },
+  {
+   "state": "restore-lobby",
+   "view": "phone-landscape",
+   "lang": "zh",
+   "probe": {
+    "viewport": {
+     "width": 844,
+     "height": 390
+    },
+    "language": "zh-CN",
+    "scope": "#network-dialog",
+    "collapsed": true,
+    "findings": []
+   }
+  },
+  {
+   "state": "restore-lobby",
+   "view": "ipad-landscape",
+   "lang": "zh",
+   "probe": {
+    "viewport": {
+     "width": 1180,
+     "height": 820
+    },
+    "language": "zh-CN",
+    "scope": "#network-dialog",
+    "collapsed": true,
+    "findings": []
+   }
+  },
+  {
+   "state": "restore-lobby",
+   "view": "desktop",
+   "lang": "zh",
+   "probe": {
+    "viewport": {
+     "width": 1280,
+     "height": 800
+    },
+    "language": "zh-CN",
+    "scope": "#network-dialog",
+    "collapsed": true,
+    "findings": []
+   }
+  },
+  {
+   "state": "desync-dialog",
+   "view": "phone-portrait",
+   "lang": "zh",
+   "probe": {
+    "viewport": {
+     "width": 390,
+     "height": 844
+    },
+    "language": "zh-CN",
+    "scope": "#net-desync",
+    "collapsed": false,
+    "findings": []
+   }
+  },
+  {
+   "state": "desync-dialog",
+   "view": "phone-landscape",
+   "lang": "zh",
+   "probe": {
+    "viewport": {
+     "width": 844,
+     "height": 390
+    },
+    "language": "zh-CN",
+    "scope": "#net-desync",
+    "collapsed": true,
+    "findings": []
+   }
+  },
+  {
+   "state": "desync-dialog",
+   "view": "ipad-landscape",
+   "lang": "zh",
+   "probe": {
+    "viewport": {
+     "width": 1180,
+     "height": 820
+    },
+    "language": "zh-CN",
+    "scope": "#net-desync",
+    "collapsed": true,
+    "findings": []
+   }
+  },
+  {
+   "state": "desync-dialog",
+   "view": "desktop",
+   "lang": "zh",
+   "probe": {
+    "viewport": {
+     "width": 1280,
+     "height": 800
+    },
+    "language": "zh-CN",
+    "scope": "#net-desync",
+    "collapsed": true,
+    "findings": []
+   }
+  },
+  {
+   "state": "replay-bar",
+   "view": "phone-portrait",
+   "lang": "zh",
+   "probe": {
+    "viewport": {
+     "width": 390,
+     "height": 844
+    },
+    "language": "zh-CN",
+    "scope": "game",
+    "collapsed": false,
+    "findings": [
+     {
+      "type": "covered-control",
+      "severity": "review",
+      "element": "#network-badge",
+      "text": "联机房间 回放",
+      "rect": {
+       "x": 157.7265625,
+       "y": 110,
+       "w": 74.546875,
+       "h": 22.59375,
+       "right": 232.2734375,
+       "bottom": 132.59375
+      },
+      "detail": "Center hit belongs to #net-replay-bar"
+     },
+     {
+      "type": "text-clipped",
+      "severity": "review",
+      "element": "#selected-info",
+      "text": "训练村民（军械工程师已并入村民）；推进时代，扩展人口与经济。II 时代起村民可建造新的城镇中心（275 木材 + 100 石料）：每方最多 3 座，须离己方城镇中心至少 700；新城同样训练村民、接收",
+      "rect": {
+       "x": 67,
+       "y": 606,
+       "w": 165,
+       "h": 12.5,
+       "right": 232,
+       "bottom": 618.5
+      },
+      "detail": "Check screenshot and Details access; deliberate ellipsis may be acceptable"
+     }
+    ]
+   }
+  },
+  {
+   "state": "replay-bar",
+   "view": "phone-landscape",
+   "lang": "zh",
+   "probe": {
+    "viewport": {
+     "width": 844,
+     "height": 390
+    },
+    "language": "zh-CN",
+    "scope": "game",
+    "collapsed": true,
+    "findings": []
+   }
+  },
+  {
+   "state": "replay-bar",
+   "view": "ipad-landscape",
+   "lang": "zh",
+   "probe": {
+    "viewport": {
+     "width": 1180,
+     "height": 820
+    },
+    "language": "zh-CN",
+    "scope": "game",
+    "collapsed": true,
+    "findings": []
+   }
+  },
+  {
+   "state": "replay-bar",
+   "view": "desktop",
+   "lang": "zh",
+   "probe": {
+    "viewport": {
+     "width": 1280,
+     "height": 800
+    },
+    "language": "zh-CN",
+    "scope": "game",
+    "collapsed": true,
+    "findings": []
+   }
+  },
+  {
+   "state": "saves-list",
+   "view": "phone-portrait",
+   "lang": "en",
+   "probe": {
+    "viewport": {
+     "width": 390,
+     "height": 844
+    },
+    "language": "en",
+    "scope": "#network-dialog",
+    "collapsed": false,
+    "findings": []
+   }
+  },
+  {
+   "state": "saves-list",
+   "view": "desktop",
+   "lang": "en",
+   "probe": {
+    "viewport": {
+     "width": 1280,
+     "height": 800
+    },
+    "language": "en",
+    "scope": "#network-dialog",
+    "collapsed": false,
+    "findings": []
+   }
+  },
+  {
+   "state": "replay-bar",
+   "view": "phone-portrait",
+   "lang": "en",
+   "probe": {
+    "viewport": {
+     "width": 390,
+     "height": 844
+    },
+    "language": "en",
+    "scope": "game",
+    "collapsed": false,
+    "findings": [
+     {
+      "type": "covered-control",
+      "severity": "review",
+      "element": "#network-badge",
+      "text": "Multiplayer Room Replay",
+      "rect": {
+       "x": 133.5,
+       "y": 110,
+       "w": 123,
+       "h": 22.59375,
+       "right": 256.5,
+       "bottom": 132.59375
+      },
+      "detail": "Center hit belongs to #net-replay-bar"
+     },
+     {
+      "type": "text-clipped",
+      "severity": "review",
+      "element": "#selected-info",
+      "text": "Train villagers and construction engineers; advance through ages and develop your economy · Accepts:",
+      "rect": {
+       "x": 67,
+       "y": 606,
+       "w": 165,
+       "h": 12.5,
+       "right": 232,
+       "bottom": 618.5
+      },
+      "detail": "Check screenshot and Details access; deliberate ellipsis may be acceptable"
+     },
+     {
+      "type": "text-clipped",
+      "severity": "review",
+      "element": "small",
+      "text": "Choose where new units gather",
+      "rect": {
+       "x": 117,
+       "y": 806.5,
+       "w": 76,
+       "h": 24,
+       "right": 193,
+       "bottom": 830.5
+      },
+      "detail": "Check screenshot and Details access; deliberate ellipsis may be acceptable"
+     },
+     {
+      "type": "text-clipped",
+      "severity": "review",
+      "element": "small",
+      "text": "New units gather in front",
+      "rect": {
+       "x": 211,
+       "y": 806.5,
+       "w": 76,
+       "h": 24,
+       "right": 287,
+       "bottom": 830.5
+      },
+      "detail": "Check screenshot and Details access; deliberate ellipsis may be acceptable"
+     }
+    ]
+   }
+  },
+  {
+   "state": "replay-bar",
+   "view": "desktop",
+   "lang": "en",
+   "probe": {
+    "viewport": {
+     "width": 1280,
+     "height": 800
+    },
+    "language": "en",
+    "scope": "game",
+    "collapsed": false,
+    "findings": [
+     {
+      "type": "text-clipped",
+      "severity": "review",
+      "element": "#selected-info",
+      "text": "Train villagers and construction engineers; advance through ages and develop your economy · Accepts:",
+      "rect": {
+       "x": 77,
+       "y": 700.125,
+       "w": 165,
+       "h": 27.5,
+       "right": 242,
+       "bottom": 727.625
+      },
+      "detail": "Check screenshot and Details access; deliberate ellipsis may be acceptable"
+     },
+     {
+      "type": "text-clipped",
+      "severity": "review",
+      "element": "small",
+      "text": "Choose where new units gather",
+      "rect": {
+       "x": 372,
+       "y": 760.5,
+       "w": 84,
+       "h": 24,
+       "right": 456,
+       "bottom": 784.5
+      },
+      "detail": "Check screenshot and Details access; deliberate ellipsis may be acceptable"
+     },
+     {
+      "type": "text-clipped",
+      "severity": "review",
+      "element": "strong",
+      "text": "Bastion Fortifications 1",
+      "rect": {
+       "x": 780,
+       "y": 732.3125,
+       "w": 84,
+       "h": 26.375,
+       "right": 864,
+       "bottom": 758.6875
+      },
+      "detail": "Check screenshot and Details access; deliberate ellipsis may be acceptable"
+     }
+    ]
+   }
+  }
+ ]
+}
