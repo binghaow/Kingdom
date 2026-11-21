@@ -19,6 +19,7 @@ This folder holds source music for Frontier Kingdom. It is outside `public/`, so
 | `where-the-river-bends-calm.mp3` | Where the River Bends | Calm | 3:01, MP3 | Google Gemini 生成，项目作者 2026-11-20 提供 | 原文件（SHA-256 `d39c62a9…f0433ec4`）；平静曲轮换 |
 | `before-the-walls-fall-battle.mp3` | Before the Walls Fall | Battle | 2:03, MP3 | Google Gemini 生成，项目作者 2026-11-20 提供 | 原文件（SHA-256 `3faf755b…a4740ce4`）；战斗曲轮换 |
 | `untitled-1120-battle.mp3` | （未命名，2026-11-20 提供） | Battle (按节奏判断) | 2:04, MP3 | Google Gemini 生成，项目作者 2026-11-20 提供 | 原文件（SHA-256 `1c10ea0a…5bc9c996`）；战斗曲轮换；用途待作者确认 |
+| `victory-march-d-major.mp3` | 胜利进行曲（D 大调，108 BPM） | Victory | 1:22, MP3 | Google Gemini 生成，项目作者 2026-11-20 提供 | 原文件（SHA-256 `8aae6fcf…75c9d993`）；胜利时与 Rise of the Sovereign 随机二选一 |
 
 ## 进游戏 / In-game use
 

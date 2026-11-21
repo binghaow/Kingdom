@@ -50,3 +50,4 @@ All four are mono PCM16 with normalization and endpoint fades only, original pit
 
 - Mizunoryu, “Giant panda twittering.ogg”, 3.11 s field recording. Author released the work into the public domain (PD-self). Used as the small-panda selection/summon cue; playback is trimmed to 1.6 s at runtime. https://commons.wikimedia.org/wiki/File:Giant_panda_twittering.ogg . No film/TV sound was used.
 * Project author, generated with Google Gemini, 2026-11-20 — `music/morning-estate.mp3`, `music/river-bends.mp3` (calm), `music/walls-fall.mp3`, `music/untitled-1120.mp3` (battle).
+* Project author, generated with Google Gemini, 2026-11-20 — `music/victory-march.mp3` (18th-century victory march, D major).

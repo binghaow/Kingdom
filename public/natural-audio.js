@@ -12,7 +12,7 @@ function retire(d,tc){d.live=false;fade(d,0,tc);setTimeout(()=>{if(!d.live)d.el.
 function begin(key,loop){const old=decks[front],d=decks[front=1-front];music=d.el;if(old.live)retire(old,1.2);setTrack(d,key,loop);try{d.el.currentTime=0}catch{}d.live=true;fade(d,0,.01);const p=d.el.play?.();if(p)p.then(()=>fade(d,1,1.2)).catch(()=>{});else fade(d,1,1.2)}
 function nextCalm(){if(!bag.length){bag=CALM.filter(k=>k!==lastCalm).sort(()=>Math.random()-.5);if(lastCalm)bag.splice(1+Math.floor(Math.random()*bag.length),0,lastCalm)}return lastCalm=bag.shift()}
 /* Game over: victory plays Rise of the Sovereign once; defeat fades the music out. The director stays quiet afterwards. */
-A.endMusic=win=>{if(!ctx||mood==='finale')return;mood='finale';if(win)begin('music/sovereign',false);else{const d=decks[front];if(d?.live)retire(d,2.5)}};
+A.endMusic=win=>{if(!ctx||mood==='finale')return;mood='finale';if(win)begin(Math.random()<.5?'music/sovereign':'music/victory-march',false);else{const d=decks[front];if(d?.live)retire(d,2.5)}};
 function combat(kind){if(!COMBAT.test(kind))return;const now=performance.now();hits=hits.filter(t=>now-t<12000);hits.push(now);if(mood==='tension'||!/melee|cannon/.test(kind)||hits.length>=3)lastCombat=now}
 function tick(){director=setTimeout(tick,1000);if(!ctx||muted||!musicEnabled||document.hidden||mood==='finale')return;const now=performance.now(),d=decks[front];
 if(d.live&&d.el.paused&&!d.el.ended)d.el.play?.().catch(()=>{});
