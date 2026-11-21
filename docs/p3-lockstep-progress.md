@@ -289,6 +289,10 @@ Q5、Q6、Q8、Q9 未单独提供结论；Q9（真机操作延迟）仍是 3d �
 
 所有截图无横向滚动；只读 DOM 探针在新增元素上 0 项（剩余提示是原有 HUD 的单位说明省略号）。没有页面错误、没有 5xx。**未做**：真机 iPhone/iPad、Safari 真实切后台（用阻塞主线程 9 s 模拟冻结）、真实触控。
 
+### 8.5b 交付检查
+
+`node check-all.cjs` 通过（19.5 分钟，含新的 check-lockstep-resilience）；`npm run build` 通过（Worker 29 个模块）；`node check-artifact.cjs` 通过；旧轮询联机冒烟（`scripts/replay/live-online.cjs 65`，含电脑座位）POST 201×1、200×248，无 503、无页面错误（`docs/p3c/legacy-online-smoke.json`）；浏览器 3c 全流程（`resilience-ui.cjs`）通过；完整 `npm run release-check`：**112 PASS / 1 WARN / 0 FAIL**（报告 `docs/release-reports/2026-11-21-0818d46.md`，0818d46 与最后的代码提交 8be0fe2 代码相同，只多了截图），未改基线。WARN 是 main 上已有的千兵 >40 ms 尖峰（只记录）。
+
 ### 8.6 合规影响
 
 没有新的数据收集。房间 / 座位 / 指令 / 校验值仍存 D1（与 3a/3b 同类）；新增的快照是对局状态（无个人信息），只保留每房间最新 2 个，随房间过期删除；存档只存在玩家自己的设备（IndexedDB / localStorage）或玩家主动下载的文件里；“换设备继续”链接含席位令牌，界面提示不要发给别人。没有新的 App Store 合规依赖。
