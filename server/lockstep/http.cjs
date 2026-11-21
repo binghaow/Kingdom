@@ -100,7 +100,9 @@ const releaseCmd = (s) => core.systemCommand('aiRelease', { seat: s.seat, team: 
    Returns the compact reply text (the same JSON for both transports) plus what the socket loop needs. */
 async function exchange(raw, id, head, msg, now, held = 0) {
   const db = session(raw), c = core.clockTurn(head.startAt, head.period, now), seat = head.seat, active = now - core.TAKEOVER_MS;
-  const statements = [db.prepare('UPDATE lockstep_seats SET seen = MAX(seen, ?3), at = MAX(at, ?4), rtt = COALESCE(?5, rtt) WHERE room = ?1 AND seat = ?2').bind(id, seat, Math.min(now, msg.seen ?? now), msg.at, msg.rtt)];
+  // at is monotonic except on a fresh connection (hello / first poll), which reports the client's true executed turn: a
+  // refreshed page restarts from turn 0 and must count as catching up, not as still being at its old turn.
+  const statements = [db.prepare(`UPDATE lockstep_seats SET seen = MAX(seen, ?3), at = ${msg.fresh ? '?4' : 'MAX(at, ?4)'}, rtt = COALESCE(?5, rtt) WHERE room = ?1 AND seat = ?2`).bind(id, seat, Math.min(now, msg.seen ?? now), msg.at, msg.rtt)];
   // Back from a computer takeover and caught up: release the seat at the next undelivered turn.
   if (msg.reclaim) statements.push(...switchStatements(db, id, seat, 1, 0, releaseCmd(head)));
   // Turn = MAX(sealed + 1, MIN(clock turn, hold limit + 1)) (relay-core assignTurn), computed inside the INSERT so it is atomic.
@@ -252,7 +254,7 @@ function attachSocket(ws, env, id, { now: clock = Date.now, setTimeout: st = set
         if (Number.isSafeInteger(msg.x)) at = Math.max(at, msg.x);
         const room = await DB.prepare('SELECT setup, seats, delay FROM lockstep_rooms WHERE id = ?').bind(id).first();
         send(JSON.stringify({ type: 'start', setup: JSON.parse(room.setup), seats: JSON.parse(room.seats), startAt: head.startAt, period: head.period, d: room.delay, n: clock() - head.startAt, budget: limit }));
-        extra = { seats: true }; ct(timer); tickNow(); return;
+        extra = { seats: true, fresh: true }; ct(timer); tickNow(); return;
       }
       if (!head) return;
       const parsed = core.parseClient(msg);

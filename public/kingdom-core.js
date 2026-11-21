@@ -747,6 +747,10 @@
     async send(wait = true) {
       if (this.stopped || this.fatal || this.inFlight >= this.maxInFlight) return;
       const token = this.client.outgoing({ wait, turns: wait, reclaim: !!this.client.reclaim, seats: wait && (this.count++ % this.seatsEvery === 0 || this.client.waitingSince !== null) });
+      if (!this.helloSent && wait) {
+        token.body.f = 1;
+        this.helloSent = true;
+      }
       const text = JSON.stringify(token.body), stats = this.client.stats, started = token.sentAt;
       this.inFlight++;
       stats.up += text.length;
@@ -780,6 +784,7 @@
         this.onReceive?.(data);
       } catch (e) {
         this.client.failed(token);
+        if (token.body.f) this.helloSent = false;
         this.fails++;
         this.nextAt = this.client.now() + Math.min(1e4, 250 * 2 ** Math.min(6, this.fails - 1));
         this.onError?.(e, false);

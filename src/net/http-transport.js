@@ -33,6 +33,7 @@ export class HttpTransport {
   async send(wait = true) {
     if (this.stopped || this.fatal || this.inFlight >= this.maxInFlight) return;
     const token = this.client.outgoing({ wait, turns: wait, reclaim: !!this.client.reclaim, seats: wait && (this.count++ % this.seatsEvery === 0 || this.client.waitingSince !== null) });
+    if (!this.helloSent && wait) { token.body.f = 1; this.helloSent = true; } // first poll: the relay takes x as this seat's true executed turn
     const text = JSON.stringify(token.body), stats = this.client.stats, started = token.sentAt;
     this.inFlight++; stats.up += text.length; if (wait) this.polls.push(started);
     let ok = false;
@@ -50,7 +51,7 @@ export class HttpTransport {
       this.client.receive(data, token);
       this.onReceive?.(data);
     } catch (e) {
-      this.client.failed(token);
+      this.client.failed(token); if (token.body.f) this.helloSent = false;
       this.fails++; this.nextAt = this.client.now() + Math.min(10000, 250 * 2 ** Math.min(6, this.fails - 1));
       this.onError?.(e, false);
     } finally { clearTimeout(timer); this.inFlight--; if (wait) { const i = this.polls.indexOf(started); if (i >= 0) this.polls.splice(i, 1); if (ok && !this.stopped && !this.polls.length) this.send(true); } }

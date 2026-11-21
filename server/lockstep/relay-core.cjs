@@ -68,7 +68,7 @@ function commandText(cmd) {
 
 /* Parses a client message body: { a: last turn received, x: last turn executed, r: rtt ms, c: [[seq, cmd]], h: [[step, hash]] } */
 function parseClient(body) {
-  const out = { after: -1, at: -1, rtt: null, cmds: [], hashes: [], wait: body?.w !== 0, turns: body?.q !== 0, seats: !!body?.s, replay: !!body?.replay, reclaim: body?.k === 1 };
+  const out = { after: -1, at: -1, rtt: null, cmds: [], hashes: [], wait: body?.w !== 0, turns: body?.q !== 0, seats: !!body?.s, replay: !!body?.replay, reclaim: body?.k === 1, fresh: body?.f === 1 };
   if (!body || typeof body !== 'object') return out;
   if (Number.isSafeInteger(body.a)) out.after = Math.max(-1, body.a);
   if (Number.isSafeInteger(body.x)) out.at = Math.max(-1, body.x);
