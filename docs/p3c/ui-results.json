@@ -3,31 +3,31 @@
  "steps": [
   {
    "name": "started",
-   "at": "2026-11-21T05:29:11.385Z",
-   "code": "995"
+   "at": "2026-11-21T05:34:47.182Z",
+   "code": "146"
   },
   {
    "name": "wait-hint",
-   "at": "2026-11-21T05:29:23.064Z",
+   "at": "2026-11-21T05:34:58.931Z",
    "badge": "等待 乙… 1s · 59 秒后由电脑接管"
   },
   {
    "name": "freeze-recovered",
-   "at": "2026-11-21T05:29:34.159Z",
-   "A": 258,
-   "B": 249,
+   "at": "2026-11-21T05:35:11.212Z",
+   "A": 275,
+   "B": 275,
    "aiB": []
   },
   {
    "name": "takeover",
-   "at": "2026-11-21T05:29:50.382Z",
+   "at": "2026-11-21T05:35:27.170Z",
    "toast": "乙 掉线超过 60 秒，由电脑接管"
   },
   {
    "name": "reclaimed",
-   "at": "2026-11-21T05:29:56.985Z",
+   "at": "2026-11-21T05:35:33.727Z",
    "B": {
-    "turn": 489,
+    "turn": 500,
     "reconnects": 1,
     "transport": "ws"
    },
@@ -35,33 +35,33 @@
   },
   {
    "name": "catchup-visible",
-   "at": "2026-11-21T05:31:19.756Z",
-   "bar": "正在追赶联机进度 0%0:00 / 2:10"
+   "at": "2026-11-21T05:36:50.684Z",
+   "bar": "正在追赶联机进度 0%0:00 / 1:47"
   },
   {
    "name": "reload-caught-up",
-   "at": "2026-11-21T05:31:52.715Z",
-   "msAfterThrottleOff": 8003,
-   "compared": 13,
+   "at": "2026-11-21T05:37:29.941Z",
+   "msAfterThrottleOff": 8343,
+   "compared": 14,
    "mismatchAt": null
   },
   {
    "name": "saved",
-   "at": "2026-11-21T05:31:56.479Z",
-   "file": "kingdom-online-995-2min.json",
-   "turns": 1684,
+   "at": "2026-11-21T05:37:33.910Z",
+   "file": "kingdom-online-146-2min.json",
+   "turns": 1702,
    "commands": 18,
    "bytes": 4065,
-   "hash": "edef8657"
+   "hash": "4b3d9c77"
   },
   {
    "name": "restored",
-   "at": "2026-11-21T05:32:44.581Z",
-   "code2": "419",
+   "at": "2026-11-21T05:38:25.921Z",
+   "code2": "221",
    "seatB": 1,
-   "turnA": 1818,
-   "turnB": 1818,
-   "saveStep": 3368,
+   "turnA": 1857,
+   "turnB": 1856,
+   "saveStep": 3404,
    "vsOriginal": [
     [
      600,
@@ -84,14 +84,6 @@
      true
     ],
     [
-     3280,
-     true
-    ],
-    [
-     3300,
-     true
-    ],
-    [
      3320,
      true
     ],
@@ -102,26 +94,34 @@
     [
      3360,
      true
+    ],
+    [
+     3380,
+     true
+    ],
+    [
+     3400,
+     true
     ]
    ],
-   "compared": 21,
+   "compared": 25,
    "mismatchAt": null
   },
   {
    "name": "desync",
-   "at": "2026-11-21T05:32:45.259Z",
-   "dialog": "本机的计算结果与多数玩家不同，已退出本局，你的国家由电脑接管。录像和各方校验值已保存，可下载发给开发者排查。 (182 s)",
+   "at": "2026-11-21T05:38:26.790Z",
+   "dialog": "本机的计算结果与多数玩家不同，已退出本局，你的国家由电脑接管。录像和各方校验值已保存，可下载发给开发者排查。 (186 s)",
    "aOnTime": true
   },
   {
    "name": "replay",
-   "at": "2026-11-21T05:33:08.130Z",
-   "turn": 391,
-   "bar": "录像回放0:37 / 2:48暂停1×2×4×8×+1 分钟退出回放"
+   "at": "2026-11-21T05:38:53.244Z",
+   "turn": 395,
+   "bar": "录像回放0:38 / 2:50暂停1×2×4×8×+1 分钟退出回放"
   }
  ],
  "statuses": {
-  "A rooms 200": 38,
+  "A rooms 200": 39,
   "A rooms 201": 2,
   "B rooms 200": 19
  },
@@ -219,12 +219,12 @@
    "file": "docs/p3c/takeover-toast-phone-portrait-zh.png",
    "findings": 0,
    "badge": {
-    "x": 148,
+    "x": 146,
     "y": 110,
-    "w": 94,
-    "h": 27,
+    "w": 99,
+    "h": 23,
     "inView": true,
-    "text": "等待网络… 16s"
+    "text": "新联机（测试） 146"
    },
    "catchup": null,
    "replay": null,
@@ -240,12 +240,12 @@
    "file": "docs/p3c/takeover-toast-desktop-zh.png",
    "findings": 0,
    "badge": {
-    "x": 593,
+    "x": 588,
     "y": 49,
-    "w": 93,
-    "h": 27,
+    "w": 103,
+    "h": 23,
     "inView": true,
-    "text": "等待网络… 17s"
+    "text": "联机房间 JQ6ANZLJ"
    },
    "catchup": null,
    "replay": null,
@@ -261,12 +261,12 @@
    "file": "docs/p3c/reclaimed-toast-phone-portrait-zh.png",
    "findings": 0,
    "badge": {
-    "x": 144,
+    "x": 143,
     "y": 110,
-    "w": 101,
+    "w": 103,
     "h": 23,
     "inView": true,
-    "text": "联机房间 2SYJHJFA"
+    "text": "联机房间 JQ6ANZLJ"
    },
    "catchup": null,
    "replay": null,
@@ -282,12 +282,12 @@
    "file": "docs/p3c/reclaimed-toast-desktop-zh.png",
    "findings": 0,
    "badge": {
-    "x": 589,
+    "x": 588,
     "y": 49,
-    "w": 101,
+    "w": 103,
     "h": 23,
     "inView": true,
-    "text": "联机房间 2SYJHJFA"
+    "text": "联机房间 JQ6ANZLJ"
    },
    "catchup": null,
    "replay": null,
@@ -303,12 +303,12 @@
    "file": "docs/p3c/catchup-progress-phone-portrait-zh.png",
    "findings": 1,
    "badge": {
-    "x": 145,
+    "x": 146,
     "y": 110,
-    "w": 100,
+    "w": 99,
     "h": 23,
     "inView": true,
-    "text": "新联机（测试） 995"
+    "text": "新联机（测试） 146"
    },
    "catchup": {
     "x": 16,
@@ -316,7 +316,7 @@
     "w": 358,
     "h": 72,
     "inView": true,
-    "text": "正在追赶联机进度 3% 0:05 / 2:23"
+    "text": "正在追赶联机进度 4% 0:05 / 2:19"
    },
    "replay": null,
    "desync": null,
@@ -331,12 +331,12 @@
    "file": "docs/p3c/catchup-progress-phone-landscape-zh.png",
    "findings": 0,
    "badge": {
-    "x": 643,
+    "x": 644,
     "y": 42,
-    "w": 91,
+    "w": 90,
     "h": 21,
     "inView": true,
-    "text": "新联机（测试） 995"
+    "text": "新联机（测试） 146"
    },
    "catchup": {
     "x": 242,
@@ -344,7 +344,7 @@
     "w": 360,
     "h": 72,
     "inView": true,
-    "text": "正在追赶联机进度 6% 0:10 / 2:27"
+    "text": "正在追赶联机进度 6% 0:10 / 2:24"
    },
    "replay": null,
    "desync": null,
@@ -359,12 +359,12 @@
    "file": "docs/p3c/catchup-progress-ipad-landscape-zh.png",
    "findings": 0,
    "badge": {
-    "x": 540,
+    "x": 541,
     "y": 49,
-    "w": 100,
+    "w": 99,
     "h": 23,
     "inView": true,
-    "text": "新联机（测试） 995"
+    "text": "新联机（测试） 146"
    },
    "catchup": {
     "x": 410,
@@ -372,7 +372,7 @@
     "w": 360,
     "h": 72,
     "inView": true,
-    "text": "正在追赶联机进度 9% 0:14 / 2:31"
+    "text": "正在追赶联机进度 8% 0:13 / 2:31"
    },
    "replay": null,
    "desync": null,
@@ -387,12 +387,12 @@
    "file": "docs/p3c/catchup-progress-desktop-zh.png",
    "findings": 0,
    "badge": {
-    "x": 590,
+    "x": 591,
     "y": 49,
-    "w": 100,
+    "w": 99,
     "h": 23,
     "inView": true,
-    "text": "新联机（测试） 995"
+    "text": "新联机（测试） 146"
    },
    "catchup": {
     "x": 460,
@@ -400,7 +400,7 @@
     "w": 360,
     "h": 72,
     "inView": true,
-    "text": "正在追赶联机进度 13% 0:21 / 2:35"
+    "text": "正在追赶联机进度 12% 0:20 / 2:37"
    },
    "replay": null,
    "desync": null,
@@ -415,12 +415,12 @@
    "file": "docs/p3c/pause-save-buttons-phone-portrait-zh.png",
    "findings": 0,
    "badge": {
-    "x": 144,
+    "x": 143,
     "y": 110,
-    "w": 101,
+    "w": 103,
     "h": 23,
     "inView": true,
-    "text": "联机房间 2SYJHJFA"
+    "text": "联机房间 JQ6ANZLJ"
    },
    "catchup": null,
    "replay": null,
@@ -436,12 +436,12 @@
    "file": "docs/p3c/pause-save-buttons-phone-landscape-zh.png",
    "findings": 0,
    "badge": {
-    "x": 642,
+    "x": 640,
     "y": 42,
-    "w": 92,
+    "w": 94,
     "h": 21,
     "inView": true,
-    "text": "联机房间 2SYJHJFA"
+    "text": "联机房间 JQ6ANZLJ"
    },
    "catchup": null,
    "replay": null,
@@ -457,12 +457,12 @@
    "file": "docs/p3c/pause-save-buttons-ipad-landscape-zh.png",
    "findings": 0,
    "badge": {
-    "x": 539,
+    "x": 538,
     "y": 49,
-    "w": 101,
+    "w": 103,
     "h": 23,
     "inView": true,
-    "text": "联机房间 2SYJHJFA"
+    "text": "联机房间 JQ6ANZLJ"
    },
    "catchup": null,
    "replay": null,
@@ -478,12 +478,12 @@
    "file": "docs/p3c/pause-save-buttons-desktop-zh.png",
    "findings": 0,
    "badge": {
-    "x": 589,
+    "x": 588,
     "y": 49,
-    "w": 101,
+    "w": 103,
     "h": 23,
     "inView": true,
-    "text": "联机房间 2SYJHJFA"
+    "text": "联机房间 JQ6ANZLJ"
    },
    "catchup": null,
    "replay": null,
@@ -626,7 +626,7 @@
     "w": 366,
     "h": 183,
     "inView": true,
-    "text": "联机不同步 本机的计算结果与多数玩家不同，已退出本局，你的国家由电脑接管。录像和各方校验值已保存，可下载发给开发者排查。 (182 s) 下载录像文件 返回大厅"
+    "text": "联机不同步 本机的计算结果与多数玩家不同，已退出本局，你的国家由电脑接管。录像和各方校验值已保存，可下载发给开发者排查。 (186 s) 下载录像文件 返回大厅"
    },
    "toast": null,
    "hscroll": false
@@ -654,7 +654,7 @@
     "w": 440,
     "h": 162,
     "inView": true,
-    "text": "联机不同步 本机的计算结果与多数玩家不同，已退出本局，你的国家由电脑接管。录像和各方校验值已保存，可下载发给开发者排查。 (182 s) 下载录像文件 返回大厅"
+    "text": "联机不同步 本机的计算结果与多数玩家不同，已退出本局，你的国家由电脑接管。录像和各方校验值已保存，可下载发给开发者排查。 (186 s) 下载录像文件 返回大厅"
    },
    "toast": null,
    "hscroll": false
@@ -682,7 +682,7 @@
     "w": 440,
     "h": 162,
     "inView": true,
-    "text": "联机不同步 本机的计算结果与多数玩家不同，已退出本局，你的国家由电脑接管。录像和各方校验值已保存，可下载发给开发者排查。 (182 s) 下载录像文件 返回大厅"
+    "text": "联机不同步 本机的计算结果与多数玩家不同，已退出本局，你的国家由电脑接管。录像和各方校验值已保存，可下载发给开发者排查。 (186 s) 下载录像文件 返回大厅"
    },
    "toast": null,
    "hscroll": false
@@ -710,7 +710,7 @@
     "w": 440,
     "h": 162,
     "inView": true,
-    "text": "联机不同步 本机的计算结果与多数玩家不同，已退出本局，你的国家由电脑接管。录像和各方校验值已保存，可下载发给开发者排查。 (182 s) 下载录像文件 返回大厅"
+    "text": "联机不同步 本机的计算结果与多数玩家不同，已退出本局，你的国家由电脑接管。录像和各方校验值已保存，可下载发给开发者排查。 (186 s) 下载录像文件 返回大厅"
    },
    "toast": null,
    "hscroll": false
@@ -737,7 +737,7 @@
     "w": 358,
     "h": 81,
     "inView": true,
-    "text": "录像回放 0:44 / 2:48 暂停 1× 2× 4× 8× +1 分钟 退出回放"
+    "text": "录像回放 0:46 / 2:50 暂停 1× 2× 4× 8× +1 分钟 退出回放"
    },
    "desync": null,
    "toast": null,
@@ -765,7 +765,7 @@
     "w": 524,
     "h": 44,
     "inView": true,
-    "text": "录像回放 0:48 / 2:48 暂停 1× 2× 4× 8× +1 分钟 退出回放"
+    "text": "录像回放 0:50 / 2:50 暂停 1× 2× 4× 8× +1 分钟 退出回放"
    },
    "desync": null,
    "toast": null,
@@ -793,7 +793,7 @@
     "w": 524,
     "h": 44,
     "inView": true,
-    "text": "录像回放 0:56 / 2:48 暂停 1× 2× 4× 8× +1 分钟 退出回放"
+    "text": "录像回放 0:58 / 2:50 暂停 1× 2× 4× 8× +1 分钟 退出回放"
    },
    "desync": null,
    "toast": null,
@@ -821,7 +821,7 @@
     "w": 524,
     "h": 44,
     "inView": true,
-    "text": "录像回放 1:04 / 2:48 暂停 1× 2× 4× 8× +1 分钟 退出回放"
+    "text": "录像回放 1:01 / 2:50 暂停 1× 2× 4× 8× +1 分钟 退出回放"
    },
    "desync": null,
    "toast": null,
@@ -877,10 +877,10 @@
     "w": 358,
     "h": 81,
     "inView": true,
-    "text": "Replay 0:05 / 2:48 Pause 1× 2× 4× 8× +1 min Exit replay"
+    "text": "Replay 0:06 / 2:50 Pause 1× 2× 4× 8× +1 min Exit replay"
    },
    "desync": null,
-   "toast": "Multiplayer battle started",
+   "toast": null,
    "hscroll": false
   },
   {
@@ -905,7 +905,7 @@
     "w": 533,
     "h": 44,
     "inView": true,
-    "text": "Replay 0:06 / 2:48 Pause 1× 2× 4× 8× +1 min Exit replay"
+    "text": "Replay 0:07 / 2:50 Pause 1× 2× 4× 8× +1 min Exit replay"
    },
    "desync": null,
    "toast": null,
