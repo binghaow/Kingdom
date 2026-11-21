@@ -14,6 +14,12 @@ export const STEP = 0.05, STEPS_PER_TURN = 2, HASH_EVERY = 20, DEFAULT_PERIOD = 
    switches control in the same turn. A client more than CATCHUP turns behind the sealed turn is catching up (refresh,
    reconnect, restored room): it runs turns as fast as its budget allows and checksums only every CATCHUP_HASH steps. */
 export const SYSTEM_SEAT = 99, CATCHUP = 50, CATCHUP_HASH = 600, TAKEOVER_MS = 60000;
+/* 3c snapshots: at the end of every SNAP_EVERY-th turn (5 game minutes) every client round-trips its simulation through
+   the room service's own persistence (networkPersistent -> JSON -> networkHydrate, what the old server-authoritative mode
+   does on every request). All clients do it in the same turn, so they stay identical, and the JSON text is a snapshot any
+   client can load to resume at that turn instead of replaying from turn 0. The step hash reported right after it is taken
+   on the normalized state, so the relay's majority-agreed checksum verifies the snapshot. */
+export const SNAP_EVERY = 3000;
 const clone = (v) => JSON.parse(JSON.stringify(v));
 
 /* Same construction sequence as the authoritative room service start() (server/service.cjs). */
@@ -100,6 +106,7 @@ export class LockstepClient {
       this.offset = this.samples.reduce((a, b) => (b.net < a.net ? b : a)).offset;
     }
     if (Number.isFinite(msg.d)) this.delay = msg.d;
+    if (msg.snap && (!this.offer || msg.snap.turn > this.offer.turn)) this.offer = msg.snap; // 3c: newest verified relay snapshot
     if (msg.seats) this.seatInfo = msg.seats.map(([seat, team, at, age, mode]) => ({ seat, team, at, age, mode: mode || 0 }));
     // Desync v1: the relay names the minority seats; only they stop (the majority plays on, the computer takes the others).
     if (msg.ds) { this.desyncInfo = msg.ds; if (!this.desync && (!Array.isArray(msg.ds.losers) || msg.ds.losers.includes(this.seat))) this.desync = msg.ds; }
@@ -139,7 +146,8 @@ export class LockstepClient {
     const catching = this.sparseCatchup !== false && this.nextTurn < this.sealed - CATCHUP;
     for (let i = 0; i < STEPS_PER_TURN; i++) {
       this.sim.tick(STEP); this.step++;
-      if (this.hashes && this.step % (catching ? CATCHUP_HASH : HASH_EVERY) === 0) { const h = checksum(this.sim).hash; this.hashQueue.push([this.step, h]); this.hashLog.push([this.step, h]); }
+      if (i === STEPS_PER_TURN - 1 && (turn + 1) % SNAP_EVERY === 0) this.normalize(turn + 1);
+      if (this.hashes && this.step % (catching ? CATCHUP_HASH : HASH_EVERY) === 0) { const h = checksum(this.sim).hash; this.hashQueue.push([this.step, h]); this.hashLog.push([this.step, h]); if (this.snapshot && this.snapshot.step === this.step) { this.snapshot.hash = h; this.onSnapshot?.(this.snapshot); } }
     }
     this.nextTurn++;
     this.onTurn?.(turn);
@@ -156,6 +164,27 @@ export class LockstepClient {
     else if (!ai && was) { this.aiTeams.delete(team); if (team > 0) s.humanTeams = (this.setup.options.humanTeams || []).filter((t) => !this.aiTeams.has(t)); }
     this.control.push({ turn, seat, team, type: cmd.type, reason: cmd.args.reason || null });
     this.onControl?.({ turn, seat, team, type: cmd.type, reason: cmd.args.reason || null, ai });
+  }
+  /* Snapshot (see SNAP_EVERY): normalize the simulation in place and keep the JSON text for upload. */
+  normalize(turn) {
+    const text = JSON.stringify(this.K.networkPersistent(this.sim));
+    this.sim = this.K.networkHydrate(JSON.parse(text), { room: this.navRoom || null });
+    this.snapshot = { turn, step: turn * STEPS_PER_TURN, text, aiSeats: [...this.aiSeats], hash: null, live: this.nextTurn >= this.sealed - CATCHUP };
+  }
+  /* Resume from a relay snapshot (verified by the caller against the majority checksum): the state at the start of `turn`. */
+  loadSnapshot(snap) {
+    const sim = this.K.networkHydrate(JSON.parse(snap.text), { room: this.navRoom || null });
+    const hash = checksum(sim).hash;
+    if (hash !== snap.hash) return { ok: false, hash };
+    sim.prewarmNav?.();
+    this.sim = sim; this.nextTurn = snap.turn; this.step = snap.turn * STEPS_PER_TURN; this.sealed = Math.max(this.sealed, snap.turn - 1);
+    for (const t of [...this.turns.keys()]) if (t < snap.turn) this.turns.delete(t);
+    this.aiSeats = new Set(snap.aiSeats || []); this.aiTeams = new Set();
+    for (const team of new Set(this.teams.values())) { const seats = [...this.teams].filter(([, t]) => t === team).map(([x]) => x); if (seats.length && seats.every((x) => this.aiSeats.has(x))) this.aiTeams.add(team); }
+    if (Number.isSafeInteger(snap.seq) && snap.seq > this.seq) this.seq = snap.seq;
+    this.logFrom = snap.turn; this.log = []; this.hashLog.push([this.step, hash]);
+    this.stats.snapshotTurn = snap.turn;
+    return { ok: true, hash };
   }
   /* Catch-up progress (refresh / reconnect / restored room): null when on time. */
   progress() { const behind = this.sealed - this.nextTurn; return behind > CATCHUP ? { turn: this.nextTurn, target: this.sealed, behind } : null; }
@@ -187,7 +216,7 @@ export class LockstepClient {
   }
   recording() {
     return { format: 'kingdom-lockstep', version: 1, setup: this.setup, period: this.period, seats: [...this.teams].map(([seat, team]) => ({ seat, team })),
-      turns: this.nextTurn, commands: this.log.slice(), checksums: this.hashLog.map(([step, hash]) => ({ step, hash })), aiSeats: [...this.aiSeats] };
+      turns: this.nextTurn, logFrom: this.logFrom || 0, commands: this.log.slice(), checksums: this.hashLog.map(([step, hash]) => ({ step, hash })), aiSeats: [...this.aiSeats] };
   }
 }
 

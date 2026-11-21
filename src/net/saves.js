@@ -11,14 +11,15 @@ export const FORMAT = 'kingdom-lockstep-save', VERSION = 1, KEEP = 6, SEGMENT_BY
 const DB_NAME = 'kingdom-online-saves', STORE = 'saves', LS_PREFIX = 'kingdom-online-save:';
 
 /* Builds a save from a running LockstepClient. room: the lobby room (publicRoom shape). */
-export function makeSave(client, room, { auto = false } = {}) {
+export function makeSave(client, room, { auto = false, commands = null } = {}) {
   const players = (room.players || []).map((p, seat) => (p ? { seat, name: p.name, nation: p.nation, group: p.group, team: p.team ?? null } : null)).filter(Boolean);
   return {
     format: FORMAT, version: VERSION, savedAt: new Date().toISOString(), auto,
     room: { id: room.id, code: room.code || null, config: room.config, players },
     self: client.seat, setup: client.setup, period: client.period, seats: [...client.teams].map(([seat, team]) => ({ seat, team })),
     turns: client.nextTurn, step: client.step, hash: checksum(client.sim).hash, aiSeats: [...client.aiSeats],
-    commands: client.log.map((r) => ({ turn: r.turn, seat: r.seat, seq: r.seq, c: r.c })),
+    // A client that resumed from a relay snapshot has no local log before it: the caller passes the relay recording instead.
+    commands: (commands || client.log).filter((r) => r.turn < client.nextTurn).map((r) => ({ turn: r.turn, seat: r.seat, seq: r.seq, c: r.c })),
   };
 }
 

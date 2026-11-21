@@ -429,6 +429,7 @@
   var CATCHUP = 50;
   var CATCHUP_HASH = 600;
   var TAKEOVER_MS = 6e4;
+  var SNAP_EVERY = 3e3;
   var clone2 = (v) => JSON.parse(JSON.stringify(v));
   function buildSim(K, setup) {
     const sim = new K.NetworkSim(setup.difficulty, null, clone2(setup.options));
@@ -544,6 +545,7 @@
         this.offset = this.samples.reduce((a, b) => b.net < a.net ? b : a).offset;
       }
       if (Number.isFinite(msg.d)) this.delay = msg.d;
+      if (msg.snap && (!this.offer || msg.snap.turn > this.offer.turn)) this.offer = msg.snap;
       if (msg.seats) this.seatInfo = msg.seats.map(([seat, team, at, age, mode]) => ({ seat, team, at, age, mode: mode || 0 }));
       if (msg.ds) {
         this.desyncInfo = msg.ds;
@@ -598,10 +600,15 @@
       for (let i = 0; i < STEPS_PER_TURN; i++) {
         this.sim.tick(STEP2);
         this.step++;
+        if (i === STEPS_PER_TURN - 1 && (turn + 1) % SNAP_EVERY === 0) this.normalize(turn + 1);
         if (this.hashes && this.step % (catching ? CATCHUP_HASH : HASH_EVERY) === 0) {
           const h = checksum(this.sim).hash;
           this.hashQueue.push([this.step, h]);
           this.hashLog.push([this.step, h]);
+          if (this.snapshot && this.snapshot.step === this.step) {
+            this.snapshot.hash = h;
+            this.onSnapshot?.(this.snapshot);
+          }
         }
       }
       this.nextTurn++;
@@ -630,6 +637,36 @@
       }
       this.control.push({ turn, seat, team, type: cmd.type, reason: cmd.args.reason || null });
       this.onControl?.({ turn, seat, team, type: cmd.type, reason: cmd.args.reason || null, ai });
+    }
+    /* Snapshot (see SNAP_EVERY): normalize the simulation in place and keep the JSON text for upload. */
+    normalize(turn) {
+      const text = JSON.stringify(this.K.networkPersistent(this.sim));
+      this.sim = this.K.networkHydrate(JSON.parse(text), { room: this.navRoom || null });
+      this.snapshot = { turn, step: turn * STEPS_PER_TURN, text, aiSeats: [...this.aiSeats], hash: null, live: this.nextTurn >= this.sealed - CATCHUP };
+    }
+    /* Resume from a relay snapshot (verified by the caller against the majority checksum): the state at the start of `turn`. */
+    loadSnapshot(snap) {
+      const sim = this.K.networkHydrate(JSON.parse(snap.text), { room: this.navRoom || null });
+      const hash = checksum(sim).hash;
+      if (hash !== snap.hash) return { ok: false, hash };
+      sim.prewarmNav?.();
+      this.sim = sim;
+      this.nextTurn = snap.turn;
+      this.step = snap.turn * STEPS_PER_TURN;
+      this.sealed = Math.max(this.sealed, snap.turn - 1);
+      for (const t of [...this.turns.keys()]) if (t < snap.turn) this.turns.delete(t);
+      this.aiSeats = new Set(snap.aiSeats || []);
+      this.aiTeams = /* @__PURE__ */ new Set();
+      for (const team of new Set(this.teams.values())) {
+        const seats = [...this.teams].filter(([, t]) => t === team).map(([x]) => x);
+        if (seats.length && seats.every((x) => this.aiSeats.has(x))) this.aiTeams.add(team);
+      }
+      if (Number.isSafeInteger(snap.seq) && snap.seq > this.seq) this.seq = snap.seq;
+      this.logFrom = snap.turn;
+      this.log = [];
+      this.hashLog.push([this.step, hash]);
+      this.stats.snapshotTurn = snap.turn;
+      return { ok: true, hash };
     }
     /* Catch-up progress (refresh / reconnect / restored room): null when on time. */
     progress() {
@@ -678,6 +715,7 @@
         period: this.period,
         seats: [...this.teams].map(([seat, team]) => ({ seat, team })),
         turns: this.nextTurn,
+        logFrom: this.logFrom || 0,
         commands: this.log.slice(),
         checksums: this.hashLog.map(([step, hash]) => ({ step, hash })),
         aiSeats: [...this.aiSeats]
@@ -1045,9 +1083,90 @@
     }
   };
 
+  // src/net/snapshots.js
+  var PART = 48e3;
+  function toBase64(bytes) {
+    let s = "";
+    for (let i = 0; i < bytes.length; i += 32768) s += String.fromCharCode.apply(null, bytes.subarray(i, i + 32768));
+    return btoa(s);
+  }
+  function fromBase64(text) {
+    const s = atob(text), out = new Uint8Array(s.length);
+    for (let i = 0; i < s.length; i++) out[i] = s.charCodeAt(i);
+    return out;
+  }
+  async function pipe(bytes, Stream, mode) {
+    return new Uint8Array(await new Response(new Blob([bytes]).stream().pipeThrough(new Stream(mode))).arrayBuffer());
+  }
+  async function encode(text) {
+    const raw = new TextEncoder().encode(text);
+    if (typeof CompressionStream !== "undefined") return { enc: "gzip", data: toBase64(await pipe(raw, CompressionStream, "gzip")) };
+    return { enc: "json", data: toBase64(raw) };
+  }
+  async function decode(data, enc) {
+    const bytes = fromBase64(data);
+    return new TextDecoder().decode(enc === "gzip" ? await pipe(bytes, DecompressionStream, "gzip") : bytes);
+  }
+  function attachSnapshots(client, { url, token, fetch = (...a) => globalThis.fetch(...a), onLoaded = null, onError = null } = {}) {
+    const post = async (body) => {
+      const res = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json", Authorization: "Bearer " + token }, body: JSON.stringify(body), cache: "no-store" });
+      const data = JSON.parse(await res.text());
+      if (!res.ok) throw new Error(data?.error || "HTTP " + res.status);
+      return data;
+    };
+    const stats = { uploads: 0, uploadBytes: 0, uploadMs: 0, loads: 0, loadMs: 0, failures: 0 };
+    let busy = false, tried = /* @__PURE__ */ new Set();
+    const keeper = () => {
+      const live = (client.seatInfo || []).filter((s) => !s.mode && s.age < 5e3).map((s) => s.seat).sort((a, b) => a - b);
+      return live.length ? live[0] === client.seat : client.seat === Math.min(...client.teams.keys());
+    };
+    client.onSnapshot = (snap) => {
+      if (!snap.live || !keeper() || client.team < 0) return;
+      const t0 = Date.now();
+      (async () => {
+        const { enc, data } = await encode(snap.text), parts = Math.max(1, Math.ceil(data.length / PART));
+        for (let i = 0; i < parts; i++) await post({ snap: { turn: snap.turn, step: snap.step, hash: snap.hash, part: i, parts, data: data.slice(i * PART, (i + 1) * PART), meta: { aiSeats: snap.aiSeats, enc } } });
+        stats.uploads++;
+        stats.uploadBytes += data.length;
+        stats.uploadMs += Date.now() - t0;
+      })().catch((e) => {
+        stats.failures++;
+        onError?.(e);
+      });
+      snap.text = null;
+    };
+    return {
+      stats,
+      /* Called every pump: load an offered snapshot when it saves more than ~1 minute of replay. */
+      tick() {
+        const offer = client.offer;
+        if (busy || !offer || tried.has(offer.turn) || client.nextTurn >= offer.turn - 600) return;
+        busy = true;
+        tried.add(offer.turn);
+        const t0 = Date.now();
+        (async () => {
+          const r = await post({ snapget: offer.turn });
+          if (r.hash !== offer.hash || client.nextTurn >= r.turn) return;
+          const text = (await Promise.all(r.data.map((p) => p))).join("");
+          const loaded = client.loadSnapshot({ turn: r.turn, hash: r.hash, text: await decode(text, r.meta?.enc), aiSeats: r.meta?.aiSeats || [], seq: r.seq });
+          if (loaded.ok) {
+            stats.loads++;
+            stats.loadMs += Date.now() - t0;
+            onLoaded?.(r.turn, Date.now() - t0);
+          } else stats.failures++;
+        })().catch((e) => {
+          stats.failures++;
+          onError?.(e);
+        }).finally(() => {
+          busy = false;
+        });
+      }
+    };
+  }
+
   // src/net/browser.js
   var VIEW_EVERY = 90;
-  function driver(root2, client, opts, transport) {
+  function driver(root2, client, opts, transport, extra = null) {
     const K = root2.KingdomSim, now = client.now;
     let lastView = -Infinity, viewTurn = -1, waitShown = false, progressShown = false, timer = null, stopped = false;
     const stats = { views: 0, viewMs: 0, maxViewMs: 0, catchupMs: 0, catchupTurns: 0 };
@@ -1065,6 +1184,7 @@
     }
     function pump() {
       if (stopped) return;
+      extra?.tick();
       const progress = client.progress(), behind = client.horizon() - client.nextTurn, t0 = now(), from = client.nextTurn;
       client.advance(progress ? 60 : behind > 10 ? 40 : 12);
       if (progress) {
@@ -1146,10 +1266,13 @@
       onError: (e, fatal) => opts.onError?.(e, fatal),
       onSwitch: (reason) => opts.onSwitch?.(reason)
     });
-    const d = driver(root2, client, opts, transport);
+    client.navRoom = opts.room.id;
+    const snaps = attachSnapshots(client, { url: "/api/lockstep/" + opts.room.id, token: opts.token, onLoaded: (turn, ms) => opts.onSnapshot?.(turn, ms) });
+    const d = driver(root2, client, opts, transport, snaps);
     return {
       ...d,
       executed,
+      snaps,
       mode: "live",
       issue(type, args) {
         if (d.stopped) return false;
@@ -1233,7 +1356,7 @@
   var DB_NAME = "kingdom-online-saves";
   var STORE = "saves";
   var LS_PREFIX = "kingdom-online-save:";
-  function makeSave(client, room, { auto = false } = {}) {
+  function makeSave(client, room, { auto = false, commands = null } = {}) {
     const players = (room.players || []).map((p, seat) => p ? { seat, name: p.name, nation: p.nation, group: p.group, team: p.team ?? null } : null).filter(Boolean);
     return {
       format: FORMAT2,
@@ -1249,7 +1372,8 @@
       step: client.step,
       hash: checksum(client.sim).hash,
       aiSeats: [...client.aiSeats],
-      commands: client.log.map((r) => ({ turn: r.turn, seat: r.seat, seq: r.seq, c: r.c }))
+      // A client that resumed from a relay snapshot has no local log before it: the caller passes the relay recording instead.
+      commands: (commands || client.log).filter((r) => r.turn < client.nextTurn).map((r) => ({ turn: r.turn, seat: r.seat, seq: r.seq, c: r.c }))
     };
   }
   function validSave(save) {

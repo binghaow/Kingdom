@@ -10,7 +10,8 @@
    4. short outage: wait only, no takeover;
    5. desync: one client reports wrong checksums -> majority decides, that client stops, the computer takes its seat, the
       others finish; with 2 players the tie goes to the host;
-   6. page refresh: a new client with the same seat token catches up from turn 0 and plays on;
+   6. page refresh: a new client with the same seat token catches up from turn 0 (early) or from the relay's verified
+      snapshot (after turn 3000) and plays on;
    7. online save / restore: save at a turn, restore through the lobby (new room, segments, claim), replay to the save point
       (checksum equal to the save), unclaimed seat taken over by the computer, play continues.
    Wall-clock relay timers are shortened (TAKEOVER_MS 6 s) and the turn clock accelerated; every run checks per-step
@@ -75,11 +76,16 @@ const sys = (r, seat) => r.recording.commands.filter((c) => c.seat === core.SYST
   assert.deepEqual(r.raw.find((c) => c.seat === 0).desyncInfo.losers, [1]); assert.ok(r.raw.find((c) => c.seat === 0).turns === r.config.turns);
   done.push('desync 2 players (HTTP transport): tie goes to the host (seat 0 plays on, seat 1 leaves)');
 
-  // 6. Refresh: new client, same token, catch-up from turn 0.
+  // 6. Refresh: new client, same token. (a) early: catch-up from turn 0; (b) after the turn-3000 snapshot: resume from it.
   r = await run('refresh', { clients: 2, seconds: 120, period: 50, transport: 'ws', clientCfg: (s) => (s.seat === 1 ? { restartAt: 900 } : {}) });
   const rs = r.raw.find((c) => c.seat === 1).restart;
   assert.ok(rs && rs.caughtUp > 0, 'refreshed client caught up');
   done.push(`page refresh at turn ${rs.from}: new client caught up from turn 0 in ${rs.caughtUp} ms and played on, consistent`);
+  r = await run('refresh-snapshot', { clients: 2, seconds: quick ? 320 : 340, period: 25, transport: 'ws', clientCfg: (s) => (s.seat === 1 ? { restartAt: 3150 } : {}) });
+  const rb = r.raw.find((c) => c.seat === 1), keeper = r.raw.find((c) => c.seat === 0);
+  assert.equal(rb.snapshotTurn, 3000, 'refreshed client resumed from the relay snapshot: ' + JSON.stringify([rb.snapshots, keeper.snapshots]));
+  assert.ok(keeper.snapshots.uploads >= 1 && rb.snapshots.loads === 1);
+  done.push(`page refresh at turn ${rb.restart.from} after the turn-3000 snapshot: resumed from the snapshot (download+verify ${rb.snapshots.loadMs} ms, ${Math.round(keeper.snapshots.uploadBytes / 1024)} KB gzip) instead of replaying 3000 turns, consistent (${r.seconds} s)`);
 
   // 7. Save at turn 600, restore through the lobby: (a) both seats claimed, (b) only the host (seat 1 -> computer).
   r = await run('save', { clients: 2, seconds: 70, period: 50, transport: 'ws', clientCfg: (s) => ({ saveAt: 600 }) });

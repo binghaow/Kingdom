@@ -1,0 +1,180 @@
+{
+ "config": {
+  "minutes": 26,
+  "period": 50,
+  "latency": 47,
+  "limit": 10000,
+  "outage": 90,
+  "outageAt": 8,
+  "freeze": 20,
+  "freezeAt": 14,
+  "refreshAt": 24,
+  "port": 8765,
+  "json": "docs/p3c/long-run-26min.json",
+  "latencyScaled": 24,
+  "turns": 15600,
+  "room": "58Z925SK",
+  "map": "coast_l",
+  "nations": 3,
+  "computerSeats": 1
+ },
+ "ok": true,
+ "finals": [
+  "c62e3cba",
+  "c62e3cba"
+ ],
+ "checksumStepsCompared": 1187,
+ "mismatch": null,
+ "wallSeconds": 934,
+ "sealed": 15609,
+ "rows": {
+  "cmds": 4968,
+  "system": 3,
+  "hashes": 1560,
+  "bad": 0,
+  "cmdBytes": 334367
+ },
+ "plan": [
+  "SEARCH lockstep_cmds USING INDEX lockstep_cmds_turn (room=? AND turn>? AND turn<?)",
+  "USE TEMP B-TREE FOR LAST 2 TERMS OF ORDER BY"
+ ],
+ "system": [
+  [
+   4847,
+   {
+    "type": "aiTakeover",
+    "args": {
+     "seat": 0,
+     "team": 0,
+     "reason": "offline"
+    }
+   }
+  ],
+  [
+   7568,
+   {
+    "type": "aiRelease",
+    "args": {
+     "seat": 0,
+     "team": 0
+    }
+   }
+  ],
+  [
+   15610,
+   {
+    "type": "aiTakeover",
+    "args": {
+     "seat": 0,
+     "team": 0,
+     "reason": "offline"
+    }
+   }
+  ]
+ ],
+ "platform": {
+  "calls": 35897,
+  "refused": 0,
+  "sockets": 0
+ },
+ "clients": [
+  {
+   "seat": 0,
+   "turns": 15600,
+   "transport": "ws",
+   "fallback": null,
+   "reconnects": 7,
+   "socket": {
+    "planned": 6,
+    "watchdog": 0,
+    "backoffMs": 95750,
+    "maxBackoff": 10000
+   },
+   "faults": {
+    "outage": {
+     "atTurn": 4800,
+     "ms": 90000,
+     "done": true,
+     "from": 4800
+    },
+    "freeze": null
+   },
+   "restart": null,
+   "control": [
+    {
+     "turn": 4847,
+     "seat": 0,
+     "team": 0,
+     "type": "aiTakeover",
+     "reason": "offline"
+    },
+    {
+     "turn": 7568,
+     "seat": 0,
+     "team": 0,
+     "type": "aiRelease",
+     "reason": null
+    }
+   ],
+   "stallMs": 146436,
+   "watchdog": 0,
+   "commands": 2092,
+   "units": 142,
+   "simMsPerTurn": 19.48,
+   "latencyP50": 99,
+   "latencyP90": 210
+  },
+  {
+   "seat": 1,
+   "turns": 15600,
+   "transport": "ws",
+   "fallback": null,
+   "reconnects": 1,
+   "socket": {
+    "planned": 1,
+    "watchdog": 0,
+    "backoffMs": 0,
+    "maxBackoff": 0
+   },
+   "faults": {
+    "outage": null,
+    "freeze": {
+     "atTurn": 8400,
+     "ms": 20000,
+     "done": true,
+     "from": 8400
+    }
+   },
+   "restart": {
+    "from": 14400,
+    "at": 1795235938736,
+    "oldReconnects": 7,
+    "caughtUp": 211052,
+    "turns": 15559
+   },
+   "control": [
+    {
+     "turn": 4847,
+     "seat": 0,
+     "team": 0,
+     "type": "aiTakeover",
+     "reason": "offline"
+    },
+    {
+     "turn": 7568,
+     "seat": 0,
+     "team": 0,
+     "type": "aiRelease",
+     "reason": null
+    }
+   ],
+   "stallMs": 136,
+   "watchdog": 0,
+   "commands": 10,
+   "units": 142,
+   "simMsPerTurn": 15.33,
+   "latencyP50": null,
+   "latencyP90": null
+  }
+ ]
+}

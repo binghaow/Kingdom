@@ -23,6 +23,8 @@ const SCHEMA = [
   'CREATE TABLE IF NOT EXISTS lockstep_cmds (room TEXT NOT NULL, seat INTEGER NOT NULL, seq INTEGER NOT NULL, turn INTEGER NOT NULL, cmd TEXT NOT NULL, PRIMARY KEY (room, seat, seq))',
   'CREATE INDEX IF NOT EXISTS lockstep_cmds_turn ON lockstep_cmds (room, turn)',
   'CREATE TABLE IF NOT EXISTS lockstep_segments (room TEXT NOT NULL, last_turn INTEGER NOT NULL, rows TEXT NOT NULL, PRIMARY KEY (room, last_turn))',
+  'CREATE TABLE IF NOT EXISTS lockstep_snapshots (room TEXT NOT NULL, turn INTEGER NOT NULL, step INTEGER NOT NULL, hash TEXT NOT NULL, parts INTEGER NOT NULL, meta TEXT NOT NULL, at INTEGER NOT NULL, PRIMARY KEY (room, turn))',
+  'CREATE TABLE IF NOT EXISTS lockstep_snapshot_parts (room TEXT NOT NULL, turn INTEGER NOT NULL, part INTEGER NOT NULL, data TEXT NOT NULL, PRIMARY KEY (room, turn, part))',
   'CREATE TABLE IF NOT EXISTS lockstep_hashes (room TEXT NOT NULL, step INTEGER NOT NULL, hash TEXT NOT NULL, agree INTEGER NOT NULL, bad TEXT, PRIMARY KEY (room, step))',
 ];
 /* 3c columns for tables created by the 3a/3b relay (live D1 already has them without these columns). ADD COLUMN fails with
@@ -57,7 +59,8 @@ async function createRoom(raw, { id, setup, seats, startAt, period = core.PERIOD
   const expired = (await db.prepare('SELECT id FROM lockstep_rooms WHERE expires_at < ? LIMIT 4').bind(now).all()).results.map((r) => r.id);
   const statements = [];
   for (const room of [...expired, id]) for (const table of ['lockstep_cmds', 'lockstep_seats', 'lockstep_hashes']) statements.push(db.prepare(`DELETE FROM ${table} WHERE room = ?`).bind(room));
-  for (const room of expired) statements.push(db.prepare('DELETE FROM lockstep_segments WHERE room = ?').bind(room), db.prepare('DELETE FROM lockstep_rooms WHERE id = ?').bind(room));
+  for (const room of expired) statements.push(db.prepare('DELETE FROM lockstep_segments WHERE room = ?').bind(room), db.prepare('DELETE FROM lockstep_snapshots WHERE room = ?').bind(room), db.prepare('DELETE FROM lockstep_snapshot_parts WHERE room = ?').bind(room), db.prepare('DELETE FROM lockstep_rooms WHERE id = ?').bind(room));
+  statements.push(db.prepare('DELETE FROM lockstep_snapshots WHERE room = ?').bind(id), db.prepare('DELETE FROM lockstep_snapshot_parts WHERE room = ?').bind(id));
   // Restored room (3c): the clock starts at turn `base`, turns before it are already sealed (segments uploaded by the host).
   statements.push(db.prepare('INSERT OR REPLACE INTO lockstep_rooms (id, start_at, period, sealed, delay, setup, seats, status, desync, expires_at, base) VALUES (?, ?, ?, ?, ?, ?, ?, \'playing\', NULL, ?, ?)')
     .bind(id, startAt, period, base - 1, core.D_MIN, JSON.stringify(setup), JSON.stringify(seats.map((s) => ({ seat: s.seat, team: s.team, human: s.human !== false }))), now + LIFETIME, base));
@@ -116,6 +119,10 @@ async function exchange(raw, id, head, msg, now, held = 0) {
   const fromSegments = msg.turns && head.base > 0 && msg.after < head.base - 1;
   if (fromSegments) statements.push(db.prepare('SELECT last_turn AS last, rows FROM lockstep_segments WHERE room = ?1 AND last_turn > ?2 ORDER BY last_turn LIMIT 1').bind(id, msg.after));
   else if (msg.turns) statements.push(db.prepare('SELECT turn, seat, seq, cmd AS text FROM lockstep_cmds WHERE room = ?1 AND turn > ?2 AND turn <= (SELECT sealed FROM lockstep_rooms WHERE id = ?1) ORDER BY turn, seat, seq LIMIT ?3').bind(id, msg.after, core.MAX_ROWS));
+  // Snapshot offer (3c): a client far behind (fresh connection or > SNAP_GAIN turns back) is told about the newest complete
+  // snapshot whose checksum the relay has as an undisputed step hash; it may download it and resume there.
+  const snapAt = statements.length, wantSnap = msg.turns && (msg.fresh || msg.after < (head.sealed ?? 0) - SNAP_GAIN);
+  if (wantSnap) statements.push(db.prepare('SELECT s.turn AS turn, s.step AS step, s.hash AS hash, s.parts AS parts, h.agree AS agree FROM lockstep_snapshots s JOIN lockstep_hashes h ON h.room = s.room AND h.step = s.step AND h.hash = s.hash AND h.bad IS NULL WHERE s.room = ?1 AND s.turn > ?2 + ?3 AND (SELECT COUNT(*) FROM lockstep_snapshot_parts p WHERE p.room = s.room AND p.turn = s.turn) = s.parts ORDER BY s.turn DESC LIMIT 1').bind(id, msg.after, SNAP_GAIN));
   const wantSeats = msg.seats || msg.hashes.length > 0;
   if (wantSeats) statements.push(db.prepare('SELECT seat, team, human, seen, at, rtt, mode FROM lockstep_seats WHERE room = ?1 ORDER BY seat').bind(id));
   const results = await batch(db, statements);
@@ -124,7 +131,8 @@ async function exchange(raw, id, head, msg, now, held = 0) {
   let sealed = room.sealed, desync = room.desync;
   if (rows && rows.length >= core.MAX_ROWS) sealed = rows[rows.length - 1].turn - 1; // truncated: report only complete turns
   if (fromSegments) sealed = segment ? segment.last : Math.min(sealed, head.base - 1);
-  let list = wantSeats ? results[readAt + (msg.turns ? 1 : 0)].results : null;
+  let list = wantSeats ? results[snapAt + (wantSnap ? 1 : 0)].results : null;
+  const snap = wantSnap ? results[snapAt].results[0] || null : null;
   // Desync v1: once every playing seat reported a disputed step, the majority wins; the minority seats leave (computer takes over).
   for (let i = 0; i < msg.hashes.length; i++) {
     const r = results[hashAt + i].results[0];
@@ -156,8 +164,39 @@ async function exchange(raw, id, head, msg, now, held = 0) {
   // Compact reply (~40 bytes when idle): n is relative to startAt; static fields only come with the seat table.
   const text = '{"n":' + (now - head.startAt) + ',"se":' + sealed + ',"d":' + delay + (held ? ',"hw":' + held : '') + (desync ? ',"ds":' + desync : '')
     + (seats ? ',"st":' + head.startAt + ',"p":' + head.period + ',"me":' + seat + ',"seats":' + JSON.stringify(seats) : '')
+    + (snap ? ',"snap":' + JSON.stringify({ turn: snap.turn, step: snap.step, hash: snap.hash, parts: snap.parts, agree: snap.agree }) : '')
     + (segment ? ',"t":' + segment.rows + ',"base":' + head.base : rows ? ',"t":' + core.rowsJSON(rows) : fromSegments ? ',"t":[]' : '') + '}';
   return { text, sealed, rows: rows || (segment ? [0] : []), seats, status: room.status };
+}
+
+/* 3c snapshots. Upload: {snap: {turn, step, hash, part, parts, data, meta}} in parts of <= 48 KB (gzip+base64 JSON state,
+   made by src/net/snapshots.js); the first complete upload per turn wins, later ones are ignored. Only the two newest
+   snapshots of a room are kept. Download: {snapget: turn} -> {turn, step, hash, meta, data: [parts], seq (this seat's
+   highest stored command seq)}. The relay never parses the state; clients verify it against the agreed step hash. */
+const SNAP_GAIN = 600, SNAP_PART = 49152, SNAP_PARTS = 64;
+async function putSnapshot(raw, id, head, snap, now) {
+  const db = session(raw), turn = snap.turn, part = snap.part, parts = snap.parts;
+  if (!Number.isSafeInteger(turn) || turn <= 0 || turn % 3000 !== 0 || snap.step !== turn * core.STEPS_PER_TURN || !/^[0-9a-f]{8}$/.test(snap.hash || '') || !Number.isSafeInteger(part) || !Number.isSafeInteger(parts) || parts < 1 || parts > SNAP_PARTS || part < 0 || part >= parts || typeof snap.data !== 'string' || snap.data.length > SNAP_PART || turn > head.sealed + 3000)
+    throw Object.assign(new Error('快照无效'), { status: 400 });
+  const meta = JSON.stringify({ aiSeats: Array.isArray(snap.meta?.aiSeats) ? snap.meta.aiSeats.filter(Number.isSafeInteger).slice(0, 8) : [], enc: snap.meta?.enc === 'gzip' ? 'gzip' : 'json', seat: head.seat });
+  const r = await batch(db, [
+    db.prepare('INSERT INTO lockstep_snapshots (room, turn, step, hash, parts, meta, at) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7) ON CONFLICT (room, turn) DO NOTHING').bind(id, turn, snap.step, snap.hash, parts, meta, now),
+    db.prepare('INSERT OR IGNORE INTO lockstep_snapshot_parts (room, turn, part, data) SELECT ?1, ?2, ?3, ?4 WHERE EXISTS (SELECT 1 FROM lockstep_snapshots WHERE room = ?1 AND turn = ?2 AND hash = ?5 AND parts = ?6 AND meta = ?7)').bind(id, turn, part, snap.data, snap.hash, parts, meta),
+    db.prepare('DELETE FROM lockstep_snapshot_parts WHERE room = ?1 AND turn < (SELECT MIN(turn) FROM (SELECT turn FROM lockstep_snapshots WHERE room = ?1 ORDER BY turn DESC LIMIT 2))').bind(id),
+    db.prepare('DELETE FROM lockstep_snapshots WHERE room = ?1 AND turn < (SELECT MIN(turn) FROM (SELECT turn FROM lockstep_snapshots WHERE room = ?1 ORDER BY turn DESC LIMIT 2))').bind(id),
+    db.prepare('SELECT COUNT(*) AS n FROM lockstep_snapshot_parts WHERE room = ?1 AND turn = ?2').bind(id, turn),
+  ]);
+  return { ok: true, stored: r[4].results[0].n };
+}
+async function getSnapshot(raw, id, head, turn) {
+  const db = session(raw), r = await batch(db, [
+    db.prepare('SELECT turn, step, hash, parts, meta FROM lockstep_snapshots WHERE room = ?1 AND turn = ?2').bind(id, turn),
+    db.prepare('SELECT data FROM lockstep_snapshot_parts WHERE room = ?1 AND turn = ?2 ORDER BY part').bind(id, turn),
+    db.prepare('SELECT MAX(seq) AS seq FROM lockstep_cmds WHERE room = ?1 AND seat = ?2').bind(id, head.seat),
+  ]);
+  const s = r[0].results[0], data = r[1].results.map((x) => x.data);
+  if (!s || data.length !== s.parts) return null;
+  return { turn: s.turn, step: s.step, hash: s.hash, meta: JSON.parse(s.meta), data, seq: r[2].results[0]?.seq || 0 };
 }
 
 async function replayText(raw, id) {
@@ -186,6 +225,8 @@ async function handle(request, env, { now: clock = Date.now } = {}) {
     if (!head || head.expires <= now) return fail(head ? 404 : 401, head ? '房间不存在或已过期' : '席位凭据无效，请重新加入房间');
     if (head.mode === 2 && !msg.replay) return fail(409, '本机与多数玩家不同步，已退出本局（可下载录像）');
     if (msg.replay) return reply(await replayText(env.DB, id));
+    if (body.snap) return reply(JSON.stringify(await putSnapshot(env.DB, id, head, body.snap, now)));
+    if (Number.isSafeInteger(body.snapget)) { const r = await getSnapshot(env.DB, id, head, body.snapget); return r ? reply(JSON.stringify(r)) : fail(404, '快照不存在'); }
     let held = 0;
     if (msg.wait && head.status === 'playing') {
       const c = core.clockTurn(head.startAt, head.period, now);

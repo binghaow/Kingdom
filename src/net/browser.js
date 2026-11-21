@@ -12,10 +12,11 @@
 
 import { LockstepClient, CATCHUP } from './lockstep.js';
 import { AutoTransport } from './auto-transport.js';
+import { attachSnapshots } from './snapshots.js';
 
 const VIEW_EVERY = 90; // ms between replica views (the relay turn is 100 ms)
 
-function driver(root, client, opts, transport) {
+function driver(root, client, opts, transport, extra = null) {
   const K = root.KingdomSim, now = client.now;
   let lastView = -Infinity, viewTurn = -1, waitShown = false, progressShown = false, timer = null, stopped = false;
   const stats = { views: 0, viewMs: 0, maxViewMs: 0, catchupMs: 0, catchupTurns: 0 };
@@ -31,6 +32,7 @@ function driver(root, client, opts, transport) {
   }
   function pump() {
     if (stopped) return;
+    extra?.tick();
     const progress = client.progress(), behind = client.horizon() - client.nextTurn, t0 = now(), from = client.nextTurn;
     // Catching up: run headless in ~60 ms slices (the page stays responsive and the progress bar repaints between slices).
     client.advance(progress ? 60 : behind > 10 ? 40 : 12);
@@ -69,9 +71,11 @@ export function startBrowserLockstep(root, opts) {
   const wsUrl = root.location ? (root.location.protocol === 'https:' ? 'wss://' : 'ws://') + root.location.host + '/api/lockstep/' + opts.room.id + '/ws' : null;
   const transport = new AutoTransport({ mode, httpUrl: '/api/lockstep/' + opts.room.id, wsUrl, token: opts.token, client,
     onReceive: () => opts.onAlive?.(), onError: (e, fatal) => opts.onError?.(e, fatal), onSwitch: (reason) => opts.onSwitch?.(reason) });
-  const d = driver(root, client, opts, transport);
+  client.navRoom = opts.room.id;
+  const snaps = attachSnapshots(client, { url: '/api/lockstep/' + opts.room.id, token: opts.token, onLoaded: (turn, ms) => opts.onSnapshot?.(turn, ms) });
+  const d = driver(root, client, opts, transport, snaps);
   return {
-    ...d, executed, mode: 'live',
+    ...d, executed, snaps, mode: 'live',
     issue(type, args) { if (d.stopped) return false; if (client.progress()) { opts.onRefused?.('catchup'); return false; } const ok = client.issue(type, args); if (ok) transport.kick(); return ok; },
   };
 }
