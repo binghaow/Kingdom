@@ -1,0 +1,220 @@
+{
+ "config": {
+  "clients": 3,
+  "seconds": 1100,
+  "period": 25,
+  "lobby": false,
+  "jitter": 0,
+  "delay": 0,
+  "loss": 0,
+  "quiet": true,
+  "seed": 4242,
+  "transport": "ws",
+  "durable": false,
+  "wsLimit": 0,
+  "noWs": false,
+  "d1Latency": 12,
+  "invocationLimit": 10000,
+  "stall": 20,
+  "turns": 11000,
+  "room": "LS7QQ23G",
+  "map": "coast_l",
+  "nations": 4,
+  "humanTeams": 3
+ },
+ "ok": true,
+ "failures": [],
+ "consistency": {
+  "clients": 3,
+  "checksumsPerClient": 1100,
+  "pairsCompared": 2200,
+  "relayHashRows": 1100,
+  "relayMismatches": 0,
+  "final": "52425a3a",
+  "replayFinal": "52425a3a",
+  "recordedCommands": 6655
+ },
+ "wallSeconds": 318,
+ "unitsAtEnd": [
+  280,
+  280,
+  280
+ ],
+ "unitSamples": [
+  [
+   0,
+   47
+  ],
+  [
+   60,
+   73
+  ],
+  [
+   120,
+   93
+  ],
+  [
+   180,
+   108
+  ],
+  [
+   240,
+   123
+  ],
+  [
+   300,
+   142
+  ],
+  [
+   360,
+   164
+  ],
+  [
+   420,
+   193
+  ],
+  [
+   480,
+   215
+  ],
+  [
+   540,
+   243
+  ],
+  [
+   600,
+   262
+  ],
+  [
+   660,
+   275
+  ],
+  [
+   720,
+   271
+  ],
+  [
+   780,
+   265
+  ],
+  [
+   840,
+   270
+  ],
+  [
+   900,
+   270
+  ],
+  [
+   960,
+   274
+  ],
+  [
+   1020,
+   274
+  ],
+  [
+   1080,
+   278
+  ]
+ ],
+ "bandwidth": [],
+ "websocket": {
+  "sockets": 21,
+  "upPayloadBpsPerClient": 254,
+  "downPayloadBpsPerClient": 628
+ },
+ "bandwidthNote": "bytes per game second; payload = HTTP bodies; wire = bodies + HTTP/1.1 header bytes measured at the relay (response headers reconstructed)",
+ "latency": {
+  "commands": 6651,
+  "p50": 524,
+  "p90": 916,
+  "max": 1862,
+  "unit": "ms of game time from issue to execution on the issuing client (wall ms when --period 100)"
+ },
+ "platform": {
+  "calls": 44551,
+  "refused": 0,
+  "sockets": 0
+ },
+ "relay": {
+  "requests": 0,
+  "cpuMsPerRequest": 12001.679,
+  "windows": [],
+  "statuses": {
+   "200": 1
+  },
+  "note": "relay process CPU (HTTP parsing + service + SQLite) / lockstep requests; clients run in other processes"
+ },
+ "clients": [
+  {
+   "seat": 0,
+   "team": 0,
+   "transport": "ws",
+   "fallback": null,
+   "reconnects": 6,
+   "requests": 4691,
+   "failures": 0,
+   "lost": {
+    "lostUp": 0,
+    "lostDown": 0
+   },
+   "stalls": 1367,
+   "stallMs": 189717,
+   "catchupTurns": 6131,
+   "rejected": 0,
+   "commands": 1821,
+   "rtt": 1,
+   "delay": 3,
+   "simMsPerTurn": 17.25,
+   "maxTurnMs": 170,
+   "buildMs": 880
+  },
+  {
+   "seat": 1,
+   "team": 1,
+   "transport": "ws",
+   "fallback": null,
+   "reconnects": 6,
+   "requests": 4725,
+   "failures": 0,
+   "lost": {
+    "lostUp": 0,
+    "lostDown": 0
+   },
+   "stalls": 1383,
+   "stallMs": 189781,
+   "catchupTurns": 6263,
+   "rejected": 0,
+   "commands": 2703,
+   "rtt": 1,
+   "delay": 3,
+   "simMsPerTurn": 17.38,
+   "maxTurnMs": 219,
+   "buildMs": 808
+  },
+  {
+   "seat": 2,
+   "team": 2,
+   "transport": "ws",
+   "fallback": null,
+   "reconnects": 6,
+   "requests": 4676,
+   "failures": 0,
+   "lost": {
+    "lostUp": 0,
+    "lostDown": 0
+   },
+   "stalls": 1371,
+   "stallMs": 191252,
+   "catchupTurns": 6242,
+   "rejected": 0,
+   "commands": 2139,
+   "rtt": 12,
+   "delay": 3,
+   "simMsPerTurn": 17.35,
+   "maxTurnMs": 211,
+   "buildMs": 921
+  }
+ ]
+}

@@ -47,7 +47,13 @@ function faultyFetch(f) {
     if (client.nextTurn === endTurn) finalAtEnd = hashMod.checksum(client.sim).hash;
     if (turn % 600 === 0) samples.push({ turn, units: client.sim.s.units.length, t: Date.now() }); };
   transport.start();
-  while (client.nextTurn < endTurn && !client.desync && !transport.fatal) { client.advance(cfg.budget || 40); await sleep(cfg.loop || 4); }
+  // --stall S: give up when no turn executed for S wall seconds (the field failure was a client waiting forever).
+  let lastTurn = -1, lastMove = Date.now(), stalled = null;
+  while (client.nextTurn < endTurn && !client.desync && !transport.fatal) {
+    client.advance(cfg.budget || 40); await sleep(cfg.loop || 4);
+    if (client.nextTurn !== lastTurn) { lastTurn = client.nextTurn; lastMove = Date.now(); }
+    else if (cfg.stall && Date.now() - lastMove > cfg.stall * 1000) { stalled = { turn: client.nextTurn, sealed: client.sealed, seconds: cfg.stall }; break; }
+  }
   // Keep reporting until the last checksums are delivered.
   const until = Date.now() + 3000; while (client.hashQueue.length && Date.now() < until) await sleep(20);
   transport.stop();
@@ -56,6 +62,6 @@ function faultyFetch(f) {
   process.stdout.write(JSON.stringify({ seat: cfg.seat, team: client.team, turns: client.nextTurn, steps: client.step, desync: client.desync, fatal: transport.fatal?.message || null,
     hashes: client.hashLog, final: finalAtEnd, units: client.sim.s.units.length,
     stats: { ...client.stats, latency: undefined, latencyN: lat.length, latencyP50: q(0.5), latencyP90: q(0.9), latencyMax: lat.length ? Math.round(lat[lat.length - 1]) : null, latencyAll: cfg.keepLatency ? lat : undefined },
-    lost: fetch.stats, transport: transport.mode, fallback: switched, reconnects: client.stats.reconnects || 0, buildMs, wall, simMsPerTurn: steps ? stepMs / steps : 0, maxTurnMs: maxStep, rtt: client.rtt, delay: client.delay, samples, log: cfg.keepLog ? client.log : undefined }) + '\n');
+    stalled, lost: fetch.stats, transport: transport.mode, fallback: switched, reconnects: client.stats.reconnects || 0, buildMs, wall, simMsPerTurn: steps ? stepMs / steps : 0, maxTurnMs: maxStep, rtt: client.rtt, delay: client.delay, samples, log: cfg.keepLog ? client.log : undefined }) + '\n');
   process.exit(0);
 })().catch((e) => { process.stdout.write(JSON.stringify({ seat: cfg.seat, error: String(e && e.stack || e) }) + '\n'); process.exit(1); });

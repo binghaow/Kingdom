@@ -30,7 +30,7 @@ class MemoryRelay {
   seatFor(tokenHash) { for (const s of this.seats.values()) if (s.token === tokenHash) return s; return null; }
   touch(seat, now, at, rtt) { const s = this.seats.get(seat); if (!s) return; s.seen = now; if (Number.isSafeInteger(at)) s.at = Math.max(s.at, at); if (Number.isFinite(rtt)) s.rtt = rtt; }
   submit(seat, cmds, now) {
-    const turn = core.assignTurn(this.sealed, this.startAt, this.period, now, core.sealLimit(this.startAt, this.period, now, [...this.seats.values()]));
+    const turn = core.assignTurn(this.sealed, this.startAt, this.period, now, core.sealLimit(this.startAt, this.period, now, [...this.seats.values()], core.AHEAD, core.ACTIVE_MS));
     for (const c of cmds) { const key = seat + ':' + c.seq; if (this.keys.has(key)) continue; this.keys.add(key); this.open.push({ turn, seat, seq: c.seq, text: c.text }); }
   }
   /* Returns the first mismatching report, if any. */
@@ -43,7 +43,7 @@ class MemoryRelay {
   }
   /* Seals every due turn; returns the newly sealed rows (possibly none) and the new sealed turn. */
   seal(now) {
-    const limit = core.sealLimit(this.startAt, this.period, now, [...this.seats.values()]);
+    const limit = core.sealLimit(this.startAt, this.period, now, [...this.seats.values()], core.AHEAD, core.ACTIVE_MS);
     if (limit <= this.sealed) return null;
     const from = this.sealed; this.sealed = limit;
     const fresh = core.sortRows(this.open.filter((r) => r.turn <= limit)); this.open = this.open.filter((r) => r.turn > limit);

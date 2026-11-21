@@ -9,8 +9,9 @@
 
 import { checksum, fnvString } from './core/hash.js';
 import * as replay from './replay/replay.js';
-import { startBrowserLockstep } from './net/browser.js';
+import { startBrowserLockstep, startReplayViewer } from './net/browser.js';
 import { replayLockstep } from './net/lockstep.js';
+import * as saves from './net/saves.js';
 
 const root = typeof window !== 'undefined' ? window : globalThis;
 const query = (() => { try { return new URLSearchParams(root.location?.search || ''); } catch { return new URLSearchParams(''); } })();
@@ -97,6 +98,9 @@ core.lockstep = {
   current: null,
   start(opts) { core.lockstep.current?.stop(); return (core.lockstep.current = startBrowserLockstep(root, opts)); },
   replay: (rec) => replayLockstep(root.KingdomSim, root.KingdomNetCommands, rec),
+  // 3c: online saves (room parameters + recording) and local replay viewing.
+  saves,
+  watch(opts) { core.lockstep.current?.stop(); return (core.lockstep.current = startReplayViewer(root, opts)); },
 };
 
 core.installed = install(root.KingdomSim);

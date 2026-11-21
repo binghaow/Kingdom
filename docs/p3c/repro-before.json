@@ -1,0 +1,201 @@
+{
+ "config": {
+  "clients": 3,
+  "seconds": 1100,
+  "period": 25,
+  "lobby": false,
+  "jitter": 0,
+  "delay": 0,
+  "loss": 0,
+  "quiet": true,
+  "seed": 4242,
+  "transport": "ws",
+  "durable": false,
+  "wsLimit": 0,
+  "noWs": false,
+  "d1Latency": 12,
+  "invocationLimit": 10000,
+  "stall": 20,
+  "turns": 11000,
+  "room": "LSHH3L9B",
+  "map": "coast_l",
+  "nations": 4,
+  "humanTeams": 3
+ },
+ "ok": false,
+ "failures": [
+  "seat 0 stopped at turn 7750/11000 (no turn for 20 s, sealed 7749, transport ws, reconnects 0)",
+  "seat 1 stopped at turn 7740/11000 (no turn for 20 s, sealed 7739, transport ws, reconnects 0)",
+  "seat 2 stopped at turn 7740/11000 (no turn for 20 s, sealed 7739, transport ws, reconnects 0)",
+  "recording replay final e454969a != clients null"
+ ],
+ "consistency": {
+  "clients": 3,
+  "checksumsPerClient": 775,
+  "pairsCompared": 1548,
+  "relayHashRows": 775,
+  "relayMismatches": 0,
+  "final": null,
+  "replayFinal": "e454969a",
+  "recordedCommands": 4477
+ },
+ "wallSeconds": 237,
+ "unitsAtEnd": [
+  288,
+  288,
+  288
+ ],
+ "unitSamples": [
+  [
+   0,
+   47
+  ],
+  [
+   60,
+   73
+  ],
+  [
+   120,
+   94
+  ],
+  [
+   180,
+   109
+  ],
+  [
+   240,
+   125
+  ],
+  [
+   300,
+   144
+  ],
+  [
+   360,
+   168
+  ],
+  [
+   420,
+   192
+  ],
+  [
+   480,
+   213
+  ],
+  [
+   540,
+   238
+  ],
+  [
+   600,
+   262
+  ],
+  [
+   660,
+   275
+  ],
+  [
+   720,
+   283
+  ]
+ ],
+ "bandwidth": [],
+ "websocket": {
+  "sockets": 3,
+  "upPayloadBpsPerClient": 174,
+  "downPayloadBpsPerClient": 411
+ },
+ "bandwidthNote": "bytes per game second; payload = HTTP bodies; wire = bodies + HTTP/1.1 header bytes measured at the relay (response headers reconstructed)",
+ "latency": {
+  "commands": 4470,
+  "p50": 428,
+  "p90": 748,
+  "max": 1304,
+  "unit": "ms of game time from issue to execution on the issuing client (wall ms when --period 100)"
+ },
+ "platform": {
+  "calls": 32301,
+  "refused": 2298,
+  "sockets": 0
+ },
+ "relay": {
+  "requests": 0,
+  "cpuMsPerRequest": 8109.477,
+  "windows": [],
+  "statuses": {
+   "200": 1
+  },
+  "note": "relay process CPU (HTTP parsing + service + SQLite) / lockstep requests; clients run in other processes"
+ },
+ "clients": [
+  {
+   "seat": 0,
+   "team": 0,
+   "transport": "ws",
+   "fallback": null,
+   "reconnects": 0,
+   "requests": 3359,
+   "failures": 0,
+   "lost": {
+    "lostUp": 0,
+    "lostDown": 0
+   },
+   "stalls": 802,
+   "stallMs": 159342,
+   "catchupTurns": 4922,
+   "rejected": 0,
+   "commands": 1365,
+   "rtt": 0,
+   "delay": 2,
+   "simMsPerTurn": 13.71,
+   "maxTurnMs": 77,
+   "buildMs": 866
+  },
+  {
+   "seat": 1,
+   "team": 1,
+   "transport": "ws",
+   "fallback": null,
+   "reconnects": 0,
+   "requests": 3364,
+   "failures": 0,
+   "lost": {
+    "lostUp": 0,
+    "lostDown": 0
+   },
+   "stalls": 853,
+   "stallMs": 153248,
+   "catchupTurns": 4837,
+   "rejected": 0,
+   "commands": 1598,
+   "rtt": 0,
+   "delay": 2,
+   "simMsPerTurn": 13.79,
+   "maxTurnMs": 97,
+   "buildMs": 998
+  },
+  {
+   "seat": 2,
+   "team": 2,
+   "transport": "ws",
+   "fallback": null,
+   "reconnects": 0,
+   "requests": 3356,
+   "failures": 0,
+   "lost": {
+    "lostUp": 0,
+    "lostDown": 0
+   },
+   "stalls": 781,
+   "stallMs": 155044,
+   "catchupTurns": 4938,
+   "rejected": 0,
+   "commands": 1516,
+   "rtt": 0,
+   "delay": 2,
+   "simMsPerTurn": 13.66,
+   "maxTurnMs": 98,
+   "buildMs": 848
+  }
+ ]
+}

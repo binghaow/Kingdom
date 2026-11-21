@@ -17,6 +17,12 @@
    Hold: the relay stops sealing new turns while an active human seat has fallen more than AHEAD turns behind (slow device or
    stalled connection); everyone then shows "waiting for <player>". A seat with no request for ACTIVE_MS no longer holds the
    game (3c adds AI takeover after 60 s and reconnect/catch-up). */
+/* 3c: TAKEOVER_MS — a seat with no message for this long is handed to the computer (design section 9: 60 s, reclaimable);
+   until then it holds the game ("等待 X，N 秒后由电脑接管"). CATCHUP — a seat more than this many turns behind the sealed turn
+   is catching up (refresh, reconnect, restored room) and does not hold the others; when every active seat is that far
+   behind, the relay waits for the most advanced one instead of running ahead with nobody playing. SYSTEM_SEAT — commands
+   the relay itself inserts (computer takeover / release), delivered in the same ordered stream as player commands. */
+const TAKEOVER_MS = 60000, CATCHUP = 50, SYSTEM_SEAT = 99;
 const PERIOD = 100, STEPS_PER_TURN = 2, STEP = 0.05, HASH_EVERY = 20, D_MIN = 2, D_MAX = 5, AHEAD = 10, ACTIVE_MS = 5000,
   MAX_SEATS = 8, MAX_CMDS = 32, MAX_CMD_BYTES = 4096, MAX_HASHES = 16, MAX_ROWS = 2000, PROTOCOL = 1;
 
@@ -24,12 +30,16 @@ const PERIOD = 100, STEPS_PER_TURN = 2, STEP = 0.05, HASH_EVERY = 20, D_MIN = 2,
 function clockTurn(startAt, period, now) { return Math.floor((now - startAt) / period); }
 
 /* Highest turn that may be sealed now: every fully elapsed turn, but not more than AHEAD turns past the slowest active human
-   seat (its executed turn). seats: [{human, seen, at}] */
-function sealLimit(startAt, period, now, seats, ahead = AHEAD, activeMs = ACTIVE_MS) {
+   seat (its executed turn). seats: [{human, seen, at, mode}] (mode 0 = playing, 1 = computer takeover, 2 = left after a
+   desync). With `sealed` given (3c), seats more than CATCHUP turns behind it are catching up and do not hold; if every active
+   seat is catching up, the most advanced one paces the relay. The SQL in http.cjs (HOLD) is the same rule. */
+function sealLimit(startAt, period, now, seats, ahead = AHEAD, activeMs = TAKEOVER_MS, sealed = -Infinity) {
   const elapsed = clockTurn(startAt, period, now) - 1;
-  let slowest = Infinity;
-  for (const s of seats || []) if (s && s.human && now - s.seen <= activeMs) slowest = Math.min(slowest, s.at);
-  return slowest === Infinity ? elapsed : Math.min(elapsed, slowest + ahead);
+  const active = (seats || []).filter((s) => s && s.human && !s.mode && now - s.seen <= activeMs);
+  if (!active.length) return elapsed;
+  const near = active.filter((s) => s.at >= sealed - CATCHUP);
+  const pace = near.length ? Math.min(...near.map((s) => s.at)) : Math.max(...active.map((s) => s.at));
+  return Math.min(elapsed, pace + ahead);
 }
 
 /* Turn a command reaching the relay now is assigned to: the current clock turn, but never a sealed one, and never past the
@@ -58,7 +68,7 @@ function commandText(cmd) {
 
 /* Parses a client message body: { a: last turn received, x: last turn executed, r: rtt ms, c: [[seq, cmd]], h: [[step, hash]] } */
 function parseClient(body) {
-  const out = { after: -1, at: -1, rtt: null, cmds: [], hashes: [], wait: body?.w !== 0, turns: body?.q !== 0, seats: !!body?.s, replay: !!body?.replay };
+  const out = { after: -1, at: -1, rtt: null, cmds: [], hashes: [], wait: body?.w !== 0, turns: body?.q !== 0, seats: !!body?.s, replay: !!body?.replay, reclaim: body?.k === 1 };
   if (!body || typeof body !== 'object') return out;
   if (Number.isSafeInteger(body.a)) out.after = Math.max(-1, body.a);
   if (Number.isSafeInteger(body.x)) out.at = Math.max(-1, body.x);
@@ -100,5 +110,25 @@ function recording(setup, rows, meta = {}) {
     commands: sortRows(rows.slice()).map((r) => ({ turn: r.turn, seat: r.seat, seq: r.seq, c: typeof r.text === 'string' ? JSON.parse(r.text) : r.c })), desync: meta.desync || null };
 }
 
-module.exports = { PERIOD, STEPS_PER_TURN, STEP, HASH_EVERY, D_MIN, D_MAX, AHEAD, ACTIVE_MS, MAX_SEATS, MAX_CMDS, MAX_ROWS, PROTOCOL,
+/* System command text (relay-inserted, seat SYSTEM_SEAT). */
+function systemCommand(type, args) { return JSON.stringify({ type, args }); }
+
+/* Desync v1 (design section 6 / 9.3): majority wins. reports [[seat, hash]] for one step -> {hash, winners, losers} or null
+   while undecided. Largest group wins; a tie goes to the group holding the lowest seat (the host is seat 0). */
+function majority(reports) {
+  const groups = new Map();
+  for (const [seat, hash] of reports) { if (!groups.has(hash)) groups.set(hash, []); if (!groups.get(hash).includes(seat)) groups.get(hash).push(seat); }
+  if (groups.size < 2) return null;
+  const list = [...groups].map(([hash, seats]) => ({ hash, seats: seats.sort((a, b) => a - b) })).sort((a, b) => b.seats.length - a.seats.length || a.seats[0] - b.seats[0]);
+  return { hash: list[0].hash, winners: list[0].seats, losers: list.slice(1).flatMap((g) => g.seats).sort((a, b) => a - b), tie: list[1].seats.length === list[0].seats.length };
+}
+/* Expands the hashes-table row of one step into reports: agree is a seat bit mask for `hash`, bad is "seat:hash,seat:hash". */
+function hashReports(row) {
+  const out = [];
+  for (let seat = 0; seat < 31; seat++) if (row.agree & (1 << seat)) out.push([seat, row.hash]);
+  for (const part of String(row.bad || '').split(',')) { const m = part.match(/^(\d+):([0-9a-f]{8})$/); if (m) out.push([+m[1], m[2]]); }
+  return out;
+}
+
+module.exports = { TAKEOVER_MS, CATCHUP, SYSTEM_SEAT, systemCommand, majority, hashReports, PERIOD, STEPS_PER_TURN, STEP, HASH_EVERY, D_MIN, D_MAX, AHEAD, ACTIVE_MS, MAX_SEATS, MAX_CMDS, MAX_ROWS, PROTOCOL,
   clockTurn, sealLimit, assignTurn, adaptDelay, commandText, parseClient, recordHash, sortRows, rowsJSON, makeSetup, recording };

@@ -19,11 +19,11 @@ function attachUpgrade(server, env, opts = {}) {
       meter.bySocket.set(raw, stat);
       const ws = { accept() {}, addEventListener: (t, f) => listeners[t]?.push(f), send: (d) => { stat.out += d.length; meter.bytesOut += d.length; raw.send(d); }, close: (c, r) => raw.close(c, r) };
       raw.on('message', (d) => { const text = d.toString(); stat.in += text.length; meter.bytesIn += text.length; for (const f of listeners.message) f({ data: text }); });
-      raw.on('close', () => { for (const f of listeners.close) f({}); });
+      raw.on('close', (code) => { for (const f of listeners.close) f({ code }); });
       if (opts.durable) {
         let o = objects.get(m[1]); if (!o) { o = new LockstepRoomDurable({ storage: storage() }, env); o.roomId = m[1]; objects.set(m[1], o); }
         o.accept(ws);
-      } else Lockstep.attachSocket(ws, env, m[1]);
+      } else Lockstep.attachSocket(ws, opts.invocation ? { ...env, DB: opts.invocation() } : env, m[1]); // one socket = one Worker invocation (d1-sim.cjs)
     });
   });
   return { wss, meter, objects, closeAll: () => { for (const c of wss.clients) c.terminate(); } };
