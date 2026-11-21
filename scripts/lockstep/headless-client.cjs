@@ -66,7 +66,7 @@ function faultyFetch(f) {
       if (cfg.saveAt && c.nextTurn === cfg.saveAt && !save) save = saves.makeSave(c, cfg.room0 || { id: cfg.room, config: { capacity: cfg.seats.length, mode: 'ffa', mapId: cfg.setup.options.mapId, fog: true }, players: cfg.seats.map((x) => ({ seat: x.seat, name: 'Bot ' + (x.seat + 1), nation: cfg.setup.options.nations[x.team], group: cfg.setup.options.groups[x.team], team: x.team })) });
       if (turn % 600 === 0) samples.push({ turn, units: c.sim.s.units.length, t: Date.now() });
     };
-    c.navRoom = cfg.room; snaps = cfg.snapshots === false ? null : attachSnapshots(c, { url: cfg.base + '/api/lockstep/' + cfg.room, token: cfg.token, fetch: (...a) => (offline() ? Promise.reject(new Error('offline (simulated)')) : globalThis.fetch(...a)) });
+    c.navRoom = cfg.room; snaps = cfg.snapshots === false ? null : attachSnapshots(c, { url: cfg.base + '/api/lockstep/' + cfg.room, token: cfg.token, onLoaded: () => t.resync(), fetch: (...a) => (offline() ? Promise.reject(new Error('offline (simulated)')) : globalThis.fetch(...a)) });
     t.start();
     return [c, t];
   }

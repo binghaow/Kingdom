@@ -96,6 +96,8 @@ export class SocketTransport {
     if (this.open) { if (this.client.now() - this.lastTurnsAt > 2000) this.end?.(); return; }
     if (this.retry) { this.attempt = Math.max(1, this.attempt); this.start(); }
   }
+  /* After the client jumped ahead (snapshot loaded): reopen so hello asks only for turns after the client's new position. */
+  resync() { if (this.open && this.ws) { this.planned = true; try { this.ws.close(); } catch { /* end() reconnects */ } } }
   fail(reason) { if (this.stopped) return; this.stop(); this.onFail?.(reason); }
   raw(msg) { const text = JSON.stringify(msg); this.client.stats.up += text.length; try { this.ws.send(text); } catch { /* reconnect path */ } }
   flush() { const c = this.client; if (!this.open || !c.outbox.length) return; const cmds = c.outbox.splice(0, 32); this.raw({ type: 'cmd', c: cmds.map((x) => [x.seq, x.cmd]) }); if (c.outbox.length) this.flush(); }

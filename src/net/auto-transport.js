@@ -21,5 +21,6 @@ export class AutoTransport {
   fallback(reason) { if (this.mode !== 'ws') return; this.fallbackReason = reason; this.client.requeueUnconfirmed(); this.http(); this.opts.onSwitch?.(reason); }
   kick() { this.active?.kick(); }
   wake() { this.active?.wake?.(); }
+  resync() { this.active?.resync?.(); }
   stop() { this.active?.stop(); }
 }

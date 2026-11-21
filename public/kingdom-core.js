@@ -1004,6 +1004,16 @@
         this.start();
       }
     }
+    /* After the client jumped ahead (snapshot loaded): reopen so hello asks only for turns after the client's new position. */
+    resync() {
+      if (this.open && this.ws) {
+        this.planned = true;
+        try {
+          this.ws.close();
+        } catch {
+        }
+      }
+    }
     fail(reason) {
       if (this.stopped) return;
       this.stop();
@@ -1077,6 +1087,9 @@
     }
     wake() {
       this.active?.wake?.();
+    }
+    resync() {
+      this.active?.resync?.();
     }
     stop() {
       this.active?.stop();
@@ -1267,7 +1280,10 @@
       onSwitch: (reason) => opts.onSwitch?.(reason)
     });
     client.navRoom = opts.room.id;
-    const snaps = attachSnapshots(client, { url: "/api/lockstep/" + opts.room.id, token: opts.token, onLoaded: (turn, ms) => opts.onSnapshot?.(turn, ms) });
+    const snaps = attachSnapshots(client, { url: "/api/lockstep/" + opts.room.id, token: opts.token, onLoaded: (turn, ms) => {
+      transport.resync();
+      opts.onSnapshot?.(turn, ms);
+    } });
     const d = driver(root2, client, opts, transport, snaps);
     return {
       ...d,

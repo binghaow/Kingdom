@@ -72,7 +72,7 @@ export function startBrowserLockstep(root, opts) {
   const transport = new AutoTransport({ mode, httpUrl: '/api/lockstep/' + opts.room.id, wsUrl, token: opts.token, client,
     onReceive: () => opts.onAlive?.(), onError: (e, fatal) => opts.onError?.(e, fatal), onSwitch: (reason) => opts.onSwitch?.(reason) });
   client.navRoom = opts.room.id;
-  const snaps = attachSnapshots(client, { url: '/api/lockstep/' + opts.room.id, token: opts.token, onLoaded: (turn, ms) => opts.onSnapshot?.(turn, ms) });
+  const snaps = attachSnapshots(client, { url: '/api/lockstep/' + opts.room.id, token: opts.token, onLoaded: (turn, ms) => { transport.resync(); opts.onSnapshot?.(turn, ms); } });
   const d = driver(root, client, opts, transport, snaps);
   return {
     ...d, executed, snaps, mode: 'live',
