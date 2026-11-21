@@ -18,6 +18,10 @@ TRACKS = {  # source in music/ -> output in public/audio/music/
     'against-the-stone-gates-battle-a.mp3': 'stone-gates.mp3',
     'breach-at-the-gate-battle-b.mp3': 'breach-gate.mp3',
     'rise-of-the-sovereign-victory.mp3': 'sovereign.mp3',
+    'morning-at-the-estate-calm.mp3': 'morning-estate.mp3',
+    'where-the-river-bends-calm.mp3': 'river-bends.mp3',
+    'before-the-walls-fall-battle.mp3': 'walls-fall.mp3',
+    'untitled-1120-battle.mp3': 'untitled-1120.mp3',
 }
 TARGET, PEAK, LRA = -17.5, -1.5, 11
 TRIM = ('silenceremove=start_periods=1:start_threshold=-40dB:start_silence=0.05,'

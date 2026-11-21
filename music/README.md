@@ -15,6 +15,10 @@ This folder holds source music for Frontier Kingdom. It is outside `public/`, so
 | `against-the-stone-gates-battle-a.mp3` | Against the Stone Gates | Battle A | 2:03, MP3 192 kbps, 44.1 kHz stereo | Google Gemini 生成，项目作者 2026-11-16 提供 / Generated in Gemini by the project author | 原文件（SHA-256 `2d3aa90a...ead1a670`）；与 Tension A 交替作为战斗音乐 |
 | `breach-at-the-gate-battle-b.mp3` | Breach at the Gate | Battle B | 2:03, MP3 192 kbps, 44.1 kHz stereo | Google Gemini 生成，项目作者 2026-11-16 提供 | 原文件（SHA-256 `d9aae051…acc7173e`）；战斗音乐三首轮换之一 |
 | `rise-of-the-sovereign-victory.mp3` | Rise of the Sovereign | Victory | 1:02, MP3 192 kbps, 44.1 kHz stereo | Google Gemini 生成，项目作者 2026-11-16 提供 | 原文件（SHA-256 `72084487…c7c0179c`）；胜利时播放一次 |
+| `morning-at-the-estate-calm.mp3` | Morning at the Estate | Calm | 3:00, MP3 | Google Gemini 生成，项目作者 2026-11-20 提供 | 原文件（SHA-256 `09010be3…2914661f`）；平静曲轮换 |
+| `where-the-river-bends-calm.mp3` | Where the River Bends | Calm | 3:01, MP3 | Google Gemini 生成，项目作者 2026-11-20 提供 | 原文件（SHA-256 `d39c62a9…f0433ec4`）；平静曲轮换 |
+| `before-the-walls-fall-battle.mp3` | Before the Walls Fall | Battle | 2:03, MP3 | Google Gemini 生成，项目作者 2026-11-20 提供 | 原文件（SHA-256 `3faf755b…a4740ce4`）；战斗曲轮换 |
+| `untitled-1120-battle.mp3` | （未命名，2026-11-20 提供） | Battle (按节奏判断) | 2:04, MP3 | Google Gemini 生成，项目作者 2026-11-20 提供 | 原文件（SHA-256 `1c10ea0a…5bc9c996`）；战斗曲轮换；用途待作者确认 |
 
 ## 进游戏 / In-game use
 
