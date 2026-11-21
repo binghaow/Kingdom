@@ -19,18 +19,18 @@ const { sqliteD1 } = require(path.join(ROOT, 'scripts/sqlite-d1.cjs'));
 
 function args() {
   const a = process.argv.slice(2), get = (k, d) => { const i = a.indexOf('--' + k); return i >= 0 ? a[i + 1] : d; };
-  return { clients: +get('clients', 4), seconds: +get('seconds', 60), period: +get('period', 100), lobby: a.includes('--lobby'), jitter: +get('jitter', 0), delay: +get('delay', 0), loss: +get('loss', 0), json: get('json', null), quiet: a.includes('--quiet'), seed: +get('seed', 4242), transport: get('transport', 'http'), durable: a.includes('--durable'), wsLimit: +get('ws-limit', 0), noWs: a.includes('--no-ws') };
+  return { clients: +get('clients', 4), seconds: +get('seconds', 60), period: +get('period', 100), lobby: a.includes('--lobby'), jitter: +get('jitter', 0), delay: +get('delay', 0), loss: +get('loss', 0), json: get('json', null), quiet: a.includes('--quiet'), seed: +get('seed', 4242), transport: get('transport', 'http'), durable: a.includes('--durable'), wsLimit: +get('ws-limit', 0), noWs: a.includes('--no-ws'), d1Latency: +get('d1-latency', 0), invocationLimit: +get('invocation-limit', 0), stall: +get('stall', 0) };
 }
 
 async function sha256(text) { const b = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text)); return Array.from(new Uint8Array(b), (x) => x.toString(16).padStart(2, '0')).join(''); }
 
-function startServer(DB) {
+function startServer(DB, invocation = () => DB) {
   const meter = { requests: 0, lockstep: 0, bySeat: new Map(), status: {}, cpu: [], tokenSeat: new Map() };
   const server = http.createServer(async (req, res) => {
     const chunks = []; for await (const c of req) chunks.push(c);
     const body = Buffer.concat(chunks), url = new URL(req.url, 'http://' + req.headers.host);
     const reqHeaderBytes = Buffer.byteLength(`${req.method} ${req.url} HTTP/${req.httpVersion}\r\n`) + req.rawHeaders.reduce((n, v, i) => n + Buffer.byteLength(v) + (i % 2 ? 2 : 2), 0) + 2;
-    const r = await handle(new Request(url, { method: req.method, headers: req.headers, body: req.method === 'GET' ? undefined : body }), { DB });
+    const r = await handle(new Request(url, { method: req.method, headers: req.headers, body: req.method === 'GET' ? undefined : body }), { DB: invocation() });
     const out = Buffer.from(await r.arrayBuffer()), headers = Object.fromEntries(r.headers);
     res.writeHead(r.status, headers); res.end(out);
     const resHeaderBytes = Buffer.byteLength(`HTTP/1.1 ${r.status} ${http.STATUS_CODES[r.status]}\r\n`) + Object.entries(headers).reduce((n, [k, v]) => n + Buffer.byteLength(k + ': ' + v + '\r\n'), 0) + Buffer.byteLength('Date: Tue, 17 Nov 2026 00:00:00 GMT\r\nConnection: keep-alive\r\nKeep-Alive: timeout=5\r\nContent-Length: ' + out.length + '\r\n\r\n');
@@ -85,18 +85,20 @@ function runClient(cfg) {
 async function main(o = args()) {
   const sqlite = new DatabaseSync(':memory:'), DB = sqliteD1(sqlite);
   for (const f of ['0000_multiplayer.sql', '0001_room_limits.sql']) sqlite.exec(require('node:fs').readFileSync(path.join(ROOT, 'drizzle', f), 'utf8'));
-  const { server, meter, base } = await startServer(DB);
-  const ws = o.noWs ? null : require('./node-ws.cjs').attachUpgrade(server, { DB }, { durable: o.durable });
+  // --d1-latency ms per D1 call, --invocation-limit D1 calls per Worker invocation (one HTTP request / one socket), see d1-sim.cjs.
+  const plat = require('./d1-sim.cjs').platform(DB, { latency: o.d1Latency, limit: o.invocationLimit });
+  const { server, meter, base } = await startServer(DB, plat.invocation);
+  const ws = o.noWs ? null : require('./node-ws.cjs').attachUpgrade(server, { DB, ...(o.env || {}) }, { durable: o.durable, invocation: o.d1Latency || o.invocationLimit ? plat.invocation : null });
   // --ws-limit S: the 'platform' closes every socket after S seconds (connection time limit); clients must reconnect and catch up.
   const limiter = ws && o.wsLimit ? setInterval(() => { const t = Date.now(); for (const c of ws.wss.clients) { c._born ??= t; if (t - c._born > o.wsLimit * 1000) c.terminate(); } }, 200) : null;
-  const room = o.lobby ? await lobbyRoom(base, o.clients, o) : await directRoom(DB, o.clients, o);
+  const room = o.makeRoom ? await o.makeRoom({ base, DB, sqlite, api }) : o.lobby ? await lobbyRoom(base, o.clients, o) : await directRoom(DB, o.clients, o);
   if (o.lobby && o.period !== core.PERIOD) sqlite.prepare('UPDATE lockstep_rooms SET period = ? WHERE id = ?').run(o.period, room.id);
   for (const s of room.seats) meter.tokenSeat.set(s.token, s.seat);
   const turns = Math.round(o.seconds * 10), cpu0 = process.cpuUsage(), wall0 = Date.now(), req0 = meter.lockstep;
   // CPU per relay request, sampled every 5 s of wall time together with the current relay turn.
   const windows = []; let last = { cpu: process.cpuUsage(), n: meter.lockstep, t: Date.now() };
   const sampler = setInterval(() => { const c = process.cpuUsage(), n = meter.lockstep, row = sqlite.prepare('SELECT sealed FROM lockstep_rooms WHERE id = ?').get(room.id); const d = (c.user + c.system - last.cpu.user - last.cpu.system) / 1000; if (n > last.n) windows.push({ sealed: row?.sealed ?? -1, requests: n - last.n, cpuMsPerRequest: d / (n - last.n) }); last = { cpu: c, n, t: Date.now() }; }, 5000);
-  const results = await Promise.all(room.seats.map((s) => runClient({ base, room: room.id, token: s.token, seat: s.seat, seats: room.seats.map((x) => ({ seat: x.seat, team: x.team })), setup: room.setup, startAt: room.startAt, period: room.period, turns, jitter: o.jitter, delay: o.delay, loss: o.loss, botSeed: o.seed, keepLatency: true, transport: o.transport, trace: o.trace })));
+  const results = await Promise.all(room.seats.map((s) => runClient({ base, room: room.id, token: s.token, seat: s.seat, seats: (room.allSeats || room.seats).map((x) => ({ seat: x.seat, team: x.team })), setup: room.setup, startAt: room.startAt, period: room.period, turns, jitter: o.jitter, delay: o.delay, loss: o.loss, botSeed: o.seed, keepLatency: true, transport: o.transport, trace: o.trace, stall: o.stall, ...(o.clientCfg ? o.clientCfg(s) : {}) })));
   if (limiter) clearInterval(limiter);
   clearInterval(sampler);
   const cpu = process.cpuUsage(cpu0), wall = (Date.now() - wall0) / 1000, requests = meter.lockstep - req0;
@@ -107,7 +109,7 @@ async function main(o = args()) {
   const rec = object ? core.recording(object.relay.setup, object.relay.rows, { period: object.relay.period, seats: room.seats.map((x) => ({ seat: x.seat, team: x.team })) }) : await api(base, '/api/lockstep/' + room.id, { replay: 1 }, room.seats[0].token);
   const { replayLockstep } = await import(pathToFileURL(path.join(ROOT, 'src/net/lockstep.js')).href);
   const K = require(path.join(ROOT, 'public/network-model.js')), commands = require(path.join(ROOT, 'public/network-commands.js'));
-  const replay = replayLockstep(K, commands, { ...rec, turns });
+  const replay = replayLockstep(K, commands, { ...rec, turns: o.replayTurns || turns });
   const bad = sqlite.prepare('SELECT step, hash, agree, bad FROM lockstep_hashes WHERE room = ? AND bad IS NOT NULL').all(room.id);
   const hashRows = sqlite.prepare('SELECT COUNT(*) AS n FROM lockstep_hashes WHERE room = ?').get(room.id).n;
   ws?.closeAll(); server.close();
@@ -115,10 +117,12 @@ async function main(o = args()) {
   const failures = [];
   const ok = results.filter((r) => !r.error);
   for (const r of results) if (r.error) failures.push('seat ' + r.seat + ' error: ' + r.error.slice(0, 300));
-  for (const r of ok) { if (r.turns < turns) failures.push(`seat ${r.seat} stopped at turn ${r.turns}/${turns}`); if (r.desync) failures.push('seat ' + r.seat + ' desync ' + JSON.stringify(r.desync)); if (r.fatal) failures.push('seat ' + r.seat + ' fatal ' + r.fatal); }
-  const ref = ok[0]; let compared = 0;
-  for (const r of ok.slice(1)) { if (r.final !== ref.final) failures.push(`final checksum seat ${r.seat} ${r.final} != seat ${ref.seat} ${ref.final}`); const n = Math.min(r.hashes.length, ref.hashes.length); for (let i = 0; i < n; i++) { compared++; if (r.hashes[i][1] !== ref.hashes[i][1]) { failures.push(`seat ${r.seat} step ${r.hashes[i][0]} ${r.hashes[i][1]} != ${ref.hashes[i][1]}`); break; } } }
-  if (bad.length) failures.push('relay recorded mismatching checksums: ' + JSON.stringify(bad.slice(0, 3)));
+  for (const r of ok) { if (o.allow?.(r)) continue; if (r.turns < turns) failures.push(`seat ${r.seat} stopped at turn ${r.turns}/${turns}` + (r.stalled ? ` (no turn for ${r.stalled.seconds} s, sealed ${r.stalled.sealed}, transport ${r.transport}, reconnects ${r.reconnects})` : '')); if (r.desync) failures.push('seat ' + r.seat + ' desync ' + JSON.stringify(r.desync)); if (r.fatal) failures.push('seat ' + r.seat + ' fatal ' + r.fatal); }
+  const ref = ok.find((r) => !o.allow?.(r)) || ok[0]; let compared = 0;
+  // Checksums compared by step (a client that caught up after a refresh only hashes every CATCHUP_HASH steps meanwhile).
+  const refMap = new Map(ref ? ref.hashes : []);
+  for (const r of ok.slice(1)) { if (r.final !== ref.final && !(o.allow?.(r))) failures.push(`final checksum seat ${r.seat} ${r.final} != seat ${ref.seat} ${ref.final}`); for (const [step, hash] of r.hashes) { if (!refMap.has(step)) continue; compared++; if (refMap.get(step) !== hash) { failures.push(`seat ${r.seat} step ${step} ${hash} != ${refMap.get(step)}`); break; } } }
+  if (bad.length && !o.expectDesync) failures.push('relay recorded mismatching checksums: ' + JSON.stringify(bad.slice(0, 3)));
   if (ref && replay.final.hash !== ref.final) failures.push(`recording replay final ${replay.final.hash} != clients ${ref.final}`);
 
   const gameSeconds = turns / 10, lat = ok.flatMap((r) => r.stats.latencyAll || []).sort((a, b) => a - b), q = (p) => (lat.length ? Math.round(lat[Math.min(lat.length - 1, Math.floor(p * lat.length))]) : null);
@@ -134,12 +138,13 @@ async function main(o = args()) {
     wallSeconds: Math.round(wall), unitsAtEnd: ok.map((r) => r.units), unitSamples: units.map((s) => [s.turn / 10, s.units]),
     bandwidth: seats, websocket: wsBytes && { sockets: wsBytes.sockets, upPayloadBpsPerClient: Math.round(wsBytes.in / gameSeconds / Math.max(1, ok.length)), downPayloadBpsPerClient: Math.round(wsBytes.out / gameSeconds / Math.max(1, ok.length)) }, bandwidthNote: 'bytes per game second; payload = HTTP bodies; wire = bodies + HTTP/1.1 header bytes measured at the relay (response headers reconstructed)',
     latency: { commands: lat.length, p50: q(0.5) && Math.round(q(0.5) * scale), p90: q(0.9) && Math.round(q(0.9) * scale), max: lat.length && Math.round(lat[lat.length - 1] * scale), unit: 'ms of game time from issue to execution on the issuing client (wall ms when --period 100)' },
-    relay: { requests, cpuMsPerRequest: +(cpu.user + cpu.system) / 1000 / Math.max(1, requests), windows, statuses: meter.status, note: 'relay process CPU (HTTP parsing + service + SQLite) / lockstep requests; clients run in other processes' },
+    platform: plat.stats, relay: { requests, cpuMsPerRequest: +(cpu.user + cpu.system) / 1000 / Math.max(1, requests), windows, statuses: meter.status, note: 'relay process CPU (HTTP parsing + service + SQLite) / lockstep requests; clients run in other processes' },
     clients: ok.map((r) => ({ trace: r.stats.trace ? r.stats.trace.slice(20, 40) : undefined, seat: r.seat, team: r.team, transport: r.transport, fallback: r.fallback, reconnects: r.reconnects, requests: r.stats.requests, failures: r.stats.failures, lost: r.lost, stalls: r.stats.stalls, stallMs: Math.round(r.stats.stallMs), catchupTurns: r.stats.catchup, rejected: r.stats.rejected, commands: r.stats.commands, rtt: Math.round(r.rtt), delay: r.delay, simMsPerTurn: +r.simMsPerTurn.toFixed(2), maxTurnMs: Math.round(r.maxTurnMs), buildMs: r.buildMs })),
   };
+  if (o.keepRaw) { report.raw = results; report.recording = rec; report.sqlite = sqlite; }
   if (o.json) require('node:fs').writeFileSync(o.json, JSON.stringify(report, null, 1));
   if (!o.quiet) console.log(JSON.stringify(report, (k, v) => (k === 'windows' && v.length > 12 ? v.filter((_, i) => i % Math.ceil(v.length / 12) === 0) : v), 1));
   return report;
 }
-module.exports = { main, args };
+module.exports = { main, args, api, sha256 };
 if (require.main === module) main().then((r) => process.exit(r.ok ? 0 : 1)).catch((e) => { console.error(e); process.exit(1); });

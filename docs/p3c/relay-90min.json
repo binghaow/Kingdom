@@ -1,0 +1,43 @@
+{
+ "config": {
+  "minutes": 90,
+  "seats": 8,
+  "apm": 60,
+  "latency": 0,
+  "json": "docs/p3c/relay-90min.json"
+ },
+ "turns": 54000,
+ "rows": {
+  "cmds": 43192,
+  "hashes": 5400,
+  "cmdBytes": 5614960
+ },
+ "liveExchangeMs": {
+  "p50": 0.14,
+  "max": 0.81
+ },
+ "catchupFromZero": {
+  "batches": 22,
+  "rows": 43360,
+  "bytes": 6315168,
+  "ms": 65
+ },
+ "snapshotOffer": {
+  "turn": 51000,
+  "step": 102000,
+  "hash": "abcdef01",
+  "parts": 2,
+  "agree": 255
+ },
+ "freshExchangeMs": {
+  "p50": 2.27,
+  "max": 2.29
+ },
+ "plan": [
+  "SEARCH lockstep_cmds USING INDEX lockstep_cmds_turn (room=? AND turn>? AND turn<?)",
+  "SCALAR SUBQUERY 1",
+  "SEARCH lockstep_rooms USING INDEX sqlite_autoindex_lockstep_rooms_1 (id=?)",
+  "USE TEMP B-TREE FOR LAST 2 TERMS OF ORDER BY"
+ ],
+ "note": "node:sqlite on this VM, no network; add the D1 round trip (Sites p50 47 ms) per exchange/batch"
+}

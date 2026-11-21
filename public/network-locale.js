@@ -201,4 +201,70 @@
 名对手与队友|opponents and teammates
 玩家|Player
 秒|seconds
+联机存档 · 录像|Online Saves · Replays
+游戏中“保存联机进度”（每 2 分钟也会自动保存）。房主可“从存档恢复房间”：朋友用新房间码加入并认领原席位，大家快速回放到存档点继续，没人认领的席位由电脑接管。也可以单人观看回放。|Use “Save online progress” in a match (it also saves automatically every 2 minutes). The host can “Restore room from save”: friends join with the new room code and claim their old seats, everyone fast-replays to the save point and play continues; unclaimed seats are taken over by the computer. You can also watch the replay alone.
+从文件载入存档或录像|Load a save or replay file
+换设备继续|Continue on another device
+复制一条带本席位凭据的链接，在另一台设备打开即可接着玩（不要发给别人）|Copies a link with this seat's credentials; open it on another device to keep playing (do not share it)
+保存联机进度|Save online progress
+下载录像文件|Download replay file
+秒后由电脑接管|s until the computer takes over
+正在追赶联机进度，追上后才能下令|Catching up with the match; orders are available once caught up
+你掉线期间由电脑代管，追上进度后自动收回|The computer played for you while you were away; control returns once you catch up
+不同步已退出，由电脑接管|left after a desync; the computer takes over
+无人认领，由电脑接管|was not claimed; the computer takes over
+掉线超过 60 秒，由电脑接管|was offline for more than 60 s; the computer takes over
+已收回控制权|Control is back with you
+已回来，收回控制权|is back and has taken control again
+联机不同步：以多数玩家为准，继续游戏|Desync: the majority's result is kept and the match continues
+电脑代管中 · 追上后自动收回|Computer in control · returns to you once caught up
+正在快进回放|Fast-forwarding replay
+正在追赶联机进度|Catching up with the match
+联机不同步，已退出本局|Desync: you have left this match
+联机不同步|Multiplayer desync
+本机的计算结果与多数玩家不同，已退出本局，你的国家由电脑接管。录像和各方校验值已保存，可下载发给开发者排查。|This device computed a different result than the majority, so it has left the match and the computer now plays your nation. The replay and everyone's checksums were saved; download them for the developer.
+返回大厅|Back to lobby
+联机进度已保存|Online progress saved
+分钟|min
+保存失败，请下载录像文件|Saving failed; please download the replay file
+自动|auto
+观看回放|Watch replay
+下载|Download
+删除|Delete
+存档读取失败|Could not read the save
+还没有联机存档。新联机对局中会每 2 分钟自动保存。|No online saves yet. Lockstep matches save automatically every 2 minutes.
+文件不是有效的存档或录像|The file is not a valid save or replay
+存档已载入，可恢复联机房间或观看回放|Save loaded: restore the online room or watch the replay
+正在创建恢复房间…|Creating the restored room…
+正在上传存档|Uploading save
+存档已上传。请朋友用房间码加入并认领原席位，准备后开始。|Save uploaded. Friends join with the room code and claim their old seats, then start when everyone is ready.
+回放|Replay
+退出回放|Exit replay
+录像回放|Replay
+换设备链接已复制：在另一台设备打开即可接着玩。不要发给别人。|Device link copied: open it on another device to keep playing. Do not share it.
+请复制上方链接，在另一台设备打开。不要发给别人。|Copy the link above and open it on another device. Do not share it.
+恢复联机存档|Restored online save
+原房间|from room
+从第|resumes at
+分钟继续|min
+存档上传|upload
+没人认领的席位由电脑接管|unclaimed seats are played by the computer
+存档席位|Saved seat
+认领此席位|Claim this seat
+电脑接管|Computer
+等待认领|Waiting to be claimed
+恢复的房间沿用存档的国家和队伍|A restored room keeps the saved nations and teams
+这个席位已被认领|This seat is already claimed
+存档还在上传，请稍候|The save is still uploading; please wait
+房间不在恢复中|This room is not being restored
+只有房主可以上传存档|Only the host can upload the save
+存档分段无效|Invalid save segment
+存档指令无效|Invalid command in the save
+存档无效|Invalid save
+从存档恢复房间|Restore room from save
+存档轮次无效|Invalid save turn count
+存档开局参数无效|Invalid save setup
+存档座位无效|Invalid save seats
+存档开局参数过大|Save setup is too large
+本机与多数玩家不同步，已退出本局（可下载录像）|This device is out of sync with the majority and has left the match (replay can be downloaded)
 `.trim().split('\n').map(l=>{const i=l.indexOf('|');return[l.slice(0,i),l.slice(i+1)]})));if(typeof module!=='undefined')module.exports=root.KingdomLocaleData})(typeof window==='undefined'?globalThis:window);
