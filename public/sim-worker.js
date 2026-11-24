@@ -7928,7 +7928,7 @@
                 want = P.over.length ? L.navy + L.navyAge * Math.max(0, age - 1) : Math.min(2, L.navy);
                 const per = age >= 3 ? 150 : 80;
                 if (N.enemySea > 0) want = Math.max(want, Math.ceil(N.enemySea * L.counter / per) + 1);
-                want = Math.min(want, L.navyMax);
+                want = Math.min(want, P.over.length ? L.navyMax : L.navy > 2 ? 3 : 2);
               }
               if (P.over.length && !P.bases.some((b) => b.known) && !s.aiWar?.[team]?.enemyBase) want = Math.max(want, 1);
               const here = navy.filter((u) => dseas.includes(G.seaAt(u.x, u.y) >= 0 ? G.seaAt(u.x, u.y) : G.seaNear(u.x, u.y, 150))), have = here.length + queued("sloop") + queued("frigate") + queued("bombketch");
