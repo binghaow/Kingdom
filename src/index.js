@@ -111,7 +111,9 @@ core.installed = install(root.KingdomSim);
 core.clock = { STEP: clock.STEP, MAX_DT: clock.MAX_DT, MAX_STEPS: clock.MAX_STEPS, FixedStep: clock.FixedStep };
 /* P4 step 4c-1: ?simWorker=1 runs a single-player game's simulation in a Web Worker (public/sim-worker.js). Off by default:
    core.simWorker stays null and expansion.js takes exactly the main-thread path. */
-core.simWorker = query.get('simWorker') === '1' && typeof root.Worker === 'function' ? createSimWorker(root, {
+/* Also on when the player typed “多线程” in chat (stored preference; ?simWorker=0/1 overrides). */
+const simWorkerWanted = (() => { const q = query.get('simWorker'); if (q === '0' || q === '1') return q === '1'; try { return root.localStorage?.getItem('kingdom-sim-worker') === '1'; } catch { return false; } })();
+core.simWorker = simWorkerWanted && typeof root.Worker === 'function' ? createSimWorker(root, {
   url: 'sim-worker.js', debug: query.has('perf'),
   getK: () => root.KingdomSim,
   // the worker records the game (its own replay recorder); the page's recorder on this instance would only see predictions

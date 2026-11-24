@@ -2085,7 +2085,16 @@
   };
   core.installed = install(root.KingdomSim);
   core.clock = { STEP: STEP3, MAX_DT, MAX_STEPS, FixedStep };
-  core.simWorker = query.get("simWorker") === "1" && typeof root.Worker === "function" ? createSimWorker(root, {
+  var simWorkerWanted = (() => {
+    const q = query.get("simWorker");
+    if (q === "0" || q === "1") return q === "1";
+    try {
+      return root.localStorage?.getItem("kingdom-sim-worker") === "1";
+    } catch {
+      return false;
+    }
+  })();
+  core.simWorker = simWorkerWanted && typeof root.Worker === "function" ? createSimWorker(root, {
     url: "sim-worker.js",
     debug: query.has("perf"),
     getK: () => root.KingdomSim,
