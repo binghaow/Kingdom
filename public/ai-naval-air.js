@@ -81,6 +81,11 @@ function create(K){
  function wave(sim,team,id){return id?sim.s.aiWar?.[team]?.waves?.find(v=>v.id===id):null}
  function newWave(sim,team,fields){const w=sim.s.aiWar[team],v={id:(w.serial=(w.serial||0)+1),ids:[],via:null,lane:0,start:sim.s.time,launch:sim.s.time,at:sim.s.time,x:0,y:0,...fields};w.waves.push(v);return v}
  function aaPower(sim,team,p,r,view){let n=0;for(const e of view.units)if(e.hp>0&&e.team>=0&&sim.hostile(team,e.team)&&sim.antiAir?.(e)&&D[e.kind]?.damage>0&&dist(e,p)<r)n+=sim.aiPower(e);for(const b of view.buildings)if(b.hp>0&&b.team>=0&&sim.hostile(team,b.team)&&(b.kind==='tower'||D[b.kind]?.antiAir)&&dist(b,p)<r+(D[b.kind].range||0))n+=sim.aiPower(b)*1.3;return n}
+ /* units this module holds for a job (a dock runner) sit in a wave of their own so the land planner and scout leave them alone */
+ function hold(sim,team,N,key,ids){const w=sim.s.aiWar?.[team];if(!w)return;const id=N.holds?.[key];let v=id&&w.waves.find(x=>x.id===id);if(!ids.length){if(v){v.ids=[];v.done=true}if(N.holds)delete N.holds[key];return}
+  if(!v){v=newWave(sim,team,{kind:'hold',stage:'hold',checked:1e12,target:{x:0,y:0,team:-1}});(N.holds??={})[key]=v.id}v.ids=ids.slice();v.stage='hold';v.checked=1e12}
+ /* attack a target in sight; one only remembered under the fog gets an attack-move onto its spot (an attack order needs sight) */
+ function strike(sim,team,units,t){const e=sim.byId(t.id);if(e&&e.hp>0&&(!sim.canSee||!sim.s.fogEnabled||sim.canSee(team,e)))sim.order(units,{type:'attack',id:e.id});else sim.order(units,{type:'advance',x:t.x,y:t.y})}
  function placeNear(sim,team,kind,p,worker,ring=[0,60,110,170]){for(const r of ring)for(let i=0;i<(r?8:1);i++){const a=i*Math.PI/4+r/97,x=p.x+Math.cos(a)*r,y=p.y+Math.sin(a)*r;if(sim.placementError(kind,x,y,team))continue;const res=sim.construct(kind,x,y,[worker],team);if(!res?.error)return res.building||true}return null}
  function freeWorker(sim,team,p,G,region){const list=(sim.aiWorkers?sim.aiWorkers(team):sim.s.units.filter(u=>u.team===team&&u.kind==='villager'&&u.hp>0&&!u.embarkedOn)).filter(u=>!['build','repair'].includes(u.order?.type)&&(region===undefined||G.landAt(u.x,u.y)===region));let best=null,bd=Infinity;for(const u of list){const d=dist(u,p);if(d<bd){bd=d;best=u}}return best}
 
@@ -99,12 +104,19 @@ function create(K){
   const naval=P.over.length>0||N.enemySea>0||P.shared.length>0&&age>=2&&L.navy>0;
   /* dock on a sea that reaches the targets (overseas enemy first) */
   const wantSeas=P.over.length?P.seas.filter(sea=>P.over.some(b=>G.touches[sea].has(G.landAt(b.x,b.y)))):P.shared;
-  if((naval&&(L.ferry&&P.over.length||L.navy>0))&&wantSeas.length&&!ds.some(d=>d.seas.some(x=>wantSeas.includes(x)))&&!s.buildings.some(b=>b.team===team&&b.kind==='dock'&&!b.complete)){
+  if(naval&&age>=2&&(L.ferry&&P.over.length||L.navy>0)&&wantSeas.length&&!ds.some(d=>d.seas.some(x=>wantSeas.includes(x)))&&!s.buildings.some(b=>b.team===team&&b.kind==='dock'&&!b.complete)){
    const cost=sim.costFor('dock',team),foes=view.units.filter(e=>e.hp>0&&e.team>=0&&sim.hostile(team,e.team)&&D[e.kind]?.damage>0);
-   if(s.time>=(N.dockAt||0)&&bank(sim,team,cost,L.margin*.5)&&sim.aiAct(team)){const spots=(G.coast[P.home]||[]).filter(c=>wantSeas.includes(c.sea)&&dist(c,P.town)<4200&&!foes.some(e=>dist(e,c)<(D[e.kind].range||0)+320)).sort((a,b)=>dist(a,P.town)-dist(b,P.town));N.dockAt=s.time+40;
-    for(let i=0;i<spots.length&&i<40;i+=2){const c=spots[i],v=freeWorker(sim,team,c,G,P.home);if(!v)break;const site={x:(c.lx*2+c.x)/3,y:(c.ly*2+c.y)/3};if(placeNear(sim,team,'dock',site,v,[0,40,80])){N.stats.docks++;sim.emit('aiDock',{team});
+   const spots=(G.coast[P.home]||[]).filter(c=>wantSeas.includes(c.sea)&&dist(c,P.town)<4200&&!foes.some(e=>dist(e,c)<(D[e.kind].range||0)+320)).sort((a,b)=>dist(a,P.town)-dist(b,P.town));
+   /* a foundation needs a villager next to the shore: one walks to the nearest stretch (held out of other jobs) and builds there */
+   if(!spots.length)return L.think*2;let run=live(sim,N.runner);if(run&&(run.team!==team||run.kind!=='villager'||G.landAt(run.x,run.y)!==P.home))run=null;
+   if(!run){run=freeWorker(sim,team,spots[0],G,P.home);N.runner=run?.id||0;if(!run)return L.think}
+   hold(sim,team,N,'runner',[run.id]);
+   const near=spots.filter(c=>dist(c,run)<520);if(!near.length){const to=spots[0];if(!run.order||run.order.type!=='move'||Math.hypot(run.order.x-to.lx,run.order.y-to.ly)>60)sim.order([run],{type:'move',x:to.lx,y:to.ly});return L.think}
+   /* the port decides the war over the water: no margin, and look again soon while the bank is short */
+   if(!bank(sim,team,cost,0))return 1.5;if(s.time<(N.dockAt||0)||!sim.aiAct(team))return L.think;N.dockAt=s.time+10;
+   for(let i=0;i<near.length&&i<24;i++){const c=near[i],v=run;const site={x:(c.lx*2+c.x)/3,y:(c.ly*2+c.y)/3};if(placeNear(sim,team,'dock',site,v,[0,40,80])){N.stats.docks++;sim.emit('aiDock',{team});N.dockAt=s.time+40;hold(sim,team,N,'runner',[]);N.runner=0;
      /* ships shoot foundations on the shore: a few free ranged troops stand guard at the site */
-     const guard=(sim.aiFree?sim.aiFree(team):[]).filter(u=>sim.stat(u,'range')>100&&G.landAt(u.x,u.y)===P.home).sort((a,b)=>dist(a,site)-dist(b,site)).slice(0,L.navy>2?6:3);if(guard.length)sim.order(guard,{type:'advance',x:site.x,y:site.y});break}}}
+     const guard=(sim.aiFree?sim.aiFree(team):[]).filter(u=>sim.stat(u,'range')>100&&G.landAt(u.x,u.y)===P.home).sort((a,b)=>dist(a,site)-dist(b,site)).slice(0,L.navy>2?6:3);if(guard.length)sim.order(guard,{type:'advance',x:site.x,y:site.y});break}}
    return L.think}
   const dock=complete.filter(d=>!wantSeas.length||d.seas.some(x=>wantSeas.includes(x))).sort((a,b)=>(a.b.queue||[]).length-(b.b.queue||[]).length)[0]?.b;
   if(dock&&(dock.queue||[]).length<2&&!(dock.queue||[]).some(q=>q.type==='research')){
@@ -155,7 +167,7 @@ function create(K){
   if(ships.length>=L.raidMin&&own>=N.enemySea*L.control&&s.time>=(F.next||0)&&P){const sea=G.seaAt(harbour.x,harbour.y);let best=null,bs=-Infinity;
    for(const e of view.units){if(e.hp<=0||e.team<0||!sim.hostile(team,e.team)||!sim.sea(e)||D[e.kind].damage>0)continue;if(G.seaNear(e.x,e.y,96)!==sea&&G.seaAt(e.x,e.y)!==sea)continue;const sc=3-dist(e,fc)/1500;if(sc>bs){bs=sc;best=e}}
    for(const b of view.buildings){if(b.hp<=0||b.team<0||!sim.hostile(team,b.team)||sim.protection?.(team,b.team))continue;if(!(b.kind==='dock'||ECO_TARGETS.includes(b.kind)||D[b.kind]?.trains))continue;const ws=G.seaNear(b.x,b.y,260);if(ws!==sea)continue;const def=view.buildings.filter(x=>x.hp>0&&x.team===b.team&&D[x.kind]?.damage>0&&dist(x,b)<(D[x.kind].range||0)+150).reduce((n,x)=>n+sim.aiPower(x)*(x.kind==='fort'?1.6:1),0);if(def>own*.5)continue;const sc=(b.kind==='dock'?2:1)-dist(b,fc)/2000-def/Math.max(1,own);if(sc>bs){bs=sc;best=b}}
-   if(best&&sim.aiAct(team)){const guns=ships.filter(u=>u.kind!=='bombketch'),ketch=ships.filter(u=>u.kind==='bombketch');if(guns.length)sim.order(guns,{type:'attack',id:best.id});if(ketch.length)sim.order(ketch,D[best.kind]?.building?{type:'attack',id:best.id}:{type:'move',x:fc.x,y:fc.y});F.mode='raid';F.target=best.id;F.at=s.time;N.stats.fleetRaids++;sim.emit('aiFleetRaid',{team,target:best.team,kind:best.kind});return L.think}}
+   if(best&&sim.aiAct(team)){const guns=ships.filter(u=>u.kind!=='bombketch'),ketch=ships.filter(u=>u.kind==='bombketch');if(guns.length)strike(sim,team,guns,best);if(ketch.length){if(D[best.kind]?.building)strike(sim,team,ketch,best);else sim.order(ketch,{type:'move',x:fc.x,y:fc.y})};F.mode='raid';F.target=best.id;F.at=s.time;N.stats.fleetRaids++;sim.emit('aiFleetRaid',{team,target:best.team,kind:best.kind});return L.think}}
   /* 4. patrol (sea control, nothing to hit in sight): sweep the coast nearest an enemy base, which also finds its docks and boats */
   if(P&&ships.length>=L.raidMin&&own>=N.enemySea*L.control&&s.time>=(F.next||0)&&F.mode!=='patrol'){const sea=G.seaAt(harbour.x,harbour.y)>=0?G.seaAt(harbour.x,harbour.y):G.seaNear(fc.x,fc.y,150),bases=P.bases.filter(b=>!sim.s.defeated?.includes(b.team));
    const goal=bases.length?bases[Math.floor(sim.rand(0,bases.length))]:null,spot=goal&&(G.coast[G.landAt(goal.x,goal.y)]||[]).filter(c=>c.sea===sea).sort((a,b)=>dist(a,goal)-dist(b,goal))[Math.floor(sim.rand(0,6))];
@@ -258,7 +270,7 @@ function create(K){
     const stopped=s.time-x.since>30&&!ship.path?.length&&!ship.order?.x;
     if((arrived||stopped)&&G.landNear(ship.x,ship.y)!==F.region&&s.time-x.since<150){const t={x:b.x+(b.lx-b.x)*.45,y:b.y+(b.ly-b.y)*.45};if(!ship.order||Math.hypot((ship.order.x??0)-t.x,(ship.order.y??0)-t.y)>30)sim.order([ship],{type:'move',x:t.x,y:t.y});continue}
     if(arrived||stopped||s.time-x.since>150){const before=cargo.slice();sim.unload(ship);const out=before.filter(u=>!u.embarkedOn&&u.hp>0);
-     if(out.length){const there=out.filter(u=>G.landAt(u.x,u.y)===F.region);for(const u of out)if(fw)fw.ids=fw.ids.filter(id=>id!==u.id);
+     if(out.length){const there=out.filter(u=>G.landNear(u.x,u.y,72)===F.region);for(const u of out)if(fw)fw.ids=fw.ids.filter(id=>id!==u.id);
       if(!lw||lw.stage==='done'){lw=newWave(sim,team,{kind:'main',target:{...F.target},stage:'beach',landing:1,beach:{x:b.lx,y:b.ly},x:b.lx,y:b.ly,checked:s.time});F.landed=lw.id;F.landedAt=s.time}
       lw.ids.push(...out.map(u=>u.id));if(lw.stage==='beach'){const hold={x:b.lx+(F.target.x-b.lx)*.08,y:b.ly+(F.target.y-b.ly)*.08};sim.order(out,{type:'advance',x:hold.x,y:hold.y})}else sim.order(out,{type:'advance',x:lw.target.x,y:lw.target.y});
       N.stats.landings++;N.stats.landed+=out.length;sim.emit('aiLanding',{team,target:F.target.team,size:out.length,x:Math.round(b.lx),y:Math.round(b.ly),region:there.length===out.length?'enemy':'other'});x.stage='return';x.since=s.time;sim.order([ship],{type:'move',x:F.port.x,y:F.port.y})}
@@ -296,16 +308,16 @@ function create(K){
   const R=N.air,c=centroid(bombers),base=sim.nearest(c,s.buildings.filter(b=>b.team===team&&b.kind==='aerodrome'&&b.complete&&b.hp>0))||town,grp=power(sim,bombers);
   const hp=bombers.reduce((n,u)=>n+u.hp,0)/bombers.reduce((n,u)=>n+u.maxhp,0);
   if(R.mode==='raid'||R.mode==='support'){const t=R.target&&sim.byId(R.target),aa=aaPower(sim,team,c,420,view);
-   if(hp<.5||aa>grp*L.aa){sim.order(bombers,{type:'move',x:base.x,y:base.y});R.mode='back';R.at=s.time;R.next=s.time+L.airEvery*.6;N.stats.airBack++;sim.emit('aiAirBack',{team,why:hp<.5?'losses':'antiair'});return L.think}
+   if(hp<Math.min(.5,(R.hp0??1)-.3)||hp<.3||aa>grp*L.aa){sim.order(bombers,{type:'move',x:base.x,y:base.y});R.mode='back';R.at=s.time;R.next=s.time+L.airEvery*.6;N.stats.airBack++;sim.emit('aiAirBack',{team,why:aa>grp*L.aa?'antiair':'losses'});return L.think}
    if(t&&t.hp>0&&s.time-R.at<120)return L.think;
    /* target gone: chain to the next soft target in the area (up to three per sortie) */
-   if(R.hits<2&&s.time-R.at<160){const n=airTarget(sim,team,G,view,c,R.mode,front,grp,L,700);if(n){R.target=n.id;R.hits++;sim.order(bombers,{type:'attack',id:n.id});return L.think}}
+   if(R.hits<2&&s.time-R.at<160){const n=airTarget(sim,team,G,view,c,R.mode,front,grp,L,700);if(n){R.target=n.id;R.hits++;strike(sim,team,bombers,n);return L.think}}
    sim.order(bombers,{type:'move',x:base.x,y:base.y});R.mode='back';R.at=s.time;return L.think}
   if(R.mode==='back'&&dist(c,base)>320&&s.time-R.at<90)return L.think;R.mode='home';
-  if(bombers.length<2||s.time<R.next||bombers.some(u=>u.resupplying))return L.think;
+  if(bombers.length<2||s.time<R.next||bombers.some(u=>u.resupplying))return L.think;R.hp0=hp;
   /* support the main attack on its defences, else raid the economy */
-  if(front&&front.stage==='attack'&&dist({x:front.x,y:front.y},front.target)<1100){const t=airTarget(sim,team,G,view,front.target,'support',front,grp,L,900);if(t&&sim.aiAct(team)){sim.order(bombers,{type:'attack',id:t.id});R.mode='support';R.target=t.id;R.at=s.time;R.hits=0;N.stats.airSupport++;sim.emit('aiAirStrike',{team,target:t.team,kind:t.kind,mode:'support'});return L.think}}
-  const t=airTarget(sim,team,G,view,town,'raid',null,grp,L,1e9);if(t&&sim.aiAct(team)){sim.order(bombers,{type:'attack',id:t.id});R.mode='raid';R.target=t.id;R.at=s.time;R.hits=0;R.next=s.time+L.airEvery*(.85+sim.rand(0,.3));N.stats.airRaids++;sim.emit('aiAirStrike',{team,target:t.team,kind:t.kind,mode:'raid'});sim.emit('raid',{team,target:t.team,wave:'air'})}else R.next=s.time+20;
+  if(front&&front.stage==='attack'&&dist({x:front.x,y:front.y},front.target)<1100){const t=airTarget(sim,team,G,view,front.target,'support',front,grp,L,900);if(t&&sim.aiAct(team)){strike(sim,team,bombers,t);R.mode='support';R.target=t.id;R.at=s.time;R.hits=0;N.stats.airSupport++;sim.emit('aiAirStrike',{team,target:t.team,kind:t.kind,mode:'support'});return L.think}}
+  const t=airTarget(sim,team,G,view,town,'raid',null,grp,L,1e9);if(t&&sim.aiAct(team)){strike(sim,team,bombers,t);R.mode='raid';R.target=t.id;R.at=s.time;R.hits=0;R.next=s.time+L.airEvery*(.85+sim.rand(0,.3));N.stats.airRaids++;sim.emit('aiAirStrike',{team,target:t.team,kind:t.kind,mode:'raid'});sim.emit('raid',{team,target:t.team,wave:'air'})}else R.next=s.time+20;
   return L.think}
  function airTarget(sim,team,G,view,from,mode,front,grp,L,within){let best=null,bs=-Infinity;const towns=view.buildings.filter(b=>b.kind==='town'&&b.hp>0&&b.team>=0&&sim.hostile(team,b.team));
   for(const b of view.buildings){if(b.hp<=0||b.team<0||!sim.hostile(team,b.team)||sim.protection?.(team,b.team)||D[b.kind]?.wall)continue;const d=dist(b,from);if(d>within)continue;
