@@ -1466,6 +1466,34 @@
    "srcH": 1086,
    "srcBytes": 3091361
   },
+  "little-ant-icon-v1.png": {
+   "out": "sized/little-ant-icon-v1.webp",
+   "scale": 1,
+   "raw": 1,
+   "why": "unreached by the tracer: full size, format only",
+   "hash": "eb2c483922ef",
+   "quality": 92,
+   "w": 128,
+   "h": 128,
+   "bytes": 9802,
+   "srcW": 128,
+   "srcH": 128,
+   "srcBytes": 23605
+  },
+  "little-ant-v1.png": {
+   "out": "sized/little-ant-v1.webp",
+   "scale": 1,
+   "raw": 1,
+   "why": "unreached by the tracer: full size, format only",
+   "hash": "a71e3e1c2750",
+   "quality": 92,
+   "w": 1152,
+   "h": 792,
+   "bytes": 145728,
+   "srcW": 1152,
+   "srcH": 792,
+   "srcBytes": 444417
+  },
   "livestock.png": {
    "out": "sized/livestock.webp",
    "scale": 0.3,

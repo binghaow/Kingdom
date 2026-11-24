@@ -1,0 +1,42 @@
+{
+ "antRequestsBeforeSummon": [],
+ "antRequestsAfterSummon": [
+  "assets/sized/little-ant-v1.webp",
+  "assets/sized/little-ant-icon-v1.webp"
+ ],
+ "shots": [
+  {
+   "file": "docs/art/drafts/little-ant/shots/ant-grass.png",
+   "note": "草地行走（召唤后，真实渲染顺序，选中）"
+  },
+  {
+   "file": "docs/art/drafts/little-ant/shots/ant-swim.png",
+   "note": "游泳：下半身被水面遮住、轻微起伏、透明涟漪"
+  },
+  {
+   "file": "docs/art/drafts/little-ant/shots/ant-sleep.png",
+   "note": "闲置后入睡（睡眠循环帧，Zzz）"
+  },
+  {
+   "file": "docs/art/drafts/little-ant/shots/ant-gather.png",
+   "note": "采集（挖掘/采集帧，小负重 4）"
+  },
+  {
+   "file": "docs/art/drafts/little-ant/shots/ant-carry.png",
+   "note": "满载 4 单位后搬运回城（搬运帧）"
+  }
+ ],
+ "swim": {
+  "target": {
+   "x": 1800,
+   "y": 3144,
+   "wx": 2220
+  },
+  "at": {
+   "x": 1992,
+   "y": 3144
+  },
+  "swimming": true,
+  "order": "move"
+ }
+}
