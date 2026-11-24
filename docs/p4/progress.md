@@ -66,7 +66,9 @@
 - P1 `check-replay`、`check-consistency-page`、`check-lockstep`、`check-lockstep-restore` 均通过（见交付检查）。
 
 ## 3. 交付检查
-见 `docs/release-reports/` 本分支报告与本节补充（check-all、build、check-artifact、release-check、联机冒烟）。
+- `check-all`：64/64 ALL PASS（含新增 check-sim-worker；check-lockstep-resilience 单独跑通过）。`npm run build`、`node check-artifact.cjs` 通过。
+- 完整 `npm run release-check`：111 PASS / 3 WARN / 0 FAIL（`docs/release-reports/2026-11-24-d80621a.md`，含补充说明）。WARN：drawImage/帧（只重跑渲染节为 0 WARN，main 历次 508–557，噪声）、后期帧间隔 p50（main e79b287 同样 WARN）、千兵 >40 ms 步（P5 前预期）。后期节新增 simWorker=1 INFO：主线程 JS/帧 39.6 → 32.4 ms，模拟段 15.3 → 0.3 ms，帧间隔 p95 133 → 125 ms。
+- 联机冒烟（`node preview.cjs` 8765）：新联机默认流程 65 秒 76 个校验值一致、ws 无回退（`docs/p4/duel-default-code.json`）；旧联机备用含电脑座位 65 秒无 503、无非 2xx（`docs/p4/duel-legacy-backup.json`）。
 
 ## 4. 下一段计划
 
