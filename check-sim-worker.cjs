@@ -8,7 +8,8 @@
       sequence (every 20 steps), the same final checksum and the same command results; both equal the recorded checksums.
    3. The frames are complete: a page-side mirror rebuilt only from the frames (state + node deltas, src/sim/frames.js) has the
       worker's checksum at the end, and the worker's own recording replays to the same final state.
-   usage: node check-sim-worker.cjs [--quick] */
+   4. scripts/sim-worker/play-smoke.cjs: a real ?simWorker=1 game in headless Chromium (needs playwright; --node-only skips it).
+   usage: node check-sim-worker.cjs [--quick] [--node-only] */
 const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict'),{Worker}=require('node:worker_threads'),{pathToFileURL}=require('node:url');
 const ROOT=__dirname,{buildWorker,WORKER_OUT}=require('./scripts/build-core.cjs'),FIX=path.join(ROOT,'scripts/replay/fixtures');
 const quick=process.argv.includes('--quick');
@@ -46,6 +47,9 @@ async function main(){
     const again=runReplay(K,m.data,{every:20});assert.equal(again.final.hash,main.final.hash,file+': the worker recording does not replay to the same state');
     await w.terminate();
     console.log(`  ${file}: ${fx.steps} steps, ${fx.commands.length} commands, ${workerList.length} checksums identical (final ${main.final.hash}); largest frame ${(bytes/1024).toFixed(1)} KiB (v8 serialize), ${Date.now()-t0} ms`)}
-  console.log(`PASS sim worker: public/sim-worker.js up to date; ${files.length} replays give identical checksum sequences on the main thread and in the worker (irregular step batches), frames rebuild the exact state, worker recordings replay`);
+  // 4. the real page: a single-player game played with ?simWorker=1 in headless Chromium (skipped without playwright)
+  let browser='browser play smoke skipped (playwright not available)';
+  if(!process.argv.includes('--node-only')){let pw=null;try{pw=require('playwright')}catch{}if(pw){const t1=Date.now();await require('./scripts/sim-worker/play-smoke.cjs').run();browser=`browser play smoke passed (build, train, age up, ant + panda, attack, save on pause, reload and continue, page worker replays coast_s-2p identically; ${Math.round((Date.now()-t1)/1000)} s)`}}
+  console.log(`PASS sim worker: public/sim-worker.js up to date; ${files.length} replays give identical checksum sequences on the main thread and in the worker (irregular step batches), frames rebuild the exact state, worker recordings replay; ${browser}`);
 }
 main().catch(e=>{console.error('FAIL',e.stack||e);process.exit(1)});
