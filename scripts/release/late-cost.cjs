@@ -11,8 +11,16 @@ async function run({quick=false}={}){const reps=quick?2:3,steps=quick?400:600,ru
   const m=k=>r2(median(runs.map(r=>r[k]))),sim={units:runs[0].prints[0]?.units??runs[0].units,steps,reps,meanMs:m('meanMs'),p50:m('p50'),p95:m('p95'),max:m('max'),over40:m('over40'),over40Steady:m('over40Steady'),maxSteady:m('maxSteady'),over25:m('over25'),fingerprint:runs[0].prints.at(-1)?.hash};
   let browser;try{const {run:render}=require(path.join(ROOT,'scripts/perf/late-render.cjs')),rows=[];for(let i=0;i<(quick?1:2);i++)rows.push(await render({secs:quick?8:10}));
     if(rows[0].skipped)browser={skipped:rows[0].skipped};else{const b=k=>r1(median(rows.map(r=>r[k]))),h=(k,j)=>r1(median(rows.map(r=>r[k][j]).filter(Number.isFinite)));
-      browser={viewport:rows[0].viewport,units:rows[0].setup.units,unitsAlive:b('unitsAlive'),frames:rows.map(r=>r.frames),fps:b('fps'),frameP50:b('frameP50'),frameP95:b('frameP95'),simP50:b('simP50'),simP95:b('simP95'),renderP50:h('hudRender',0),renderP95:h('hudRender',1),updateP50:h('hudUpdate',0),updateP95:h('hudUpdate',1),drawImagePerFrame:b('drawImagePerFrame'),savePerFrame:b('savePerFrame'),getImageDataPerFrame:b('getImageDataPerFrame'),errors:rows.flatMap(r=>r.errors)}}}
+      browser={viewport:rows[0].viewport,units:rows[0].setup.units,unitsAlive:b('unitsAlive'),frames:rows.map(r=>r.frames),fps:b('fps'),mainJsPerFrame:b('mainJsPerFrame'),mainTaskPerFrame:b('mainTaskPerFrame'),frameP50:b('frameP50'),frameP95:b('frameP95'),simP50:b('simP50'),simP95:b('simP95'),renderP50:h('hudRender',0),renderP95:h('hudRender',1),updateP50:h('hudUpdate',0),updateP95:h('hudUpdate',1),drawImagePerFrame:b('drawImagePerFrame'),savePerFrame:b('savePerFrame'),getImageDataPerFrame:b('getImageDataPerFrame'),errors:rows.flatMap(r=>r.errors)}}}
   catch(e){browser={skipped:String(e.message||e).slice(0,300)}}
-  return {sim,browser}}
+  /* P4 4c-1: the same scene with ?simWorker=1 (simulation in a Web Worker). Recorded (INFO) next to the main-thread run; main-thread
+     JS per frame = CDP ScriptDuration / frames. A fallback to the main thread or a page error is a FAIL. */
+  let worker;try{if(browser&&!browser.skipped){const {run:render}=require(path.join(ROOT,'scripts/perf/late-render.cjs')),rows=[];for(let i=0;i<(quick?1:2);i++)rows.push(await render({secs:quick?8:10,worker:true}));
+      const b=k=>r1(median(rows.map(r=>r[k]))),w=k=>r2(median(rows.map(r=>r.worker[k])));
+      worker={fps:b('fps'),frameP50:b('frameP50'),frameP95:b('frameP95'),mainJsPerFrame:b('mainJsPerFrame'),mainTaskPerFrame:b('mainTaskPerFrame'),renderP50:r1(median(rows.map(r=>r.hudRender[0]))),updateP50:r1(median(rows.map(r=>r.hudUpdate[0]))),
+        stepsPerSec:w('stepsPerSec'),workerTickMs:w('tickMeanMs'),frameBuildMs:w('frameBuildMeanMs'),applyMs:w('applyMeanMs'),owedDropped:w('owedDropped'),fallback:rows.map(r=>r.fallback).find(Boolean)||null,errors:rows.flatMap(r=>r.errors)};
+    }}
+  catch(e){worker={skipped:String(e.message||e).slice(0,300)}}
+  return {sim,browser,worker}}
 module.exports={run};
 if(require.main===module){const a=args();run({quick:!!a.quick}).then(r=>{if(a.json)fs.writeFileSync(a.json,JSON.stringify(r,null,1));console.log(JSON.stringify(r,null,1))}).catch(e=>{console.error(e);process.exit(1)})}
