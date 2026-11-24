@@ -1599,6 +1599,16 @@
   };
 
   // src/sim/frames.js
+  var PATH_LEN = "__pathLength";
+  function restorePaths(units) {
+    for (let i = 0; i < units.length; i++) {
+      const u = units[i], n = u[PATH_LEN];
+      if (n !== void 0) {
+        u.path.length = n;
+        delete u[PATH_LEN];
+      }
+    }
+  }
   function mergeNodes(prev, delta) {
     const byId2 = /* @__PURE__ */ new Map();
     for (const n of prev || []) byId2.set(n.id, n);
@@ -1771,6 +1781,7 @@
       const old = target.s, st = f.state;
       st.world = old.world || f.world;
       st.nodes = mergeNodes(old.nodes, f.nodes);
+      restorePaths(st.units);
       for (const k of UI_KEYS) if (st[k] === void 0 && old[k] !== void 0) st[k] = old[k];
       target.s = st;
       if (f.fog) {

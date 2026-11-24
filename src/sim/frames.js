@@ -12,6 +12,7 @@
    ({"$e": id} for a unit / building / node), so the worker records exactly what a main-thread game records. */
 
 export const FRAME_VERSION = 1;
+export const PATH_SENT = 2, PATH_LEN = '__pathLength';
 
 /* ---------- worker side ---------- */
 
@@ -33,6 +34,14 @@ export function createFrameSource() {
 export function buildFrame(sim, src, step) {
   const s = sim.s, state = {};
   for (const k in s) if (k !== 'world' && k !== 'nodes') state[k] = s[k];
+  // unit paths are ~70% of the frame bytes in a 400-unit battle; the page only asks whether a unit has a path (and its next
+  // waypoints): send the first PATH_SENT points and the length (restored on the page as a sparse array of the same length)
+  const units = s.units; let slim = null;
+  for (let i = 0; i < units.length; i++) {
+    const u = units[i], p = u.path;
+    if (p && p.length > PATH_SENT) { (slim ||= units.slice())[i] = { ...u, path: p.slice(0, PATH_SENT), [PATH_LEN]: p.length }; }
+  }
+  if (slim) state.units = slim;
   // nodes: changed objects plus the id order when the list changed
   const list = s.nodes, changed = [];
   let orderChanged = !src.order || src.order.length !== list.length;
@@ -65,6 +74,11 @@ export function buildFrame(sim, src, step) {
 }
 
 /* ---------- page side ---------- */
+
+/* Restores the path lengths of units whose path was shortened for the wire (holes after the first waypoints). */
+export function restorePaths(units) {
+  for (let i = 0; i < units.length; i++) { const u = units[i], n = u[PATH_LEN]; if (n !== undefined) { u.path.length = n; delete u[PATH_LEN]; } }
+}
 
 /* Rebuilds the full node list from a frame (keeps unchanged node objects from the previous frame). Returns a NEW array, so
    identity-keyed caches (Sim.byId index, expansion.js visibleView) notice the change. */

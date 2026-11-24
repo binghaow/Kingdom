@@ -22,7 +22,7 @@
 import { CAPTURED } from '../replay/replay.js';
 import { checksum } from '../core/hash.js';
 import { STEP, MAX_STEPS } from '../core/clock.js';
-import { mergeNodes, encodeForWorker, decodeLocal, resultOf } from './frames.js';
+import { mergeNodes, restorePaths, encodeForWorker, decodeLocal, resultOf } from './frames.js';
 
 const UI_KEYS = ['controlGroups']; // written into the state by the page only (tactics-ui.js); carried across frames and into saves
 const NOOP_ON_PROXY = ['updateFog']; // the fog comes from the worker
@@ -107,6 +107,7 @@ export function createSimWorker(root, { url = 'sim-worker.js', debug = false, ge
     const old = target.s, st = f.state;
     st.world = old.world || f.world;
     st.nodes = mergeNodes(old.nodes, f.nodes);
+    restorePaths(st.units);
     for (const k of UI_KEYS) if (st[k] === undefined && old[k] !== undefined) st[k] = old[k];
     target.s = st;
     if (f.fog) {

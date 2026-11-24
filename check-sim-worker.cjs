@@ -19,7 +19,7 @@ function spawn(){const w=new Worker(SHIM+code,{eval:true});const inbox=[],wait=[
   const next=()=>inbox.length?Promise.resolve(inbox.shift()):new Promise(r=>wait.push(r));return {w,next,post:m=>w.postMessage(m)}}
 async function main(){
   const {runReplay,prewarm}=await import(pathToFileURL(path.join(ROOT,'src/replay/replay.js')).href),{checksum}=await import(pathToFileURL(path.join(ROOT,'src/core/hash.js')).href);
-  const {mergeNodes}=await import(pathToFileURL(path.join(ROOT,'src/sim/frames.js')).href);
+  const {mergeNodes,restorePaths}=await import(pathToFileURL(path.join(ROOT,'src/sim/frames.js')).href);
   const K=require(path.join(ROOT,'public/little-ant.js'));
   const files=fs.readdirSync(FIX).filter(f=>f.endsWith('.json')).sort().slice(0,quick?2:undefined);let rng=12345;const rand=()=>(rng=(rng*1103515245+12345)>>>0)/4294967296;
   for(const file of files){const fx=JSON.parse(fs.readFileSync(path.join(FIX,file),'utf8')),t0=Date.now();
@@ -38,7 +38,7 @@ async function main(){
       for(const [qq,r] of frame.results){const c=cmds.find(c=>c.q===qq);results.push({m:c.m,want:c.want,got:r})}
       hashes.push(...frame.hashes);step+=n;assert.equal(frame.step,step);
       if(frames++%7===0)bytes=Math.max(bytes,v8.serialize(frame).length);
-      mirror.s={...frame.state,world:mirror.s.world,nodes:mergeNodes(mirror.s.nodes,frame.nodes)}}
+      mirror.s={...frame.state,world:mirror.s.world,nodes:mergeNodes(mirror.s.nodes,frame.nodes)};restorePaths(mirror.s.units)}
     const workerList=hashes.map(([s,h])=>({step:s,hash:h}));
     assert.deepEqual(workerList,main.checksums,file+': worker checksum sequence differs from the main thread');
     for(const r of results)if(r.want!==undefined)assert.equal(JSON.stringify(r.got),JSON.stringify(r.want),file+': '+r.m+' returned differently in the worker');

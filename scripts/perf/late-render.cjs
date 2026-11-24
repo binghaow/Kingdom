@@ -11,18 +11,26 @@ const fs=require('node:fs'),path=require('node:path');
 const ROOT=process.env.KINGDOM_ROOT||path.resolve(__dirname,'../..');
 process.env.KINGDOM_ROOT=ROOT;
 const {serve}=require(path.join(__dirname,'../release/render-cost.cjs'));
-const {pct,median,r1,args}=require(path.join(__dirname,'../release/lib.cjs'));
-async function run({secs=10,profile,shot,warm=4,stacks:stacksMode=false,pre=null}={}){let chromium;try{({chromium}=require('playwright'))}catch(e){return {skipped:'playwright not available: '+e.message}}
+const {pct,median,r1,r2,args}=require(path.join(__dirname,'../release/lib.cjs'));
+/* worker counters over the sample window: steps run, mean step ms in the worker, frame build ms (worker), frame apply ms (page) */
+function workerStats(a,b,frames,secs){const w0=a.worker||{},w1=b.worker||{},steps=(w1.steps||0)-(w0.steps||0),fr=(w1.frames||0)-(w0.frames||0),applied=b.frames-a.frames;
+  return {steps,stepsPerSec:r1(steps/secs),tickMeanMs:r2(((w1.tickMs||0)-(w0.tickMs||0))/Math.max(1,steps)),maxTickMs:r1(w1.maxTickMs||0),frameBuildMeanMs:r2(((w1.frameMs||0)-(w0.frameMs||0))/Math.max(1,fr)),applyMeanMs:r2((b.applyMs-a.applyMs)/Math.max(1,applied)),maxApplyMs:r1(b.maxApplyMs),postMs:r2(b.postMs-a.postMs),owedDropped:b.owedDropped-a.owedDropped,mismatches:b.mismatches.length,framesApplied:applied,displayFrames:frames}}
+async function run({secs=10,profile,shot,warm=4,stacks:stacksMode=false,pre=null,worker=false,away=false}={}){let chromium;try{({chromium}=require('playwright'))}catch(e){return {skipped:'playwright not available: '+e.message}}
   const server=await serve(),browser=await chromium.launch({args:['--disable-gpu'],...(process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH?{executablePath:process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH}:{})});
-  const ctx=await browser.newContext({viewport:{width:1920,height:1080}}),p=await ctx.newPage(),errors=[];p.on('pageerror',e=>errors.push(e.message));
-  try{await p.goto(`http://127.0.0.1:${server.address().port}/?perf=1`);await p.waitForFunction(()=>window.KingdomArt&&KingdomArt.loaded,null,{timeout:120000});
+  const ctx=await browser.newContext({viewport:{width:1920,height:1080}}),p=await ctx.newPage(),errors=[];
+  /* away:true (P4) keeps the same 400-unit battle running but looks at a quiet corner of the map (expansion.js focusPoint through the NavalUI bridge) */
+  if(away)await ctx.addInitScript(()=>{let v;Object.defineProperty(window,'NavalUI',{configurable:true,get(){return v},set(x){const b=x.bind;x.bind=a=>{window.__api=a;return b.call(x,a)};v=x}})});p.on('pageerror',e=>errors.push(e.message));
+  try{await p.goto(`http://127.0.0.1:${server.address().port}/?perf=1${worker?'&simWorker=1':''}`);await p.waitForFunction(()=>window.KingdomArt&&KingdomArt.loaded,null,{timeout:120000});
     await p.evaluate(()=>{const P=KingdomSim.Sim.prototype,t=P.tick;window.__simMs=[];P.tick=function(...a){window.__lateSim=this;const t0=performance.now();const r=t.apply(this,a);window.__simMs.push(performance.now()-t0);return r}});
     await p.evaluate(()=>{const set=(id,v)=>{const e=document.getElementById(id);if(!e)return;if(e.tagName==='SELECT'&&![...e.options].some(o=>o.value===String(v))){const o=document.createElement('option');o.value=String(v);o.textContent=String(v);e.append(o)}e.value=String(v);e.dispatchEvent(new Event('change',{bubbles:true}))};
       set('ai-count',3);for(const t of [1,2,3])set('ai-group-'+t,t+1);set('world-map','coast_l')});
     // Pin the benchmark setting so the compared releases use the same fog workload.
     await p.locator('#world-fog').check();
-    await p.click('#start');await p.waitForFunction(()=>!!window.__lateSim,null,{timeout:30000});await p.waitForTimeout(500);
-    const setup=await p.evaluate(()=>{const sim=window.__lateSim,s=sim.s,D=KingdomSim.defs,soldiers=['infantry','archer','musketeer','cavalry','halberd','pikeman','longbow'];
+    await p.click('#start');
+    /* P4 (worker:true = ?simWorker=1): the same scene is set up inside the simulation worker (KingdomCore.simWorker.eval, ?perf=1 only);
+       sim.tick never runs on the page then, the per-step time comes from the worker's own counters. */
+    if(worker)await p.waitForFunction(()=>KingdomCore.simWorker&&KingdomCore.simWorker.ready&&KingdomCore.simWorker.stats.frames>3,null,{timeout:30000});else await p.waitForFunction(()=>!!window.__lateSim,null,{timeout:30000});await p.waitForTimeout(500);
+    const SCENE=String((sim,D)=>{const s=sim.s,soldiers=['infantry','archer','musketeer','cavalry','halberd','pikeman','longbow'];
       const towns=s.nations.map((_,t)=>s.buildings.find(b=>b.team===t&&b.kind==='town'));const home=towns[0],cx=s.world?s.world.width/2:home.x,cy=s.world?s.world.height/2:home.y,d=Math.hypot(cx-home.x,cy-home.y)||1;
       const bx=home.x+(cx-home.x)/d*350,by=home.y+(cy-home.y)/d*350;let made=0;for(const t of towns)if(t){t.hp=t.maxhp=t.maxhp*500}/* keep every nation alive for the whole sample: a fallen town ends the match */
       towns.forEach((town,t)=>{if(!town)return;let have=s.units.filter(u=>u.team===t).length;const ang=t*Math.PI/2+Math.PI/4;
@@ -30,19 +38,26 @@ async function run({secs=10,profile,shot,warm=4,stacks:stacksMode=false,pre=null
           x=bx+Math.cos(ang)*(230+row*30)+Math.cos(ang+Math.PI/2)*(col-4.5)*30;y=by+Math.sin(ang)*(230+row*30)+Math.sin(ang+Math.PI/2)*(col-4.5)*30}
           try{const u=sim.add(kind,t,x,y);sim.freeSpawn?.(u);if(kind!=='villager')u.hp=u.maxhp=u.maxhp*6;made++}catch(e){}}
         const army=s.units.filter(u=>u.team===t&&u.kind!=='villager'&&D[u.kind].damage>0&&!sim.sea?.(u)&&!sim.air?.(u)&&Math.hypot(u.x-bx,u.y-by)<700);sim.order(army,{type:'advance',x:bx,y:by})});
-      sim.grid=null;sim._gateGrids=null;return {made,units:s.units.length,towns:towns.filter(Boolean).length,battle:{x:Math.round(bx),y:Math.round(by)},camera:window.frontier.camera}});
+      sim.grid=null;sim._gateGrids=null;return {made,units:s.units.length,towns:towns.filter(Boolean).length,battle:{x:Math.round(bx),y:Math.round(by)}}});
+    const setup=worker?await p.evaluate(src=>KingdomCore.simWorker.eval('return ('+src+')(sim,K.defs)'),SCENE):await p.evaluate(src=>(0,eval)('('+src+')')(window.__lateSim,KingdomSim.defs),SCENE);
+    if(worker)await p.waitForFunction(n=>window.frontier.state.units.length>=n,setup.units,{timeout:30000});if(away)await p.evaluate(()=>{const s=window.frontier.state,w=s.world,town=s.buildings.find(b=>b.team===0&&b.kind==='town');window.__api.focusPoint({x:town.x<w.width/2?w.width-500:500,y:town.y<w.height/2?w.height-500:500})});setup.camera=await p.evaluate(()=>window.frontier.camera);setup.away=!!away;setup.worker=!!worker;
     await p.waitForFunction(()=>!(KingdomArt.attackStatus?.().pending>0),null,{timeout:120000,polling:250}).catch(()=>{});await p.waitForTimeout(warm*1000);
     let cdp;if(profile){cdp=await ctx.newCDPSession(p);await cdp.send('Profiler.enable');await cdp.send('Profiler.setSamplingInterval',{interval:200});await cdp.send('Profiler.start')}
+    const perfCdp=await ctx.newCDPSession(p);await perfCdp.send('Performance.enable');const metrics=async()=>Object.fromEntries((await perfCdp.send('Performance.getMetrics')).metrics.map(m=>[m.name,m.value]));
+    const W0=worker?await p.evaluate(()=>JSON.parse(JSON.stringify(KingdomCore.simWorker.stats))):null,M0=await metrics();
     if(stacksMode)await p.evaluate(()=>{window.__lateStacks=true});if(pre)await p.evaluate(pre);const sample=await p.evaluate(({secs})=>new Promise(done=>{window.__simMs.length=0;const P=CanvasRenderingContext2D.prototype,orig={drawImage:P.drawImage,save:P.save,getImageData:P.getImageData},n={drawImage:0,save:0,getImageData:0};
       const stacks={};for(const k of Object.keys(orig))P[k]=function(...a){n[k]++;if(window.__lateStacks&&n[k]%7===0){const f=(new Error().stack||'').split('\n').slice(2,4).map(l=>l.trim().replace(/^at /,'').replace(/https?:\/\/[^/]+\//,'').replace(/\)$/,'')).join(' < ');const key=k+' '+f;stacks[key]=(stacks[key]||0)+7}return orig[k].apply(this,a)};window.__lateStackOut=stacks;const t=[],per={drawImage:[],save:[],getImageData:[]};let start=0;
       function f(now){if(start)for(const k in n)per[k].push(n[k]);for(const k in n)n[k]=0;if(!start)start=now;t.push(now);if(now-start<secs*1000)requestAnimationFrame(f);else{Object.assign(P,orig);done({t,per,sim:window.__simMs.slice(),stacks:Object.entries(stacks).sort((a,b)=>b[1]-a[1]).slice(0,30)})}}requestAnimationFrame(f)}),{secs});
-    let top=null;if(profile){const {profile:pr}=await cdp.send('Profiler.stop');fs.writeFileSync(profile,JSON.stringify(pr));const by={},self={};let total=0;for(const nd of pr.nodes)by[nd.id]=nd;pr.samples.forEach((id,i)=>{const nd=by[id],k=(nd.callFrame.functionName||'(anon)')+' '+path.basename(nd.callFrame.url||'')+':'+(nd.callFrame.lineNumber+1),d=pr.timeDeltas[i]||0;self[k]=(self[k]||0)+d;total+=d});top=Object.entries(self).sort((a,b)=>b[1]-a[1]).slice(0,25).map(([k,v])=>`${(v/total*100).toFixed(1)}% ${k}`)}
+    const M1=await metrics(),W1=worker?await p.evaluate(()=>JSON.parse(JSON.stringify(KingdomCore.simWorker.stats))):null;let top=null;if(profile){const {profile:pr}=await cdp.send('Profiler.stop');fs.writeFileSync(profile,JSON.stringify(pr));const by={},self={};let total=0;for(const nd of pr.nodes)by[nd.id]=nd;pr.samples.forEach((id,i)=>{const nd=by[id],k=(nd.callFrame.functionName||'(anon)')+' '+path.basename(nd.callFrame.url||'')+':'+(nd.callFrame.lineNumber+1),d=pr.timeDeltas[i]||0;self[k]=(self[k]||0)+d;total+=d});top=Object.entries(self).sort((a,b)=>b[1]-a[1]).slice(0,25).map(([k,v])=>`${(v/total*100).toFixed(1)}% ${k}`)}
     const hud=await p.evaluate(()=>document.getElementById('performance-audit')?.textContent||'');if(shot)await p.screenshot({path:shot});
     const g=re=>{const m=hud.match(re);return m?m.slice(1).map(Number):[]},iv=[];for(let i=1;i<sample.t.length;i++)iv.push(sample.t[i]-sample.t[i-1]);
-    const alive=await p.evaluate(()=>{const s=window.__lateSim.s;const st=KingdomArt.attackStatus?.();return {alive:s.units.filter(u=>u.hp>0).length,dpr:window.FrontierRenderBudget?.dpr??null,attack:st&&{sets:st.loaded.length,mb:Math.round(st.bytes/1048576),limitMb:Math.round(st.limit/1048576),tints:st.tints}}});
+    const alive=await p.evaluate(()=>{const s=window.frontier.state;const st=KingdomArt.attackStatus?.();return {alive:s.units.filter(u=>u.hp>0).length,dpr:window.FrontierRenderBudget?.dpr??null,attack:st&&{sets:st.loaded.length,mb:Math.round(st.bytes/1048576),limitMb:Math.round(st.limit/1048576),tints:st.tints}}});
     return {viewport:'1920x1080',setup,unitsAlive:alive.alive,renderDpr:alive.dpr,attackCache:alive.attack,frames:iv.length,fps:r1(1000/(median(iv)||1)),frameP50:r1(pct(iv,.5)),frameP95:r1(pct(iv,.95)),
-      simSteps:sample.sim.length,simP50:r1(pct(sample.sim,.5)),simP95:r1(pct(sample.sim,.95)),drawImagePerFrame:median(sample.per.drawImage),savePerFrame:median(sample.per.save),getImageDataPerFrame:median(sample.per.getImageData),
-      hudRender:g(/render ([\d.]+)\/([\d.]+)/),hudScene:g(/scene ([\d.]+)\/([\d.]+)/),hudUpdate:g(/update ([\d.]+)\/([\d.]+)/),hud:hud.replace(/\s+/g,' ').slice(0,600),errors,top,...(stacksMode?{stacks:sample.stacks.map(([k,v])=>`${Math.round(v/Math.max(1,iv.length))}/frame ${k}`)}:{})}}
+      simSteps:sample.sim.length,simP50:r1(pct(sample.sim,.5)),simP95:r1(pct(sample.sim,.95)),
+      /* main-thread cost per displayed frame (CDP Performance metrics over the sample: JS = ScriptDuration, all tasks = TaskDuration incl. structured-clone decoding, style, paint) */
+      mainJsPerFrame:r2((M1.ScriptDuration-M0.ScriptDuration)*1000/Math.max(1,iv.length)),mainTaskPerFrame:r2((M1.TaskDuration-M0.TaskDuration)*1000/Math.max(1,iv.length)),
+      ...(worker?{worker:workerStats(W0,W1,iv.length,secs),fallback:await p.evaluate(()=>KingdomCore.simWorker.failed)}:{}),drawImagePerFrame:median(sample.per.drawImage),savePerFrame:median(sample.per.save),getImageDataPerFrame:median(sample.per.getImageData),
+      hudRender:g(/render ([\d.]+)\/([\d.]+)/),hudScene:g(/scene ([\d.]+)\/([\d.]+)/),hudUpdate:g(/update ([\d.]+)\/([\d.]+)/),hud:hud.replace(/\s+/g,' ').slice(0,600),errors,top,probe:await p.evaluate(()=>window.__probe||null),...(stacksMode?{stacks:sample.stacks.map(([k,v])=>`${Math.round(v/Math.max(1,iv.length))}/frame ${k}`)}:{})}}
   finally{await browser.close();server.close()}}
 module.exports={run};
-if(require.main===module){const a=args();run({secs:+(a.secs||10),profile:a.profile,shot:a.shot,stacks:!!a.stacks,pre:a.pre||null}).then(r=>{if(a.json)fs.writeFileSync(a.json,JSON.stringify(r,null,1));console.log(JSON.stringify(r,null,1))}).catch(e=>{console.error(e);process.exit(1)})}
+if(require.main===module){const a=args();run({secs:+(a.secs||10),profile:a.profile,shot:a.shot,stacks:!!a.stacks,pre:a.pre||null,worker:!!a.worker,away:!!a.away}).then(r=>{if(a.json)fs.writeFileSync(a.json,JSON.stringify(r,null,1));console.log(JSON.stringify(r,null,1))}).catch(e=>{console.error(e);process.exit(1)})}

@@ -9217,6 +9217,8 @@
 
   // src/sim/frames.js
   var FRAME_VERSION = 1;
+  var PATH_SENT = 2;
+  var PATH_LEN = "__pathLength";
   var flat = (v) => v !== null && typeof v === "object" ? JSON.stringify(v) : v;
   function nodeChanged(prev, n) {
     if (!prev) return true;
@@ -9241,6 +9243,15 @@
   function buildFrame(sim, src, step) {
     const s = sim.s, state = {};
     for (const k in s) if (k !== "world" && k !== "nodes") state[k] = s[k];
+    const units = s.units;
+    let slim = null;
+    for (let i = 0; i < units.length; i++) {
+      const u = units[i], p = u.path;
+      if (p && p.length > PATH_SENT) {
+        (slim || (slim = units.slice()))[i] = { ...u, path: p.slice(0, PATH_SENT), [PATH_LEN]: p.length };
+      }
+    }
+    if (slim) state.units = slim;
     const list = s.nodes, changed = [];
     let orderChanged = !src.order || src.order.length !== list.length;
     if (!orderChanged) {
