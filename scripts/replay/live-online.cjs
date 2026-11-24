@@ -15,7 +15,7 @@ const sleep=ms=>new Promise(r=>setTimeout(r,ms));
     const recordersBefore=await page.evaluate(()=>KingdomCore.replay.recorders);
     await page.click('#open-online');log.push('open online');await sleep(500);
     if(await page.$('#net-name'))await page.fill('#net-name','P1 测试');
-    const fill=await page.$('#net-fill');if(fill&&!(await fill.isChecked()))await fill.check();log.push('fill computer seats');
+    const fill=await page.$('#net-fill');if(fill&&!(await fill.isChecked()))await fill.check();log.push('fill computer seats');/* 3e: the old server-authoritative mode is the backup option now (Lockstep is the default). */const legacy=await page.$('#net-legacy');if(legacy&&!(await legacy.isChecked())){await legacy.check();log.push('classic online (backup)')}
     await page.click('#net-create');log.push('create room');await page.waitForFunction(()=>document.getElementById('net-room-code')?.textContent?.trim(),null,{timeout:20000});
     const code=await page.textContent('#net-room-code');log.push('room '+code.trim());
     await page.click('#net-ready');await sleep(1200);await page.click('#net-start');log.push('ready + start');
@@ -26,7 +26,7 @@ const sleep=ms=>new Promise(r=>setTimeout(r,ms));
       await page.keyboard.press('Escape');const home=await page.$('#home');if(home){await home.click();await sleep(300);const tr=await page.$('[data-action="train-villager"]');if(tr){await tr.click().catch(()=>{});actions++}}actions++}
     const end=await page.evaluate(()=>({time:window.frontier.state.time,units:window.frontier.state.units.length,humans:window.frontier.state.humanTeams,nations:window.frontier.state.nations.length}));
     const recordersAfter=await page.evaluate(()=>KingdomCore.replay.recorders),recordingSim=await page.evaluate(()=>!!KingdomCore.replay.current?.sim?.s?.networked);
-    const res={seconds:SECONDS,room:code.trim(),statuses,nonOk:bad,pageErrors:errors,start:t0,end,uiActions:actions,recordersBefore,recordersAfter,recordingAttachedToOnlineGame:recordingSim,log};
+    const res={seconds:SECONDS,room:code.trim(),classicRoom:await page.evaluate(()=>!window.KingdomOnline?.room?.config?.lockstep),statuses,nonOk:bad,pageErrors:errors,start:t0,end,uiActions:actions,recordersBefore,recordersAfter,recordingAttachedToOnlineGame:recordingSim,log};
     res.pass=!bad.length&&!errors.length&&end.time>t0+SECONDS*.8&&!recordingSim;
     console.log(JSON.stringify(res,null,1));if(jsonOut)fs.writeFileSync(jsonOut,JSON.stringify(res,null,1));if(!res.pass)process.exitCode=1}
   finally{await browser.close()}})().catch(e=>{console.error(e);process.exit(1)});

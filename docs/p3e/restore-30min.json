@@ -1,0 +1,75 @@
+{
+ "save": {
+  "turns": 18300,
+  "minutes": 30.5,
+  "commands": 6933,
+  "hash": "608fd017",
+  "snapshotTurn": 18000,
+  "snapshotKB": 83,
+  "fileKB": 829
+ },
+ "period": 100,
+ "note": "local measurement: 2 vCPU VM, Node + SQLite D1 stand-in, 2 headless clients in child processes (both simulations share 2 cores); not Sites / real devices",
+ "headless": {
+  "fullReplayMs": 128408,
+  "fromSnapshotMs": 3099,
+  "decodeMs": 25,
+  "finalFull": "608fd017",
+  "finalSnapshot": "608fd017",
+  "saveHash": "608fd017"
+ },
+ "before_from_turn_0": {
+  "ok": true,
+  "failures": [],
+  "upload": {
+   "segments": 76,
+   "rows": 6933,
+   "snapshotParts": 0,
+   "ms": 322
+  },
+  "reachSavePointMs": [
+   143151,
+   145173
+  ],
+  "startLeadMs": 3000,
+  "snapshotLoadMs": [
+   null,
+   null
+  ],
+  "savePointHash": [
+   "608fd017",
+   "608fd017"
+  ],
+  "final": "5f04c8fc",
+  "pairsCompared": 88,
+  "replayFinal": "5f04c8fc",
+  "wallSeconds": 152
+ },
+ "after_from_snapshot": {
+  "ok": true,
+  "failures": [],
+  "upload": {
+   "segments": 2,
+   "rows": 110,
+   "snapshotParts": 2,
+   "ms": 15
+  },
+  "reachSavePointMs": [
+   4752,
+   4657
+  ],
+  "startLeadMs": 3000,
+  "snapshotLoadMs": [
+   195,
+   227
+  ],
+  "savePointHash": [
+   "608fd017",
+   "608fd017"
+  ],
+  "final": "5e54f950",
+  "pairsCompared": 37,
+  "replayFinal": "5e54f950",
+  "wallSeconds": 33
+ }
+}
