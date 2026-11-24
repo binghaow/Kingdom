@@ -1,0 +1,60 @@
+{
+ "save": {
+  "turns": 3300,
+  "hash": "cf933cc1",
+  "snapshotTurn": 3000,
+  "commands": 1294
+ },
+ "room": "966",
+ "restoreInfo": "恢复联机存档 · 原房间 SYNTH11 · 从第 5 分钟继续 · 快照 5 分钟 · 只回放之后的部分 · 没人认领的席位由电脑接管",
+ "uploadMs": 711,
+ "statuses": {
+  "rooms 200": 18,
+  "rooms 201": 1,
+  "lockstep 200": 2
+ },
+ "nonOk": [],
+ "pageErrors": [],
+ "reachSavePointMs": {
+  "A": 8755,
+  "B": 8222,
+  "note": "from pressing start (includes the 3 s start lead)"
+ },
+ "tabs": [
+  {
+   "tab": "A",
+   "turn": 3716,
+   "snapshotTurn": 3000,
+   "loads": 1,
+   "lastLoad": {
+    "turn": 3000,
+    "ms": 317,
+    "bytes": 78148
+   },
+   "savePointHash": "cf933cc1",
+   "transport": "ws",
+   "desync": null,
+   "aiTeams": []
+  },
+  {
+   "tab": "B",
+   "turn": 3716,
+   "snapshotTurn": 3000,
+   "loads": 1,
+   "lastLoad": {
+    "turn": 3000,
+    "ms": 370,
+    "bytes": 78148
+   },
+   "savePointHash": "cf933cc1",
+   "transport": "ws",
+   "desync": null,
+   "aiTeams": []
+  }
+ ],
+ "consistency": {
+  "compared": 48,
+  "mismatch": null
+ },
+ "pass": true
+}

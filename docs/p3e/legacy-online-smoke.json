@@ -1,0 +1,35 @@
+{
+ "seconds": 65,
+ "room": "230",
+ "classicRoom": true,
+ "statuses": {
+  "GET 200": 1,
+  "POST 201": 1,
+  "POST 200": 247
+ },
+ "nonOk": [],
+ "pageErrors": [],
+ "start": 1.0499999999999998,
+ "end": {
+  "time": 74.80000000000003,
+  "units": 69,
+  "humans": [
+   0
+  ],
+  "nations": 4
+ },
+ "uiActions": 16,
+ "recordersBefore": 1,
+ "recordersAfter": 1,
+ "recordingAttachedToOnlineGame": false,
+ "log": [
+  "open online",
+  "fill computer seats",
+  "classic online (backup)",
+  "create room",
+  "room 230",
+  "ready + start",
+  "game running, time 1.0"
+ ],
+ "pass": true
+}
