@@ -7899,8 +7899,8 @@
               if (!bank(sim, team, cost, 0)) return 1.5;
               if (s.time < (N.dockAt || 0) || !sim.aiAct(team)) return L.think;
               N.dockAt = s.time + 10;
-              for (let i = 0; i < near.length && i < 24; i++) {
-                const c = near[i], v = run;
+              for (let i = 0; i < near.length && i < 6; i++) {
+                const c = near[(i * 3 + Math.floor(s.time / 10)) % near.length], v = run;
                 const site = { x: (c.lx * 2 + c.x) / 3, y: (c.ly * 2 + c.y) / 3 };
                 if (placeNear(sim, team, "dock", site, v, [0, 40, 80])) {
                   N.stats.docks++;
@@ -7930,7 +7930,8 @@
                 if (N.enemySea > 0) want = Math.max(want, Math.ceil(N.enemySea * L.counter / per) + 1);
                 want = Math.min(want, L.navyMax);
               }
-              const have = navy.length + queued("sloop") + queued("frigate") + queued("bombketch");
+              if (P.over.length && !P.bases.some((b) => b.known) && !s.aiWar?.[team]?.enemyBase) want = Math.max(want, 1);
+              const here = navy.filter((u) => dseas.includes(G.seaAt(u.x, u.y) >= 0 ? G.seaAt(u.x, u.y) : G.seaNear(u.x, u.y, 150))), have = here.length + queued("sloop") + queued("frigate") + queued("bombketch");
               if (have < want) {
                 const ketches = navy.filter((u) => u.kind === "bombketch").length + queued("bombketch"), coastal = age >= 3 && L.bombketch && ketches < L.bombketch && navy.length >= 2 && (P.over.length || view.buildings.some((b) => b.hp > 0 && b.team >= 0 && sim.hostile(team, b.team) && G.seaNear(b.x, b.y, 380) >= 0));
                 const sloops = navy.filter((u) => u.kind === "sloop").length;
@@ -8463,7 +8464,7 @@
                   sim.unload(ship);
                   const out = before.filter((u) => !u.embarkedOn && u.hp > 0);
                   if (out.length) {
-                    const there = out.filter((u) => G.landNear(u.x, u.y, 72) === F.region);
+                    const there = out.filter((u) => G.landNear(u.x, u.y, 96) === F.region);
                     for (const u of out) if (fw) fw.ids = fw.ids.filter((id) => id !== u.id);
                     if (!lw || lw.stage === "done") {
                       lw = newWave(sim, team, { kind: "main", target: { ...F.target }, stage: "beach", landing: 1, beach: { x: b.lx, y: b.ly }, x: b.lx, y: b.ly, checked: s.time });
@@ -8477,7 +8478,7 @@
                     } else sim.order(out, { type: "advance", x: lw.target.x, y: lw.target.y });
                     N.stats.landings++;
                     N.stats.landed += out.length;
-                    sim.emit("aiLanding", { team, target: F.target.team, size: out.length, x: Math.round(b.lx), y: Math.round(b.ly), region: there.length === out.length ? "enemy" : "other" });
+                    sim.emit("aiLanding", { team, target: F.target.team, size: out.length, x: Math.round(b.lx), y: Math.round(b.ly), region: there.length * 2 >= out.length ? "enemy" : "other" });
                     x.stage = "return";
                     x.since = s.time;
                     sim.order([ship], { type: "move", x: F.port.x, y: F.port.y });

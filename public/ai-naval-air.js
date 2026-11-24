@@ -115,7 +115,8 @@ function create(K){
    const near=spots.filter(c=>dist(c,run)<520);if(!near.length){const to=spots[0];if(!run.order||run.order.type!=='move'||Math.hypot(run.order.x-to.lx,run.order.y-to.ly)>60)sim.order([run],{type:'move',x:to.lx,y:to.ly});return L.think}
    /* the port decides the war over the water: no margin, and look again soon while the bank is short */
    if(!bank(sim,team,cost,0))return 1.5;if(s.time<(N.dockAt||0)||!sim.aiAct(team))return L.think;N.dockAt=s.time+10;
-   for(let i=0;i<near.length&&i<24;i++){const c=near[i],v=run;const site={x:(c.lx*2+c.x)/3,y:(c.ly*2+c.y)/3};if(placeNear(sim,team,'dock',site,v,[0,40,80])){N.stats.docks++;sim.emit('aiDock',{team});N.dockAt=s.time+40;hold(sim,team,N,'runner',[]);N.runner=0;
+   /* a few stretches per try (placement tests are not free); the next try comes 10 s later */
+   for(let i=0;i<near.length&&i<6;i++){const c=near[(i*3+Math.floor(s.time/10))%near.length],v=run;const site={x:(c.lx*2+c.x)/3,y:(c.ly*2+c.y)/3};if(placeNear(sim,team,'dock',site,v,[0,40,80])){N.stats.docks++;sim.emit('aiDock',{team});N.dockAt=s.time+40;hold(sim,team,N,'runner',[]);N.runner=0;
      /* ships shoot foundations on the shore: a few free ranged troops stand guard at the site */
      const guard=(sim.aiFree?sim.aiFree(team):[]).filter(u=>sim.stat(u,'range')>100&&G.landAt(u.x,u.y)===P.home).sort((a,b)=>dist(a,site)-dist(b,site)).slice(0,L.navy>2?6:3);if(guard.length)sim.order(guard,{type:'advance',x:site.x,y:site.y});break}}
    return L.think}
@@ -127,7 +128,9 @@ function create(K){
    if(L.ferry&&P.over.length&&(!L.alone||!P.land.length)&&mine<L.ships&&popRoom(sim,team,'transport')&&bank(sim,team,sim.costFor('transport',team),L.margin*.5)&&!sim.unitError(dock,'transport')){if(!sim.train(dock,'transport'))N.stats.transports++;return L.think}
    /* warships: base by age, answer what was seen at sea */
    let want=0;if(naval&&L.navy){want=P.over.length?L.navy+L.navyAge*Math.max(0,age-1):Math.min(2,L.navy);const per=age>=3?150:80;if(N.enemySea>0)want=Math.max(want,Math.ceil(N.enemySea*L.counter/per)+1);want=Math.min(want,L.navyMax)}
-   const have=navy.length+queued('sloop')+queued('frigate')+queued('bombketch');
+   /* an enemy over the water nobody has seen: at least one ship on this sea to go and look (every level) */
+   if(P.over.length&&!P.bases.some(b=>b.known)&&!s.aiWar?.[team]?.enemyBase)want=Math.max(want,1);
+   const here=navy.filter(u=>dseas.includes(G.seaAt(u.x,u.y)>=0?G.seaAt(u.x,u.y):G.seaNear(u.x,u.y,150))),have=here.length+queued('sloop')+queued('frigate')+queued('bombketch');
    if(have<want){const ketches=navy.filter(u=>u.kind==='bombketch').length+queued('bombketch'),coastal=age>=3&&L.bombketch&&ketches<L.bombketch&&navy.length>=2&&(P.over.length||view.buildings.some(b=>b.hp>0&&b.team>=0&&sim.hostile(team,b.team)&&G.seaNear(b.x,b.y,380)>=0));
     const sloops=navy.filter(u=>u.kind==='sloop').length;const kind=coastal?'bombketch':age>=3&&(sloops>=2||N.enemySeaN>=2)?'frigate':'sloop';
     if(!sim.unitError(dock,kind)&&popRoom(sim,team,kind)&&bank(sim,team,sim.costFor(kind,team),L.margin)){if(!sim.train(dock,kind))N.stats.warships++}}}
@@ -272,10 +275,10 @@ function create(K){
     const stopped=s.time-x.since>30&&!ship.path?.length&&!ship.order?.x;
     if((arrived||stopped)&&G.landNear(ship.x,ship.y)!==F.region&&s.time-x.since<150){const t={x:b.x+(b.lx-b.x)*.45,y:b.y+(b.ly-b.y)*.45};if(!ship.order||Math.hypot((ship.order.x??0)-t.x,(ship.order.y??0)-t.y)>30)sim.order([ship],{type:'move',x:t.x,y:t.y});continue}
     if(arrived||stopped||s.time-x.since>150){const before=cargo.slice();sim.unload(ship);const out=before.filter(u=>!u.embarkedOn&&u.hp>0);
-     if(out.length){const there=out.filter(u=>G.landNear(u.x,u.y,72)===F.region);for(const u of out)if(fw)fw.ids=fw.ids.filter(id=>id!==u.id);
+     if(out.length){const there=out.filter(u=>G.landNear(u.x,u.y,96)===F.region);for(const u of out)if(fw)fw.ids=fw.ids.filter(id=>id!==u.id);
       if(!lw||lw.stage==='done'){lw=newWave(sim,team,{kind:'main',target:{...F.target},stage:'beach',landing:1,beach:{x:b.lx,y:b.ly},x:b.lx,y:b.ly,checked:s.time});F.landed=lw.id;F.landedAt=s.time}
       lw.ids.push(...out.map(u=>u.id));if(lw.stage==='beach'){const hold={x:b.lx+(F.target.x-b.lx)*.08,y:b.ly+(F.target.y-b.ly)*.08};sim.order(out,{type:'advance',x:hold.x,y:hold.y})}else sim.order(out,{type:'advance',x:lw.target.x,y:lw.target.y});
-      N.stats.landings++;N.stats.landed+=out.length;sim.emit('aiLanding',{team,target:F.target.team,size:out.length,x:Math.round(b.lx),y:Math.round(b.ly),region:there.length===out.length?'enemy':'other'});x.stage='return';x.since=s.time;sim.order([ship],{type:'move',x:F.port.x,y:F.port.y})}
+      N.stats.landings++;N.stats.landed+=out.length;sim.emit('aiLanding',{team,target:F.target.team,size:out.length,x:Math.round(b.lx),y:Math.round(b.ly),region:there.length*2>=out.length?'enemy':'other'});x.stage='return';x.since=s.time;sim.order([ship],{type:'move',x:F.port.x,y:F.port.y})}
      else if(s.time-x.since>160){x.stage='flee';sim.order([ship],{type:'move',x:F.port.x,y:F.port.y})}
      else{const t={x:b.x+(b.lx-b.x)*.5,y:b.y+(b.ly-b.y)*.5};sim.order([ship],{type:'move',x:t.x,y:t.y})}}continue}
    if(x.stage==='return'||x.stage==='flee'){if(dist(ship,F.port)<230||s.time-x.since>150){if(cargo.length){sim.unload(ship);const back=cargo.filter(u=>!u.embarkedOn);if(back.length)sim.order(back,{type:'move',x:town.x,y:town.y})}if(x.stage==='flee')F.retryAt=s.time+30;x.stage='port';x.since=s.time;N.stats.returns++}

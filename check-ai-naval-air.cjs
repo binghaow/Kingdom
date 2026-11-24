@@ -24,8 +24,8 @@ function make({map='straits',seed=7,level='expert',levels=null,groups=[1,2,3],ne
  const emit=s.emit.bind(s);s.emit=(type,p={})=>{const t=p.team;if(t>=0&&st[t]){if(type==='trained')st[t].trained[p.kind]=(st[t].trained[p.kind]||0)+1;if(type==='built')st[t].built[p.kind]=(st[t].built[p.kind]||0)+1}if(/^ai[A-Z]/.test(type)&&type!=='aiResearch')log.push({t:Math.round(s.s.time),type,...p});return emit(type,p)};
  /* damage taken, split by the attacker's domain / whether it stands on the victim's land mass */
  const dmg=s.damage.bind(s);s.damage=(e,a,src)=>{if(src&&src.team>=0&&e&&e.team>=0&&src.team!==e.team&&st[e.team]&&a>0){const v=st[e.team];v.hits+=a;if(s.air(src))v.hitsByAir+=a;else if(s.sea(src))v.hitsBySea+=a;else if(R.at(src.x,src.y)===home[e.team]&&home[src.team]!==home[e.team])v.hitsByLanded+=a}return dmg(e,a,src)};
- let ms=0;const f=s.aiBehaviorStep.bind(s);s.aiBehaviorStep=()=>{const t=now();f();ms+=now()-t};
- return{s,R,home,log,st,ms:()=>ms}}
+ let ms=0,max=0;const f=s.aiBehaviorStep.bind(s);s.aiBehaviorStep=()=>{const t=now();f();const d=now()-t;ms+=d;if(d>max&&s.s.time>5)max=d};
+ return{s,R,home,log,st,ms:()=>ms,max:()=>max}}
 const run=(r,seconds,each)=>{const n=Math.round(seconds/DT);for(let i=0;i<n&&!r.s.s.ended;i++){r.s.tick(DT);each?.(r.s,i)}return r};
 const naval=(r,t)=>r.s.s.aiNaval?.[t]?.stats||{};
 const count=(r,t,type,f=()=>true)=>r.log.filter(e=>e.team===t&&e.type===type&&f(e)).length;
@@ -38,7 +38,7 @@ if(want('1')){const SEC=QUICK?1200:1500;console.log('== 1. island duel (straits 
   for(const t of [1,2]){const N=naval(r,t),tr=r.st[t].trained;row(off?'off':'on','seat '+t+(t===2?' (island)':' (mainland)'),'docks built '+(r.st[t].built.dock||0),'warships '+sum(tr,['sloop','frigate','bombketch']),'transports '+(tr.transport||0),
    'loads '+(N.loads||0)+' (full '+(N.fullLoads||0)+')','landings '+count(r,t,'aiLanding',e=>e.region==='enemy')+' units '+(N.landed||0),'assaults '+(N.assaults||0),'aborts '+(N.aborts||0),'fleet defend/raid '+(N.fleetDefend||0)+'/'+(N.fleetRaids||0),
    'air units '+sum(tr,['scoutballoon','bomber'])+' (bombers '+(tr.bomber||0)+')','air raids '+(N.airRaids||0)+' back '+(N.airBack||0),'damage taken '+Math.round(r.st[t].hits)+' (landed '+Math.round(r.st[t].hitsByLanded)+', sea '+Math.round(r.st[t].hitsBySea)+', air '+Math.round(r.st[t].hitsByAir)+')','age '+r.s.s.ages[t])}
-  row(off?'off':'on','behaviour module time '+Math.round(r.ms())+' ms over '+SEC+' s sim, wall '+Math.round(wall)+' ms')}
+  row(off?'off':'on','behaviour module time '+Math.round(r.ms())+' ms over '+SEC+' s sim (slowest single step '+r.max().toFixed(2)+' ms), wall '+Math.round(wall)+' ms')}
  const on=R[false],o=R[true];
  const docks=[1,2].some(t=>(on.st[t].built.dock||0)+(naval(on,t).docks||0)>0||on.s.s.buildings.some(b=>b.team===t&&b.kind==='dock'&&b.complete));
  assert(docks,'a dock stands on a naval map');assert([1,2].some(t=>sum(on.st[t].trained,['sloop','frigate','bombketch'])>=3),'warships trained');
