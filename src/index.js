@@ -14,6 +14,7 @@ import { replayLockstep } from './net/lockstep.js';
 import * as saves from './net/saves.js';
 import * as clock from './core/clock.js';
 import { createSimWorker } from './sim/client.js';
+import * as controls from './ui/controls.js';
 
 const root = typeof window !== 'undefined' ? window : globalThis;
 const query = (() => { try { return new URLSearchParams(root.location?.search || ''); } catch { return new URLSearchParams(''); } })();
@@ -120,6 +121,8 @@ core.simWorker = simWorkerWanted && typeof root.Worker === 'function' ? createSi
   onAdopt: (sim) => { const r = core.replay.current; if (r && r.sim === sim) { r.detach(); core.replay.current = null; } },
   onFallback: (reason) => { core.simWorker.lastFallback = reason; try { root.console?.warn?.('simWorker fallback to main thread:', reason); } catch { /* ignore */ } },
 }) : null;
+/* Desktop mouse rules and building groups (src/ui/controls.js): pure helpers for expansion.js. */
+core.controls = controls;
 debugButton();
 root.KingdomCore = core;
 export default core;

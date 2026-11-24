@@ -1973,6 +1973,48 @@
     return api;
   }
 
+  // src/ui/controls.js
+  var controls_exports = {};
+  __export(controls_exports, {
+    boxPick: () => boxPick,
+    isDoubleClick: () => isDoubleClick,
+    mouseIntent: () => mouseIntent,
+    onScreen: () => onScreen,
+    pickProducer: () => pickProducer
+  });
+  function mouseIntent({ button, buildMode = false, armed = null, attackKey = false, hasUnits = false }) {
+    if (button === 2) return buildMode ? "cancel-build" : "command";
+    if (button !== 0) return "none";
+    if (buildMode) return "place";
+    if (hasUnits && (attackKey || armed === "advance")) return "attack-move";
+    if (armed) return "command";
+    return "select";
+  }
+  function boxPick(units, buildings) {
+    return units.length ? units : buildings;
+  }
+  function pickProducer(buildings, cursor = 0, usable = () => true) {
+    const n = buildings.length;
+    let pick = null, at = -1, best = Infinity;
+    for (let k = 0; k < n; k++) {
+      const i = (cursor + k) % n, b = buildings[i];
+      if (!b || !usable(b)) continue;
+      const q = b.queue ? b.queue.length : 0;
+      if (q < best) {
+        best = q;
+        pick = b;
+        at = i;
+      }
+    }
+    return { pick, cursor: pick ? (at + 1) % n : cursor };
+  }
+  function isDoubleClick(last, now, kind, ms = 380) {
+    return !!last && last.kind === kind && now - last.at <= ms;
+  }
+  function onScreen(e, camera, vw, vh) {
+    return Math.abs(e.x - camera.x) <= vw / 2 / camera.z && Math.abs(e.y - camera.y) <= vh / 2 / camera.z;
+  }
+
   // src/index.js
   var root = typeof window !== "undefined" ? window : globalThis;
   var query = (() => {
@@ -2114,6 +2156,7 @@
       }
     }
   }) : null;
+  core.controls = controls_exports;
   debugButton();
   root.KingdomCore = core;
   var index_default = core;

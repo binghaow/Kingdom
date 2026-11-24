@@ -149,7 +149,7 @@ V 时代飞艇工场先研发航空工程，再生产侦察热气球、运输飞
 手机|Mobile
 拖动移图、双指缩放、长按单位选择附近同类；“框选”模式可拖出选框。陆军与舰队分开选择。建造先放预览，再确认；底部拉手可收起命令栏。|Drag to pan, pinch to zoom and long-press a unit to select similar nearby units. Use Box mode to drag a selection. Select armies and fleets separately. Preview building placement, then confirm. Collapse commands with the bottom handle.
 攻击与撤退|Attack & Retreat
-选部队后点敌人，红色圆环和上方情报卡显示指定目标。点空地或“移动 / 脱战”立即停止追击。R /“立即撤退”让陆军返回主城、舰队返回港口；F /“攻击前进”会攻击沿途敌人。|Select troops, then an enemy. A red ring and target card confirm the target. Select ground or Move / Disengage to stop pursuit. R / Retreat Now returns armies home and ships to port. F / Attack-move engages enemies on the route.
+选部队后点敌人，红色圆环和上方情报卡显示指定目标。点空地或“移动 / 脱战”立即停止追击。R /“立即撤退”让陆军返回主城、舰队返回港口；A /“攻击前进”会攻击沿途敌人。|Select troops, then an enemy. A red ring and target card confirm the target. Select ground or Move / Disengage to stop pursuit. R / Retreat Now returns armies home and ships to port. A / Attack-move engages enemies on the route.
 选村民后点树林、金矿、果丛或河岸渔场。采集中有任务标签、进度条、资源飘字和粒子。建农田后派村民耕作。|Select villagers, then a forest, gold deposit, berry bush or fishing ground. Work labels, progress bars and resource particles confirm gathering. Assign villagers to completed farms for food.
 建设|Construction
 选村民，下方按经济、军事、科技分类。左右滑动或点击箭头查看全部建筑，再点地图放置。|Select a villager and choose Economy, Military or Research. Swipe the commands or use arrows to see more buildings, then choose a map location.
@@ -198,9 +198,11 @@ V 时代飞艇工场先研发航空工程，再生产侦察热气球、运输飞
 狩猎|Hunting
 个单位|units
 集结与编队：|Rally Points & Control Groups:
-选生产建筑，右键地面或点击“设置集结点”可指定新兵去向；重置后在建筑前方出兵。Ctrl＋1–6 编队，数字键选择，双按定位；手机点“编入”再点组号。编队可混编。|Select a production building, then right-click the ground or choose Set Rally Point. Reset restores its front exit. Ctrl+1–6 assigns mixed or single-type groups; number keys select, double-tap focuses. On mobile, tap Assign, then a group number.
+选生产建筑，右键地面或点击“设置集结点”可指定新兵去向；重置后在建筑前方出兵。Ctrl＋1–6 编队，数字键选择，双按定位；手机点“编入”再点组号。编队可混编，建筑也能编队：选中多座同类建筑时，训练按钮每点一次交给队列最短的那座，右键地面统一设置集结点；手机长按建筑选中画面内同类。|Select a production building, then right-click the ground or choose Set Rally Point. Reset restores its front exit. Ctrl+1–6 assigns mixed or single-type groups; number keys select, double-tap focuses. On mobile, tap Assign, then a group number. Buildings can be grouped too: with several buildings of one type selected, each Train press goes to the one with the shortest queue, and right-clicking the ground sets one rally point for all; on touch, long-press a building to select all of that type on screen.
 先选部队，点击编入，再点组号|Select units, tap Assign, then a group number
+先选部队或建筑，点击编入，再点组号|Select units or buildings, tap Assign, then a group number
 编队为空：选择部队后 Ctrl + 数字，手机点击“编入”|Empty group: select units and press Ctrl + number, or tap Assign on mobile
+编队为空：选择部队或建筑后 Ctrl + 数字，手机点击“编入”|Empty group: select units or buildings and press Ctrl + number, or tap Assign on mobile
 编组|Assign group
 双按定位|Double-tap to focus
 正在狩猎 · 动物倒下后采集食物|Hunting · collect food after the animal falls
@@ -309,4 +311,19 @@ V 时代：只攻击建筑，飞越城墙；每次出击携弹 2 枚，弹尽后
 小熊猫|Little Panda
 单机隐藏伙伴：高生命、高护甲与爪击；输入“小熊猫”召唤|Hidden single-player companion: high health and armor, with powerful claw attacks. Enter the secret phrase to summon.
 开始战役|Start Campaign
+电脑鼠标：|Mouse:
+左键只负责选取：单击选中，拖框框选（框里有单位只选单位，没有单位才选建筑），Shift 加选，双击选中画面内同类。右键是智能指令：移动、攻击、采集、修理、施工、登船、贸易，生产建筑设集结点。A＋左键攻击前进，H 原地待命，右键或 ESC 取消建造。|Left click only selects: click to select, drag a box (units in the box win; buildings are picked only when there are no units), Shift adds, double-click selects that type on screen. Right click is the smart order: move, attack, gather, repair, build, board, trade, or set the rally point of production buildings. A + left click attack-moves, H holds position, right click or Esc cancels building.
+左键选取 · 右键移动 / 攻击 / 采集 · A＋左键攻击前进 · R 撤退 · WASD / 方向键移动视野|Left click select · Right click move / attack / gather · A + left click attack-move · R retreat · WASD / arrows pan
+左键选取，右键空地脱战移动；R / 撤退按钮返回主城|Left click selects, right-click ground to disengage. Press R or Retreat to return home
+名部队。右键敌人攻击，右键空地脱战|troops. Right-click an enemy to attack or ground to disengage
+右键敌人攻击，右键空地脱战|Right-click an enemy to attack or ground to disengage
+左键点击目的地或敌人：攻击前进（右键取消）|Left-click a destination or enemy: attack-move (right click cancels)
+已选择画面内同类建筑|Selected same-type buildings on screen
+原地待命 · H|Hold position · H
+原地待命|Hold position
+攻击沿途敌人 · A|Attack enemies on the way · A
+集结点已设置 · |Rally point set · 
+已取消建造|Building cancelled
+座建筑|buildings
+建筑 × |Buildings ×
 `.trim().split('\n').map(l=>{const i=l.indexOf('|');return[l.slice(0,i),l.slice(i+1)]})));if(typeof module!=='undefined')module.exports=root.KingdomLocaleData})(typeof window==='undefined'?globalThis:window);
