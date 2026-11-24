@@ -1,0 +1,34 @@
+{
+ "legacy": true,
+ "seconds": 65,
+ "join": {
+  "mode": "code",
+  "code": "335",
+  "roomId": "5G7WKD7J",
+  "defaults": {
+   "legacyBox": true,
+   "legacyChecked": false,
+   "betaBox": false
+  },
+  "lockstepRoom": false
+ },
+ "statuses": {
+  "rooms 200": 431,
+  "rooms 201": 1
+ },
+ "nonOk": [],
+ "pageErrors": [],
+ "tabs": [
+  {
+   "time": 71,
+   "nations": 3,
+   "connected": true
+  },
+  {
+   "time": 70.9,
+   "nations": 3,
+   "connected": true
+  }
+ ],
+ "pass": true
+}

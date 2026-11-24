@@ -49,10 +49,10 @@ function faultyFetch(f) {
   const endTurn = cfg.turns, samples = []; let stepMs = 0, steps = 0, maxStep = 0, finalAtEnd = null, switched = null, save = null, restart = null;
   const bot = createBot(K, cfg.seat, cfg.seats.find((x) => x.seat === cfg.seat)?.team ?? -1, cfg.botSeed || 1);
   const faults = { outage: cfg.outage ? { ...cfg.outage, done: false } : null, freeze: cfg.freeze ? { ...cfg.freeze, done: false } : null };
-  let client, transport, buildMs = 0, prevHashes = [], snaps = null;
+  let client, transport, buildMs = 0, prevHashes = [], snaps = null, savePending = null, mark = null;
   function session() {
     const b0 = Date.now();
-    const c = new LockstepClient({ K, commands, setup: cfg.setup, seat: cfg.seat, seats: cfg.seats, startAt: cfg.startAt, period: cfg.period, now });
+    const c = new LockstepClient({ K, commands, setup: cfg.setup, seat: cfg.seat, seats: cfg.seats, startAt: cfg.startAt, period: cfg.period, now, resumeAt: cfg.resume || null });
     buildMs = Date.now() - b0;
     const t = new AutoTransport({ mode: cfg.transport || 'http', httpUrl: cfg.base + '/api/lockstep/' + cfg.room, wsUrl: cfg.base.replace(/^http/, 'ws') + '/api/lockstep/' + cfg.room + '/ws' + (cfg.wsPath || ''), token: cfg.token, client: c, fetch, WebSocket: FlakyWS, timeout: cfg.timeout || 4000, stallMs: cfg.stallMs, onSwitch: (r) => { switched = r; } });
     if (cfg.trace) c.stats.trace = [];
@@ -63,7 +63,7 @@ function faultyFetch(f) {
       // The bot plays only on time and while this seat is not under computer control (a player cannot order during catch-up).
       if (!c.progress() && !c.aiSeats.has(cfg.seat)) for (const [type, args] of bot(c.sim, turn)) if (c.issue(type, args)) t.kick();
       if (c.nextTurn === endTurn) finalAtEnd = hashMod.checksum(c.sim).hash;
-      if (cfg.saveAt && c.nextTurn === cfg.saveAt && !save) save = saves.makeSave(c, cfg.room0 || { id: cfg.room, config: { capacity: cfg.seats.length, mode: 'ffa', mapId: cfg.setup.options.mapId, fog: true }, players: cfg.seats.map((x) => ({ seat: x.seat, name: 'Bot ' + (x.seat + 1), nation: cfg.setup.options.nations[x.team], group: cfg.setup.options.groups[x.team], team: x.team })) });
+      if (cfg.saveAt && c.nextTurn === cfg.saveAt && !save) { save = saves.makeSave(c, cfg.room0 || { id: cfg.room, config: { capacity: cfg.seats.length, mode: 'ffa', mapId: cfg.setup.options.mapId, fog: true }, players: cfg.seats.map((x) => ({ seat: x.seat, name: 'Bot ' + (x.seat + 1), nation: cfg.setup.options.nations[x.team], group: cfg.setup.options.groups[x.team], team: x.team })) }); savePending = saves.attachSnapshot(save, c); }
       if (turn % 600 === 0) samples.push({ turn, units: c.sim.s.units.length, t: Date.now() });
     };
     c.navRoom = cfg.room; snaps = cfg.snapshots === false ? null : attachSnapshots(c, { url: cfg.base + '/api/lockstep/' + cfg.room, token: cfg.token, onLoaded: () => t.resync(), fetch: (...a) => (offline() ? Promise.reject(new Error('offline (simulated)')) : globalThis.fetch(...a)) });
@@ -84,18 +84,20 @@ function faultyFetch(f) {
     }
     if (restart && !restart.caughtUp && client.sealed > restart.from && !client.progress() && client.nextTurn >= restart.from) { restart.caughtUp = Date.now() - restart.at; restart.turns = client.nextTurn; }
     snaps?.tick(); client.advance(cfg.budget || 40); await sleep(cfg.loop || 4);
+    if (cfg.markTurn && mark === null && client.nextTurn >= cfg.markTurn) mark = Date.now() - t0; // 3e: wall ms until the restore point is reached
     if (client.nextTurn !== lastTurn) { lastTurn = client.nextTurn; lastMove = Date.now(); }
     else if (cfg.stall && Date.now() - lastMove > cfg.stall * 1000) { stalled = { turn: client.nextTurn, sealed: client.sealed, seconds: cfg.stall }; break; }
   }
   // Keep reporting until the last checksums are delivered.
   const until = Date.now() + 3000; while (client.hashQueue.length && Date.now() < until && !client.desync) await sleep(20);
   transport.stop();
+  if (savePending) await savePending;
   const lat = client.stats.latency.slice().sort((a, b) => a - b), q = (p) => (lat.length ? Math.round(lat[Math.min(lat.length - 1, Math.floor(p * lat.length))]) : null);
   const wall = (Date.now() - t0) / 1000, sock = transport.active?.stats || null;
   process.stdout.write(JSON.stringify({ seat: cfg.seat, team: client.team, turns: client.nextTurn, steps: client.step, desync: client.desync, desyncInfo: client.desyncInfo, fatal: transport.fatal?.message || null,
     hashes: [...new Map([...prevHashes, ...client.hashLog])], final: finalAtEnd, units: client.sim.s.units.length,
     stats: { ...client.stats, latency: undefined, latencyN: lat.length, latencyP50: q(0.5), latencyP90: q(0.9), latencyMax: lat.length ? Math.round(lat[lat.length - 1]) : null, latencyAll: cfg.keepLatency ? lat : undefined },
     stalled, lost: fetch.stats, transport: transport.mode, fallback: switched, reconnects: client.stats.reconnects || 0, socket: sock, faults, restart, control: client.control, aiTeams: [...client.aiTeams], humanTeams: client.sim.s.humanTeams,
-    save, snapshots: snaps?.stats || null, snapshotTurn: client.stats.snapshotTurn ?? null, buildMs, wall, simMsPerTurn: steps ? stepMs / steps : 0, maxTurnMs: maxStep, rtt: client.rtt, delay: client.delay, samples, log: cfg.keepLog ? client.log : undefined }) + '\n');
+    save, mark, snapshots: snaps?.stats || null, snapshotTurn: client.stats.snapshotTurn ?? null, buildMs, wall, simMsPerTurn: steps ? stepMs / steps : 0, maxTurnMs: maxStep, rtt: client.rtt, delay: client.delay, samples, log: cfg.keepLog ? client.log : undefined }) + '\n');
   process.exit(0);
 })().catch((e) => { process.stdout.write(JSON.stringify({ seat: cfg.seat, error: String(e && e.stack || e) }) + '\n'); process.exit(1); });

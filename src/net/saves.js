@@ -3,15 +3,23 @@
    - restore the online room: the host opens a new room with it (new 3-digit code), the others join and claim their old
      seats, everybody replays the recording headless up to the save point and play continues (unclaimed seats -> computer);
    - be watched as a replay in single player.
-   Nothing here touches the simulation; the recording is the relay's ordered command stream (player + system commands). */
+   Nothing here touches the simulation; the recording is the relay's ordered command stream (player + system commands).
+
+   3e: a save also carries the newest 5-minute snapshot the client holds (snapshot {turn, step, hash, aiSeats, enc, data},
+   the same gzip+base64 JSON state the relay stores, see snapshots.js). Restoring uploads that snapshot plus only the
+   commands from its turn on; every client loads and verifies the snapshot and replays just the turns after it, instead of
+   replaying the whole match from turn 0. `from` is the first turn the save's commands cover (0 unless the match itself
+   was restored from a snapshot; then turns before `from` can only be reached through the snapshot). Saves without a
+   snapshot (shorter than 5 minutes, or made before 3e) restore from turn 0 as before. */
 
 import { checksum } from '../core/hash.js';
+import { encode, decode } from './snapshots.js';
 
 export const FORMAT = 'kingdom-lockstep-save', VERSION = 1, KEEP = 6, SEGMENT_BYTES = 48000;
 const DB_NAME = 'kingdom-online-saves', STORE = 'saves', LS_PREFIX = 'kingdom-online-save:';
 
 /* Builds a save from a running LockstepClient. room: the lobby room (publicRoom shape). */
-export function makeSave(client, room, { auto = false, commands = null } = {}) {
+export function makeSave(client, room, { auto = false, commands = null, from = null } = {}) {
   const players = (room.players || []).map((p, seat) => (p ? { seat, name: p.name, nation: p.nation, group: p.group, team: p.team ?? null } : null)).filter(Boolean);
   return {
     format: FORMAT, version: VERSION, savedAt: new Date().toISOString(), auto,
@@ -19,19 +27,44 @@ export function makeSave(client, room, { auto = false, commands = null } = {}) {
     self: client.seat, setup: client.setup, period: client.period, seats: [...client.teams].map(([seat, team]) => ({ seat, team })),
     turns: client.nextTurn, step: client.step, hash: checksum(client.sim).hash, aiSeats: [...client.aiSeats],
     // A client that resumed from a relay snapshot has no local log before it: the caller passes the relay recording instead.
+    from: from ?? (commands ? 0 : client.logFrom || 0),
     commands: (commands || client.log).filter((r) => r.turn < client.nextTurn).map((r) => ({ turn: r.turn, seat: r.seat, seq: r.seq, c: r.c })),
   };
 }
 
+/* Adds the client's newest snapshot (made or loaded at or after save.from, not after the save point). Encoding is cached
+   on the snapshot, so the 2-minute autosave compresses each snapshot once. Returns the save. */
+export async function attachSnapshot(save, client) {
+  const snap = client.lastSnap;
+  if (!snap || !snap.text && !snap.encoded || snap.turn > save.turns || snap.turn < (save.from || 0)) return save;
+  if (!snap.encoded) snap.encoded = await encode(snap.text);
+  save.snapshot = { turn: snap.turn, step: snap.step, hash: snap.hash, aiSeats: snap.aiSeats || [], enc: snap.encoded.enc, data: snap.encoded.data };
+  return save;
+}
+/* Decoded snapshot of a save ({turn, hash, text, aiSeats, encoded}) for LockstepClient.loadSnapshot / replayLockstep. */
+export async function saveSnapshot(save) {
+  const s = save?.snapshot; if (!s) return null;
+  return { turn: s.turn, hash: s.hash, aiSeats: s.aiSeats || [], text: await decode(s.data, s.enc), encoded: { enc: s.enc, data: s.data } };
+}
+/* First turn a restore has to replay: the snapshot's turn when the save has one, else 0. */
+export const restoreBase = (save) => (save?.snapshot ? save.snapshot.turn : 0);
+export function snapshotParts(save, size = SEGMENT_BYTES) {
+  const d = save.snapshot.data, out = []; for (let i = 0; i < d.length; i += size) out.push(d.slice(i, i + size)); return out.length ? out : [''];
+}
+
 export function validSave(save) {
-  return !!save && save.format === FORMAT && save.version === VERSION && save.setup && Array.isArray(save.commands) && Array.isArray(save.seats) && Number.isSafeInteger(save.turns);
+  if (!(!!save && save.format === FORMAT && save.version === VERSION && save.setup && Array.isArray(save.commands) && Array.isArray(save.seats) && Number.isSafeInteger(save.turns))) return false;
+  const s = save.snapshot, from = save.from || 0;
+  if (s && !(Number.isSafeInteger(s.turn) && s.turn > 0 && s.turn % 3000 === 0 && s.turn <= save.turns && s.turn >= from && s.step === s.turn * 2 && /^[0-9a-f]{8}$/.test(s.hash || '') && typeof s.data === 'string' && (s.enc === 'gzip' || s.enc === 'json'))) return false;
+  return from === 0 || !!s; // commands that start after turn 0 need the snapshot
 }
 
 /* Cuts the recording into upload segments of at most SEGMENT_BYTES, each ending on a turn boundary; the last one ends at
    turns - 1 (so a restored relay's catch-up never splits a turn). */
 export function segments(save, maxBytes = SEGMENT_BYTES) {
   const out = []; let rows = [], bytes = 2;
-  const byTurn = new Map(); for (const r of save.commands) { if (!byTurn.has(r.turn)) byTurn.set(r.turn, []); byTurn.get(r.turn).push([r.turn, r.seat, r.seq, r.c]); }
+  const base = restoreBase(save), byTurn = new Map();
+  for (const r of save.commands) { if (r.turn < base) continue; if (!byTurn.has(r.turn)) byTurn.set(r.turn, []); byTurn.get(r.turn).push([r.turn, r.seat, r.seq, r.c]); }
   const turns = [...byTurn.keys()].sort((a, b) => a - b);
   for (const t of turns) {
     const list = byTurn.get(t), size = list.reduce((n, r) => n + JSON.stringify(r).length + 1, 0);
@@ -52,7 +85,7 @@ function idb() {
   });
 }
 const tx = (db, mode, fn) => new Promise((resolve, reject) => { const t = db.transaction(STORE, mode), s = t.objectStore(STORE), out = fn(s); t.oncomplete = () => resolve(out.result ?? out); t.onerror = () => reject(t.error); });
-const meta = (key, save) => ({ key, savedAt: save.savedAt, auto: !!save.auto, room: save.room?.code || save.room?.id || '', map: save.setup?.options?.mapId, turns: save.turns, seconds: Math.round(save.turns / 10), players: (save.room?.players || []).map((p) => p.name), commands: save.commands.length });
+const meta = (key, save) => ({ key, savedAt: save.savedAt, auto: !!save.auto, room: save.room?.code || save.room?.id || '', map: save.setup?.options?.mapId, turns: save.turns, seconds: Math.round(save.turns / 10), snapshot: save.snapshot ? save.snapshot.turn : null, players: (save.room?.players || []).map((p) => p.name), commands: save.commands.length });
 
 export async function store(save) {
   const key = 'room:' + (save.room?.id || 'local');

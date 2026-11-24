@@ -1,4 +1,5 @@
-/* P3 step 3b: lockstep in the browser, behind the lobby's "新联机（测试）/ Lockstep (beta)" option (network-ui.js).
+/* P3 step 3b: lockstep in the browser. Since 3e it is the lobby default ("新联机 / Lockstep"); the old server-authoritative
+   polling stays one release as the "旧联机（备用）/ Classic online (backup)" option (network-ui.js).
    The page keeps its existing multiplayer presentation: the render-only replica (network-client.js KingdomNetworkClient) and
    all UI code are unchanged. What changes is where the replica's views come from — instead of server snapshots, this driver
    runs the full simulation locally, turn by turn on the relay's command lists, and hands the replica the same filtered
@@ -62,7 +63,8 @@ export function startBrowserLockstep(root, opts) {
   if (!K || !K.NetworkSim || !commands || !ls) throw new Error('lockstep: simulation or command rules not loaded');
   const now = () => root.performance.timeOrigin + root.performance.now();
   const executed = [];
-  const client = new LockstepClient({ K, commands, setup: ls.setup, seat: opts.seat, seats: ls.seats, startAt: ls.startAt, period: ls.period, now,
+  // 3e: a room restored from a save with a snapshot starts from that snapshot (ls.snap), not from turn 0.
+  const client = new LockstepClient({ K, commands, setup: ls.setup, seat: opts.seat, seats: ls.seats, startAt: ls.startAt, period: ls.period, now, resumeAt: ls.snap || null,
     onResult: (result, cmd, latency) => { executed.push({ type: cmd.type, latency, at: now() }); if (executed.length > 500) executed.shift(); opts.onResult?.(result, cmd, latency); } });
   client.onControl = (e) => opts.onControl?.(e, client);
   // Feature switch: the room's transport (set by the server: default ws since net lobby v2, LOCKSTEP_TRANSPORT=http forces HTTP); ?lockstep=ws|http overrides.
@@ -85,12 +87,15 @@ export function startBrowserLockstep(root, opts) {
 export function startReplayViewer(root, opts) {
   const K = root.KingdomSim, commands = root.KingdomNetCommands, rec = opts.recording;
   const seat = Number.isSafeInteger(opts.seat) ? opts.seat : rec.self ?? rec.seats?.[0]?.seat ?? 0;
-  let clock = 0, last = root.performance.now(), speed = opts.speed || 1, paused = false;
+  let last = root.performance.now(), speed = opts.speed || 1, paused = false;
   const total = rec.turns ?? (rec.commands.length ? rec.commands[rec.commands.length - 1].turn + 1 : 0);
   const client = new LockstepClient({ K, commands, setup: rec.setup, seat, seats: rec.seats, startAt: 0, period: rec.period || 100, now: () => root.performance.timeOrigin + root.performance.now(), hashes: false });
   client.issue = () => false;
   for (const r of rec.commands) client.receive({ t: [[r.turn, r.seat, r.seq, r.c]] });
+  // 3e: a save whose commands start after turn 0 (match restored from a snapshot) plays from its snapshot (opts.snapshot, decoded).
+  if (opts.snapshot) { const l = client.loadSnapshot(opts.snapshot); if (!l.ok) throw new Error('snapshot checksum'); }
   client.sealed = total - 1; client.sparseCatchup = false;
+  let clock = client.nextTurn;
   // Playhead: turns advance at `speed` per 100 ms; a seek target moves it at once (the driver then catches up headless).
   client.horizon = () => { const t = root.performance.now(); if (!paused) clock += (t - last) / client.period * speed; last = t; return Math.min(total - 1, Math.floor(clock)); };
   client.progress = () => { const behind = Math.min(total - 1, Math.floor(clock)) - client.nextTurn; return behind > CATCHUP ? { turn: client.nextTurn, target: Math.floor(clock), behind } : null; };

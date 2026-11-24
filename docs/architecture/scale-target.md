@@ -44,6 +44,8 @@ P1 结果（2026-11-17，`feature/p1-foundations`，见 `docs/p1-foundations.md`
 P2 素材流水线结果（2026-11-17，`feature/p2-asset-pipeline`，测法见 `docs/p2-asset-pipeline.md`）：首次加载到可玩（20 Mbit/s、40 ms）43.5 s → 9.8 s；部署包 270 → 76 MB；图集解码像素总量 775 → 447 MB（首屏 207 MB）；后期 412 单位场景渲染进程内存（无头 Chromium）约 1400 → 960 MB，**仍未达到 400 / 300 MB**，剩余主要是逐帧缓存画布（约 310 MB）和解码过程的分配器占用，需 P6 渲染改造继续压。
 内存预算与真机一致性（2026-11-17，`feature/memory-and-device-check`，见 `docs/memory-budget.md`、`docs/device-consistency-check.md`）：图集改为 `createImageBitmap` 解码进画布（不再在 Chromium 的可丢弃共享内存里常驻约 2 倍像素的解码缓存），所有运行期派生画布缓存（队伍色、攻击动作集、点选遮罩/幽灵、步态帧、建筑变体等 17 个）纳入一个全局 LRU 字节预算（电脑 160 MB、触屏 96 MB、低内存设备 64 MB）。后期 412 单位场景渲染进程内存（无头 Chromium，同一测法）电脑 **955 → 666 MB**、手机配置 **961 → 629 MB**，渲染耗时未变差（late-render render p50 26 → 22 ms）；**仍未达到 400 / 300 MB**：剩余约 284 MB 渲染进程地板、约 190 MB 启动时切好的常驻帧图和地形烘焙（留给 P6）、约 136 MB 预算内缓存。新增 `/consistency.html`：在任意浏览器里回放 3 段标准录像（战斗/建造/经济，40–60 s），每 1 秒对照 Node 生成的校验值，供 iPhone/iPad/Safari 真机自测；Chromium 全部一致，Safari 待用户真机结果。
 
+P3 锁步联机现状（2026-11-23，`feature/p3e-default`，见 `docs/p3-lockstep-progress.md` 第 9 节）：**新联机（锁步）已是大厅默认**——每台设备运行同一局模拟，服务器（WebSocket + D1，失败自动回退 HTTP）只转发指令、比对校验值，新联机房间在服务器上**不运行模拟**，中继每请求 CPU 与单位数无关（3a 实测 0.57–0.70 ms，60→186 单位不上升）；旧轮询联机保留一个版本作“旧联机（备用）”，下一版按 `docs/p3e/remove-legacy-online.md` 删除服务器模拟代码。带宽：WebSocket 每客户端净荷上行约 0.3 KB/s、下行约 1.1 KB/s（4 人，本机），8 人高 APM 的 HTTP 回退下行约 2.1–2.6 KB/s 略超预算。操作延迟：Node 无头客户端本机直连 p50 188 ms；headless 浏览器 p50 约 250 ms（主线程软件渲染拖慢），**真机未测**。长局：每 5 分钟快照，刷新/掉线追帧和存档恢复都从最近快照开始，30.5 分钟存档恢复到存档点 143 s → 4.8 s（本机，含 3 s 开局等待）。
+
 ## 3. 目标架构
 
 ```

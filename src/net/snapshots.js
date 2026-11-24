@@ -27,7 +27,7 @@ export function attachSnapshots(client, { url, token, fetch = (...a) => globalTh
     const data = JSON.parse(await res.text()); if (!res.ok) throw new Error(data?.error || 'HTTP ' + res.status); return data;
   };
   const stats = { uploads: 0, uploadBytes: 0, uploadMs: 0, loads: 0, loadMs: 0, failures: 0 };
-  let busy = false, tried = new Set();
+  let busy = false, tried = new Set(), retryAt = 0;
   const keeper = () => {
     const live = (client.seatInfo || []).filter((s) => !s.mode && s.age < 5000).map((s) => s.seat).sort((a, b) => a - b);
     return live.length ? live[0] === client.seat : client.seat === Math.min(...client.teams.keys());
@@ -46,16 +46,18 @@ export function attachSnapshots(client, { url, token, fetch = (...a) => globalTh
     stats,
     /* Called every pump: load an offered snapshot when it saves more than ~1 minute of replay. */
     tick() {
-      const offer = client.offer;
-      if (busy || !offer || tried.has(offer.turn) || client.nextTurn >= offer.turn - 600) return;
+      // 3e restored room (client.resumeAt): the room's own snapshot (or a newer verified offer) is required before any turn
+      // runs, so a failed download is retried every 2 s instead of being given up.
+      const need = client.resumeAt, offer = need ? (client.offer && client.offer.turn >= need.turn ? client.offer : need) : client.offer;
+      if (busy || !offer || (!need && tried.has(offer.turn)) || (need && Date.now() < retryAt) || client.nextTurn >= offer.turn - (need ? 0 : 600)) return;
       busy = true; tried.add(offer.turn); const t0 = Date.now();
       (async () => {
         const r = await post({ snapget: offer.turn });
-        if (r.hash !== offer.hash || client.nextTurn >= r.turn) return;
+        if (r.hash !== offer.hash || client.nextTurn >= r.turn) { if (need) { stats.failures++; retryAt = Date.now() + 2000; } return; }
         const text = (await Promise.all(r.data.map((p) => p))).join('');
-        const loaded = client.loadSnapshot({ turn: r.turn, hash: r.hash, text: await decode(text, r.meta?.enc), aiSeats: r.meta?.aiSeats || [], seq: r.seq });
-        if (loaded.ok) { stats.loads++; stats.loadMs += Date.now() - t0; onLoaded?.(r.turn, Date.now() - t0); } else stats.failures++;
-      })().catch((e) => { stats.failures++; onError?.(e); }).finally(() => { busy = false; });
+        const loaded = client.loadSnapshot({ turn: r.turn, hash: r.hash, text: await decode(text, r.meta?.enc), aiSeats: r.meta?.aiSeats || [], seq: r.seq, encoded: { enc: r.meta?.enc === 'gzip' ? 'gzip' : 'json', data: text } });
+        if (loaded.ok) { stats.loads++; stats.loadMs += Date.now() - t0; stats.lastLoad = { turn: r.turn, ms: Date.now() - t0, bytes: text.length }; onLoaded?.(r.turn, Date.now() - t0); } else { stats.failures++; retryAt = Date.now() + 2000; }
+      })().catch((e) => { stats.failures++; retryAt = Date.now() + 2000; onError?.(e); }).finally(() => { busy = false; });
     },
   };
 }

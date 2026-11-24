@@ -1,0 +1,406 @@
+[
+ {
+  "lang": "zh",
+  "view": "phone-portrait",
+  "size": "390x844",
+  "lobbyShot": "docs/p3e/lobby-phone-portrait-zh.png",
+  "backupOption": {
+   "x": 33,
+   "y": 440,
+   "w": 324,
+   "h": 23,
+   "inViewport": true,
+   "text": "旧联机（备用）",
+   "checked": false
+  },
+  "openListTags": [
+   "旧联机（备用）",
+   "新联机"
+  ],
+  "dialogOverflowX": false,
+  "entryProbe": {
+   "viewport": {
+    "width": 390,
+    "height": 844
+   },
+   "language": "zh-CN",
+   "scope": "#network-dialog",
+   "collapsed": false,
+   "findings": [
+    {
+     "type": "covered-control",
+     "severity": "review",
+     "element": "button.primary",
+     "text": "加入",
+     "rect": {
+      "x": 274,
+      "y": 50.734375,
+      "w": 72,
+      "h": 42.390625,
+      "right": 346,
+      "bottom": 93.125
+     },
+     "detail": "Center hit belongs to div.net-head"
+    }
+   ]
+  },
+  "rules": "自由外交 · 潮汐群岛 · 标准矿藏 · 战争迷雾关闭 · 空位由电脑补齐 · 新联机",
+  "matchShot": "docs/p3e/match-badge-phone-portrait-zh.png",
+  "badge": {
+   "x": 163,
+   "y": 110,
+   "w": 64,
+   "h": 23,
+   "inViewport": true,
+   "text": "新联机 478"
+  },
+  "transport": "ws",
+  "matchProbe": {
+   "viewport": {
+    "width": 390,
+    "height": 844
+   },
+   "language": "zh-CN",
+   "scope": "game",
+   "collapsed": false,
+   "findings": [
+    {
+     "type": "text-clipped",
+     "severity": "review",
+     "element": "#selected-info",
+     "text": "训练村民（军械工程师已并入村民）；推进时代，扩展人口与经济。II 时代起村民可建造新的城镇中心（275 木材 + 100 石料）：每方最多 3 座，须离己方城镇中心至少 700；新城同样训练村民、接收",
+     "rect": {
+      "x": 67,
+      "y": 606,
+      "w": 165,
+      "h": 12.5,
+      "right": 232,
+      "bottom": 618.5
+     },
+     "detail": "Check screenshot and Details access; deliberate ellipsis may be acceptable"
+    }
+   ]
+  },
+  "errors": [],
+  "server5xx": []
+ },
+ {
+  "lang": "zh",
+  "view": "phone-landscape",
+  "size": "844x390",
+  "lobbyShot": "docs/p3e/lobby-phone-landscape-zh.png",
+  "backupOption": {
+   "x": 103,
+   "y": 183,
+   "w": 307,
+   "h": 23,
+   "inViewport": true,
+   "text": "旧联机（备用）",
+   "checked": false
+  },
+  "openListTags": [
+   "旧联机（备用）",
+   "新联机"
+  ],
+  "dialogOverflowX": false,
+  "entryProbe": {
+   "viewport": {
+    "width": 844,
+    "height": 390
+   },
+   "language": "zh-CN",
+   "scope": "#network-dialog",
+   "collapsed": true,
+   "findings": []
+  },
+  "rules": "自由外交 · 潮汐群岛 · 标准矿藏 · 战争迷雾关闭 · 空位由电脑补齐 · 新联机",
+  "matchShot": "docs/p3e/match-badge-phone-landscape-zh.png",
+  "badge": {
+   "x": 676,
+   "y": 42,
+   "w": 58,
+   "h": 21,
+   "inViewport": true,
+   "text": "新联机 797"
+  },
+  "transport": "ws",
+  "matchProbe": {
+   "viewport": {
+    "width": 844,
+    "height": 390
+   },
+   "language": "zh-CN",
+   "scope": "game",
+   "collapsed": true,
+   "findings": []
+  },
+  "errors": [],
+  "server5xx": []
+ },
+ {
+  "lang": "zh",
+  "view": "ipad-landscape",
+  "size": "1180x820",
+  "lobbyShot": "docs/p3e/lobby-ipad-landscape-zh.png",
+  "backupOption": {
+   "x": 274,
+   "y": 435,
+   "w": 325,
+   "h": 23,
+   "inViewport": true,
+   "text": "旧联机（备用）",
+   "checked": false
+  },
+  "openListTags": [
+   "旧联机（备用）",
+   "新联机"
+  ],
+  "dialogOverflowX": false,
+  "entryProbe": {
+   "viewport": {
+    "width": 1180,
+    "height": 820
+   },
+   "language": "zh-CN",
+   "scope": "#network-dialog",
+   "collapsed": false,
+   "findings": []
+  },
+  "rules": "自由外交 · 潮汐群岛 · 标准矿藏 · 战争迷雾关闭 · 空位由电脑补齐 · 新联机",
+  "matchShot": "docs/p3e/match-badge-ipad-landscape-zh.png",
+  "badge": {
+   "x": 559,
+   "y": 49,
+   "w": 62,
+   "h": 23,
+   "inViewport": true,
+   "text": "新联机 912"
+  },
+  "transport": "ws",
+  "matchProbe": {
+   "viewport": {
+    "width": 1180,
+    "height": 820
+   },
+   "language": "zh-CN",
+   "scope": "game",
+   "collapsed": false,
+   "findings": [
+    {
+     "type": "text-clipped",
+     "severity": "review",
+     "element": "#selected-info",
+     "text": "训练村民（军械工程师已并入村民）；推进时代，扩展人口与经济。II 时代起村民可建造新的城镇中心（275 木材 + 100 石料）：每方最多 3 座，须离己方城镇中心至少 700；新城同样训练村民、接收",
+     "rect": {
+      "x": 77,
+      "y": 720.125,
+      "w": 165,
+      "h": 27.5,
+      "right": 242,
+      "bottom": 747.625
+     },
+     "detail": "Check screenshot and Details access; deliberate ellipsis may be acceptable"
+    }
+   ]
+  },
+  "errors": [],
+  "server5xx": []
+ },
+ {
+  "lang": "zh",
+  "view": "desktop",
+  "size": "1280x800",
+  "lobbyShot": "docs/p3e/lobby-desktop-zh.png",
+  "backupOption": {
+   "x": 324,
+   "y": 416,
+   "w": 325,
+   "h": 23,
+   "inViewport": true,
+   "text": "旧联机（备用）",
+   "checked": false
+  },
+  "openListTags": [
+   "旧联机（备用）",
+   "新联机"
+  ],
+  "dialogOverflowX": false,
+  "entryProbe": {
+   "viewport": {
+    "width": 1280,
+    "height": 800
+   },
+   "language": "zh-CN",
+   "scope": "#network-dialog",
+   "collapsed": false,
+   "findings": []
+  },
+  "rules": "自由外交 · 潮汐群岛 · 标准矿藏 · 战争迷雾关闭 · 空位由电脑补齐 · 新联机",
+  "matchShot": "docs/p3e/match-badge-desktop-zh.png",
+  "badge": {
+   "x": 608,
+   "y": 49,
+   "w": 64,
+   "h": 23,
+   "inViewport": true,
+   "text": "新联机 632"
+  },
+  "transport": "ws",
+  "matchProbe": {
+   "viewport": {
+    "width": 1280,
+    "height": 800
+   },
+   "language": "zh-CN",
+   "scope": "game",
+   "collapsed": false,
+   "findings": [
+    {
+     "type": "text-clipped",
+     "severity": "review",
+     "element": "#selected-info",
+     "text": "训练村民（军械工程师已并入村民）；推进时代，扩展人口与经济。II 时代起村民可建造新的城镇中心（275 木材 + 100 石料）：每方最多 3 座，须离己方城镇中心至少 700；新城同样训练村民、接收",
+     "rect": {
+      "x": 77,
+      "y": 700.125,
+      "w": 165,
+      "h": 27.5,
+      "right": 242,
+      "bottom": 727.625
+     },
+     "detail": "Check screenshot and Details access; deliberate ellipsis may be acceptable"
+    }
+   ]
+  },
+  "errors": [],
+  "server5xx": []
+ },
+ {
+  "lang": "en",
+  "view": "phone-portrait",
+  "size": "390x844",
+  "lobbyShot": "docs/p3e/lobby-phone-portrait-en.png",
+  "backupOption": {
+   "x": 33,
+   "y": 410,
+   "w": 324,
+   "h": 23,
+   "inViewport": true,
+   "text": "Classic online (backup)",
+   "checked": false
+  },
+  "openListTags": [
+   "Classic online (backup)",
+   "Lockstep"
+  ],
+  "dialogOverflowX": false,
+  "entryProbe": {
+   "viewport": {
+    "width": 390,
+    "height": 844
+   },
+   "language": "en",
+   "scope": "#network-dialog",
+   "collapsed": false,
+   "findings": []
+  },
+  "errors": [],
+  "server5xx": []
+ },
+ {
+  "lang": "en",
+  "view": "phone-landscape",
+  "size": "844x390",
+  "lobbyShot": "docs/p3e/lobby-phone-landscape-en.png",
+  "backupOption": {
+   "x": 103,
+   "y": 183,
+   "w": 307,
+   "h": 23,
+   "inViewport": true,
+   "text": "Classic online (backup)",
+   "checked": false
+  },
+  "openListTags": [
+   "Classic online (backup)",
+   "Lockstep"
+  ],
+  "dialogOverflowX": false,
+  "entryProbe": {
+   "viewport": {
+    "width": 844,
+    "height": 390
+   },
+   "language": "en",
+   "scope": "#network-dialog",
+   "collapsed": true,
+   "findings": []
+  },
+  "errors": [],
+  "server5xx": []
+ },
+ {
+  "lang": "en",
+  "view": "ipad-landscape",
+  "size": "1180x820",
+  "lobbyShot": "docs/p3e/lobby-ipad-landscape-en.png",
+  "backupOption": {
+   "x": 274,
+   "y": 399,
+   "w": 325,
+   "h": 23,
+   "inViewport": true,
+   "text": "Classic online (backup)",
+   "checked": false
+  },
+  "openListTags": [
+   "Classic online (backup)",
+   "Lockstep"
+  ],
+  "dialogOverflowX": false,
+  "entryProbe": {
+   "viewport": {
+    "width": 1180,
+    "height": 820
+   },
+   "language": "en",
+   "scope": "#network-dialog",
+   "collapsed": false,
+   "findings": []
+  },
+  "errors": [],
+  "server5xx": []
+ },
+ {
+  "lang": "en",
+  "view": "desktop",
+  "size": "1280x800",
+  "lobbyShot": "docs/p3e/lobby-desktop-en.png",
+  "backupOption": {
+   "x": 324,
+   "y": 389,
+   "w": 325,
+   "h": 23,
+   "inViewport": true,
+   "text": "Classic online (backup)",
+   "checked": false
+  },
+  "openListTags": [
+   "Classic online (backup)",
+   "Lockstep"
+  ],
+  "dialogOverflowX": false,
+  "entryProbe": {
+   "viewport": {
+    "width": 1280,
+    "height": 800
+   },
+   "language": "en",
+   "scope": "#network-dialog",
+   "collapsed": false,
+   "findings": []
+  },
+  "errors": [],
+  "server5xx": []
+ }
+]

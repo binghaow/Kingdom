@@ -60,7 +60,7 @@ const VIEWS = [['phone-portrait', 390, 844], ['phone-landscape', 844, 390], ['ip
     const A = await tab('A'), B = await tab('B');
     // Lobby: 3 seats, computer fills the third, lockstep.
     await A.page.click('#open-online'); await sleep(400); await A.page.fill('#net-name', '甲'); await A.page.selectOption('#net-capacity', '3');
-    await A.page.check('#net-fill'); await A.page.check('#net-lockstep'); await A.page.click('#net-create');
+    await A.page.check('#net-fill'); /* 3e: Lockstep is the default */ await A.page.click('#net-create');
     await A.page.waitForFunction(() => document.getElementById('net-room-code')?.textContent?.trim(), null, { timeout: 20000 });
     const code = (await A.page.textContent('#net-room-code')).trim();
     await B.page.click('#open-online'); await sleep(400); await B.page.fill('#net-name', '乙'); await B.page.click('#net-code'); await B.page.keyboard.type(code, { delay: 100 });

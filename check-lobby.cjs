@@ -139,5 +139,23 @@ async function test(n, f) { await f(); done.push(n); }
     assert(ui.includes("fetch('/api/rooms/open'")); assert(ui.includes('navigator.share'));
     for (const t of ['开放房间', '输入房间码', '仅邀请（不出现在列表）', '分享邀请', '旧联机', '分钟前', '刚刚创建']) assert(loc.includes('\n' + t + '|'), t);
   });
+  await test('3e: Lockstep is the lobby default; classic polling is the backup option', async () => {
+    const ui = fs.readFileSync('public/network-ui.js', 'utf8'), loc = fs.readFileSync('public/network-locale.js', 'utf8');
+    assert(!ui.includes('id="net-lockstep"'), 'no opt-in Lockstep box any more');
+    assert(/<input id="net-legacy" type="checkbox">旧联机（备用）/.test(ui), 'backup option, unchecked by default');
+    assert(ui.includes("...($('net-legacy').checked?{}:{lockstep:true})"), 'create sends lockstep:true unless the backup option is ticked');
+    assert(!ui.includes("tr('新联机（测试）')") && ui.includes("tr(r.lockstep?'新联机':'旧联机（备用）')"), 'labels without (beta)');
+    for (const t of ['新联机', '旧联机（备用）', '新联机连不上时再用：服务器运行整局模拟。下一版将删除', '正在下载并校验存档快照…', '正在上传存档快照']) assert(loc.includes('\n' + t + '|'), t);
+    // What the default create sends gives a lockstep room (no server simulation); the backup option keeps the old room.
+    const ls = await call('/api/rooms', { name: '默认', nation: 'britain', config: { capacity: 2, mapId: 'coast_s', lockstep: true, fillAI: true } }, null, 201, '10.9.0.1');
+    assert.equal(ls.room.config.lockstep, true);
+    await call('/api/rooms/' + ls.room.id, { action: 'settings', ready: true }, ls.token, 200, '10.9.0.1');
+    const st = await call('/api/rooms/' + ls.room.id, { action: 'start' }, ls.token, 200, '10.9.0.1');
+    assert(st.room.lockstep && st.room.lockstep.setup && !st.view, 'lockstep room: setup only, no server view');
+    const row = await new S.Store(env.DB).get(ls.room.id, clock); assert.equal(row.room.state, null, 'no server simulation state for a lockstep room');
+    await call('/api/rooms/' + ls.room.id, { commands: [{ seq: 1, type: 'chat', args: { text: 'x' } }] }, ls.token, 409, '10.9.0.1');
+    const old = await call('/api/rooms', { name: '旧', nation: 'britain', config: { capacity: 2, mapId: 'coast_s', fillAI: true } }, null, 201, '10.9.0.2');
+    assert(!('lockstep' in old.room.config));
+  });
   console.log('PASS lobby v2: ' + done.length + ' checks — ' + done.join('; '));
 })().catch((e) => { console.error(e); process.exitCode = 1; });

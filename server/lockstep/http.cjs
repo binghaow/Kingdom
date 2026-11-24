@@ -53,14 +53,21 @@ async function batch(db, statements) {
 
 /* Called by the lobby (server/service.cjs start) once a lockstep room starts, or directly by test harnesses.
    seats: [{seat, team, token: sha256 of the seat token, human}] */
-async function createRoom(raw, { id, setup, seats, startAt, period = core.PERIOD, now = Date.now(), base = 0, system = [] }) {
+async function createRoom(raw, { id, setup, seats, startAt, period = core.PERIOD, now = Date.now(), base = 0, system = [], snapshot = null }) {
   await ensureSchema(raw); const db = session(raw);
   if (!Array.isArray(seats) || !seats.length || seats.length > core.MAX_SEATS) throw Object.assign(new Error('座位数无效'), { status: 400 });
   const expired = (await db.prepare('SELECT id FROM lockstep_rooms WHERE expires_at < ? LIMIT 4').bind(now).all()).results.map((r) => r.id);
   const statements = [];
   for (const room of [...expired, id]) for (const table of ['lockstep_cmds', 'lockstep_seats', 'lockstep_hashes']) statements.push(db.prepare(`DELETE FROM ${table} WHERE room = ?`).bind(room));
   for (const room of expired) statements.push(db.prepare('DELETE FROM lockstep_segments WHERE room = ?').bind(room), db.prepare('DELETE FROM lockstep_snapshots WHERE room = ?').bind(room), db.prepare('DELETE FROM lockstep_snapshot_parts WHERE room = ?').bind(room), db.prepare('DELETE FROM lockstep_rooms WHERE id = ?').bind(room));
-  statements.push(db.prepare('DELETE FROM lockstep_snapshots WHERE room = ?').bind(id), db.prepare('DELETE FROM lockstep_snapshot_parts WHERE room = ?').bind(id));
+  // Snapshots uploaded for a restore room that never started (no relay room) expire with the room lifetime.
+  statements.push(db.prepare('DELETE FROM lockstep_snapshot_parts WHERE room IN (SELECT room FROM lockstep_snapshots WHERE at < ?1 AND room NOT IN (SELECT id FROM lockstep_rooms) LIMIT 4)').bind(now - LIFETIME),
+    db.prepare('DELETE FROM lockstep_snapshots WHERE room IN (SELECT room FROM lockstep_snapshots WHERE at < ?1 AND room NOT IN (SELECT id FROM lockstep_rooms) LIMIT 4)').bind(now - LIFETIME));
+  // 3e restored room with a snapshot: keep the snapshot the host uploaded in the lobby (putRestoreSnapshot) and record its
+  // checksum as the agreed step hash, so it is offered and verified exactly like a snapshot made during the match.
+  if (!snapshot) statements.push(db.prepare('DELETE FROM lockstep_snapshots WHERE room = ?').bind(id), db.prepare('DELETE FROM lockstep_snapshot_parts WHERE room = ?').bind(id));
+  else statements.push(db.prepare('DELETE FROM lockstep_snapshots WHERE room = ?1 AND turn <> ?2').bind(id, snapshot.turn), db.prepare('DELETE FROM lockstep_snapshot_parts WHERE room = ?1 AND turn <> ?2').bind(id, snapshot.turn),
+    db.prepare('INSERT INTO lockstep_hashes (room, step, hash, agree, bad) VALUES (?1, ?2, ?3, 0, NULL)').bind(id, snapshot.step, snapshot.hash));
   // Restored room (3c): the clock starts at turn `base`, turns before it are already sealed (segments uploaded by the host).
   statements.push(db.prepare('INSERT OR REPLACE INTO lockstep_rooms (id, start_at, period, sealed, delay, setup, seats, status, desync, expires_at, base) VALUES (?, ?, ?, ?, ?, ?, ?, \'playing\', NULL, ?, ?)')
     .bind(id, startAt, period, base - 1, core.D_MIN, JSON.stringify(setup), JSON.stringify(seats.map((s) => ({ seat: s.seat, team: s.team, human: s.human !== false }))), now + LIFETIME, base));
@@ -190,6 +197,22 @@ async function putSnapshot(raw, id, head, snap, now) {
   ]);
   return { ok: true, stored: r[4].results[0].n };
 }
+/* 3e restore: the host uploads the save's snapshot in the lobby, before the relay room exists (part i of parts). The header row
+   is (re)written with every part; a part of a different header is dropped by the same guard as putSnapshot. Returns the
+   number of parts stored. */
+async function putRestoreSnapshot(raw, id, sn, part, data) {
+  await ensureSchema(raw); const db = session(raw), meta = JSON.stringify({ aiSeats: sn.aiSeats || [], enc: sn.enc === 'gzip' ? 'gzip' : 'json', seat: -1 });
+  const r = await batch(db, [
+    db.prepare('DELETE FROM lockstep_snapshot_parts WHERE room = ?1 AND turn IN (SELECT turn FROM lockstep_snapshots WHERE room = ?1 AND (turn <> ?2 OR hash <> ?3 OR parts <> ?4 OR meta <> ?5))').bind(id, sn.turn, sn.hash, sn.parts, meta),
+    db.prepare('DELETE FROM lockstep_snapshots WHERE room = ?1 AND (turn <> ?2 OR hash <> ?3 OR parts <> ?4 OR meta <> ?5)').bind(id, sn.turn, sn.hash, sn.parts, meta),
+    db.prepare('INSERT INTO lockstep_snapshots (room, turn, step, hash, parts, meta, at) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7) ON CONFLICT (room, turn) DO NOTHING').bind(id, sn.turn, sn.turn * core.STEPS_PER_TURN, sn.hash, sn.parts, meta, Date.now()),
+    db.prepare('INSERT OR REPLACE INTO lockstep_snapshot_parts (room, turn, part, data) VALUES (?1, ?2, ?3, ?4)').bind(id, sn.turn, part, data),
+    db.prepare('SELECT COUNT(*) AS n FROM lockstep_snapshot_parts WHERE room = ?1 AND turn = ?2').bind(id, sn.turn),
+  ]);
+  return r[4].results[0].n;
+}
+async function restoreSnapshotParts(raw, id, turn) { await ensureSchema(raw); return (await session(raw).prepare('SELECT COUNT(*) AS n FROM lockstep_snapshot_parts WHERE room = ?1 AND turn = ?2').bind(id, turn).first())?.n || 0; }
+
 async function getSnapshot(raw, id, head, turn) {
   const db = session(raw), r = await batch(db, [
     db.prepare('SELECT turn, step, hash, parts, meta FROM lockstep_snapshots WHERE room = ?1 AND turn = ?2').bind(id, turn),
@@ -325,4 +348,4 @@ async function handleSocket(request, env) {
   return new Response(null, { status: 101, webSocket: pair[0] });
 }
 
-module.exports = { SOCKET_BUDGET, HEARTBEAT, putSegment, segmentCount, dropSegments, handle, handleSocket, attachSocket, exchange, lookup, createRoom, ensureSchema, SCHEMA, replayText };
+module.exports = { SNAP_PART, SNAP_PARTS, putRestoreSnapshot, restoreSnapshotParts, SOCKET_BUDGET, HEARTBEAT, putSegment, segmentCount, dropSegments, handle, handleSocket, attachSocket, exchange, lookup, createRoom, ensureSchema, SCHEMA, replayText };

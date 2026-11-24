@@ -266,5 +266,15 @@
 存档开局参数无效|Invalid save setup
 存档座位无效|Invalid save seats
 存档开局参数过大|Save setup is too large
+新联机|Lockstep
+旧联机（备用）|Classic online (backup)
+新联机连不上时再用：服务器运行整局模拟。下一版将删除|Use only if Lockstep cannot connect: the server runs the whole match. It will be removed in the next release
+快照|Snapshot
+只回放之后的部分|only later turns are replayed
+正在上传存档快照|Uploading save snapshot
+正在下载并校验存档快照…|Downloading and verifying the save snapshot…
+存档快照无效|Save snapshot is invalid
+存档快照分段无效|Save snapshot part is invalid
+存档快照还在上传，请稍候|The save snapshot is still uploading, please wait
 本机与多数玩家不同步，已退出本局（可下载录像）|This device is out of sync with the majority and has left the match (replay can be downloaded)
 `.trim().split('\n').map(l=>{const i=l.indexOf('|');return[l.slice(0,i),l.slice(i+1)]})));if(typeof module!=='undefined')module.exports=root.KingdomLocaleData})(typeof window==='undefined'?globalThis:window);
