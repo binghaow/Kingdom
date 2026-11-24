@@ -12,6 +12,8 @@ import * as replay from './replay/replay.js';
 import { startBrowserLockstep, startReplayViewer } from './net/browser.js';
 import { replayLockstep } from './net/lockstep.js';
 import * as saves from './net/saves.js';
+import * as clock from './core/clock.js';
+import { createSimWorker } from './sim/client.js';
 
 const root = typeof window !== 'undefined' ? window : globalThis;
 const query = (() => { try { return new URLSearchParams(root.location?.search || ''); } catch { return new URLSearchParams(''); } })();
@@ -104,6 +106,18 @@ core.lockstep = {
 };
 
 core.installed = install(root.KingdomSim);
+
+/* P4: fixed-step constants for expansion.js (src/core/clock.js). */
+core.clock = { STEP: clock.STEP, MAX_DT: clock.MAX_DT, MAX_STEPS: clock.MAX_STEPS, FixedStep: clock.FixedStep };
+/* P4 step 4c-1: ?simWorker=1 runs a single-player game's simulation in a Web Worker (public/sim-worker.js). Off by default:
+   core.simWorker stays null and expansion.js takes exactly the main-thread path. */
+core.simWorker = query.get('simWorker') === '1' && typeof root.Worker === 'function' ? createSimWorker(root, {
+  url: 'sim-worker.js', debug: query.has('perf'),
+  getK: () => root.KingdomSim,
+  // the worker records the game (its own replay recorder); the page's recorder on this instance would only see predictions
+  onAdopt: (sim) => { const r = core.replay.current; if (r && r.sim === sim) { r.detach(); core.replay.current = null; } },
+  onFallback: (reason) => { core.simWorker.lastFallback = reason; try { root.console?.warn?.('simWorker fallback to main thread:', reason); } catch { /* ignore */ } },
+}) : null;
 debugButton();
 root.KingdomCore = core;
 export default core;

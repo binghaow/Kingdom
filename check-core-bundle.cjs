@@ -9,6 +9,8 @@ const dist=process.argv.includes('--dist'),ROOT=__dirname,dir=path.join(ROOT,dis
 const {build}=require('./scripts/build-core.cjs');
 const file=path.join(dir,'kingdom-core.js');assert(fs.existsSync(file),'missing '+path.relative(ROOT,file));
 const code=fs.readFileSync(file,'utf8');assert.equal(code,build().code,path.relative(ROOT,file)+' is stale: run npm run build');
+// P4 4c-1: the simulation worker bundle (?simWorker=1) must be rebuilt whenever src/sim or a public/ simulation script changes.
+{const {buildWorker}=require('./scripts/build-core.cjs'),wf=path.join(dir,'sim-worker.js');assert(fs.existsSync(wf),'missing '+path.relative(ROOT,wf));assert.equal(fs.readFileSync(wf,'utf8'),buildWorker().code,path.relative(ROOT,wf)+' is stale: run npm run build')}
 const html=fs.readFileSync(path.join(dir,'index.html'),'utf8'),scripts=[...html.matchAll(/<script src="([^"]+)"/g)].map(m=>m[1]);
 assert.equal(scripts.filter(s=>s==='kingdom-core.js').length,1,'index.html must load kingdom-core.js exactly once');
 const at=scripts.indexOf('kingdom-core.js');assert(at>scripts.indexOf('network-model.js')&&at>scripts.indexOf('network-client.js'),'kingdom-core.js must follow the simulation scripts');assert(at<scripts.indexOf('expansion.js'),'kingdom-core.js must precede expansion.js (it creates the first game)');

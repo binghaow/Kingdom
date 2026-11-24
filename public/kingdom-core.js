@@ -1562,6 +1562,406 @@
     setTimeout(() => URL.revokeObjectURL(a.href), 1e3);
   }
 
+  // src/core/clock.js
+  var STEP3 = 0.05;
+  var MAX_DT = 0.25;
+  var MAX_STEPS = 4;
+  var FixedStep = class {
+    constructor({ step = STEP3, maxDt = MAX_DT, maxSteps = MAX_STEPS } = {}) {
+      this.step = step;
+      this.maxDt = maxDt;
+      this.maxSteps = maxSteps;
+      this.acc = 0;
+      this.dropped = 0;
+      this.steps = 0;
+    }
+    frame(seconds) {
+      this.acc += Math.min(Math.max(Number(seconds) || 0, 0), this.maxDt);
+      let n = 0;
+      while (this.acc >= this.step && n < this.maxSteps) {
+        this.acc -= this.step;
+        n++;
+      }
+      if (this.acc >= this.step) {
+        const drop = Math.floor(this.acc / this.step);
+        this.dropped += drop;
+        this.acc -= drop * this.step;
+      }
+      this.steps += n;
+      return n;
+    }
+    get alpha() {
+      return Math.min(1, Math.max(0, this.acc / this.step));
+    }
+    reset() {
+      this.acc = 0;
+    }
+  };
+
+  // src/sim/frames.js
+  function mergeNodes(prev, delta) {
+    const byId2 = /* @__PURE__ */ new Map();
+    for (const n of prev || []) byId2.set(n.id, n);
+    for (const n of delta.changed) byId2.set(n.id, n);
+    const order = delta.order || (prev || []).map((n) => n.id);
+    const out = new Array(order.length);
+    for (let i = 0; i < order.length; i++) out[i] = byId2.get(order[i]);
+    return out;
+  }
+  function encodeForWorker(v, depth = 0) {
+    if (v === void 0) return { $u: 1 };
+    if (v === null || typeof v === "string" || typeof v === "boolean") return v;
+    if (typeof v === "number") return Number.isFinite(v) ? v : { $n: String(v) };
+    if (typeof v === "function") return { $u: 1 };
+    if (depth > 6) throw Error("simWorker: argument nested too deeply");
+    if (Array.isArray(v)) return v.map((x) => encodeForWorker(x, depth + 1));
+    if (typeof v === "object") {
+      if (typeof v.id === "number" && typeof v.kind === "string") return { $e: v.id };
+      const out = {};
+      for (const k of Object.keys(v)) if (typeof v[k] !== "function") out[k] = encodeForWorker(v[k], depth + 1);
+      return out;
+    }
+    return null;
+  }
+  function decodeLocal(sim, enc, orig) {
+    if (enc === null || typeof enc !== "object") return enc;
+    if (Array.isArray(enc)) return enc.map((x, i) => decodeLocal(sim, x, Array.isArray(orig) ? orig[i] : void 0));
+    if ("$u" in enc) return void 0;
+    if ("$n" in enc) return Number(enc.$n);
+    if ("$e" in enc) return sim.byId(enc.$e) ?? orig;
+    const out = {};
+    for (const k of Object.keys(enc)) out[k] = decodeLocal(sim, enc[k], orig?.[k]);
+    return out;
+  }
+  function resultOf2(r) {
+    if (r === void 0 || r === null || typeof r === "string" || typeof r === "boolean" || typeof r === "number") return r ?? null;
+    if (typeof r.id === "number") return { $e: r.id };
+    if (typeof r.error === "string") return { error: r.error };
+    if (r.building && typeof r.building.id === "number") return { building: r.building.id };
+    if (typeof r.count === "number") return { count: r.count, error: r.error ?? null };
+    return "[object]";
+  }
+
+  // src/sim/client.js
+  var UI_KEYS = ["controlGroups"];
+  var NOOP_ON_PROXY = ["updateFog"];
+  function createSimWorker(root2, { url = "sim-worker.js", debug = false, getK, onAdopt, onFallback } = {}) {
+    const perf = root2.performance;
+    let worker = null, sim = null, ready = false, busy = false, owed = 0, seq = 0, queue = [], pendingFrames = [], scheduled = false;
+    let initHash = null, appliedAt = 0, span = STEP3 * 1e3, frameStep = 0, navRev = 0, localFx = [], lastPump = 0, depth = 0, failed = null;
+    let prev = /* @__PURE__ */ new Map();
+    const waiting = /* @__PURE__ */ new Map(), predicted = /* @__PURE__ */ new Map();
+    const stats = { frames: 0, applyMs: 0, maxApplyMs: 0, postMs: 0, requests: 0, owedDropped: 0, commands: 0, mismatches: [], worker: null, error: null, fallback: null };
+    function post(msg) {
+      const t0 = perf.now();
+      worker.postMessage(msg);
+      stats.postMs += perf.now() - t0;
+    }
+    function flush() {
+      scheduled = false;
+      if (!worker || !ready || busy) return;
+      if (!owed && !queue.length) return;
+      const n = owed, cmds = queue;
+      owed = 0;
+      queue = [];
+      busy = true;
+      stats.requests++;
+      post({ t: "step", n, cmds });
+    }
+    function schedule() {
+      if (!scheduled) {
+        scheduled = true;
+        Promise.resolve().then(flush);
+      }
+    }
+    function ask(type, extra = {}) {
+      if (!worker || !ready) return Promise.reject(Error("simulation worker not ready"));
+      const q = ++seq;
+      return new Promise((resolve, reject) => {
+        waiting.set(q, { resolve, reject });
+        post({ t: type, q, ...extra });
+      });
+    }
+    function install2(target) {
+      const proto = Object.getPrototypeOf(target);
+      for (const name of CAPTURED) {
+        if (typeof target[name] !== "function") continue;
+        target[name] = function(...args) {
+          if (this !== target || depth > 0 || target !== sim) return proto[name].apply(this, args);
+          let enc;
+          try {
+            enc = args.map((a) => encodeForWorker(a));
+          } catch (e) {
+            return proto[name].apply(this, args);
+          }
+          const q = ++seq;
+          queue.push({ q, m: name, a: enc });
+          stats.commands++;
+          let r;
+          depth++;
+          try {
+            r = proto[name].apply(target, decodeLocal(target, enc, args));
+          } catch (e) {
+            r = "";
+          } finally {
+            depth--;
+          }
+          if (predicted.size > 200) predicted.clear();
+          predicted.set(q, { m: name, r: resultOf2(r) });
+          schedule();
+          return r;
+        };
+      }
+      target.fx = function(...args) {
+        const r = proto.fx.apply(this, args);
+        if (this === target && depth === 0 && target === sim) {
+          const f = target.s.effects[target.s.effects.length - 1];
+          if (f) localFx.push(f);
+        }
+        return r;
+      };
+      for (const name of NOOP_ON_PROXY) target[name] = function() {
+      };
+      target.tick = function() {
+      };
+    }
+    function uninstall(target) {
+      for (const name of [...CAPTURED, "fx", "tick", ...NOOP_ON_PROXY]) if (Object.prototype.hasOwnProperty.call(target, name)) delete target[name];
+    }
+    function fallback(reason) {
+      const target = sim;
+      stats.fallback = reason;
+      failed = reason;
+      stop();
+      if (!target) return;
+      for (const f of pendingFrames) applyFrame(target, f);
+      pendingFrames = [];
+      uninstall(target);
+      target.grid = null;
+      target.seaGrid = null;
+      target._gateGrids = null;
+      target._gridPrev = null;
+      target._idIndex = null;
+      target.pathFailures = /* @__PURE__ */ new Map();
+      target.pathGoals = /* @__PURE__ */ new Map();
+      target.autoTargets = /* @__PURE__ */ new WeakMap();
+      target.autoTargetRoster = [];
+      target.autoTargetRosterAt = -1;
+      target.events = target.events || [];
+      if (reason) onFallback?.(reason, target);
+    }
+    function stop() {
+      if (worker) {
+        try {
+          worker.terminate();
+        } catch {
+        }
+      }
+      worker = null;
+      sim = null;
+      ready = false;
+      busy = false;
+      owed = 0;
+      queue = [];
+      scheduled = false;
+      for (const w of waiting.values()) w.reject(Error("simulation worker stopped"));
+      waiting.clear();
+    }
+    function applyFrame(target, f) {
+      const old = target.s, st = f.state;
+      st.world = old.world || f.world;
+      st.nodes = mergeNodes(old.nodes, f.nodes);
+      for (const k of UI_KEYS) if (st[k] === void 0 && old[k] !== void 0) st[k] = old[k];
+      target.s = st;
+      if (f.fog) {
+        if (f.fog.off) target.fog = null;
+        else {
+          const memory = f.fog.visible.map((_, t) => t === 0 ? f.fog.memory0 : {});
+          target.fog = { cols: f.fog.cols, rows: f.fog.rows, revision: f.fog.revision, visible: f.fog.visible, explored: f.fog.explored, memory };
+        }
+      }
+      if (f.events?.length) (target.events || (target.events = [])).push(...f.events);
+      if (f.navRev !== navRev) {
+        navRev = f.navRev;
+        target.grid = null;
+        target.seaGrid = null;
+        target._gateGrids = null;
+        target._gridPrev = null;
+      }
+      for (const [q, r] of f.results || []) {
+        const p = predicted.get(q);
+        predicted.delete(q);
+        if (p && JSON.stringify(p.r) !== JSON.stringify(r) && stats.mismatches.length < 20) stats.mismatches.push({ m: p.m, local: p.r, worker: r, step: f.step });
+      }
+      if (f.hashes?.length) (stats.hashes || (stats.hashes = [])).push(...f.hashes);
+      stats.worker = f.stats;
+    }
+    function onMessage(e) {
+      const msg = e.data;
+      if (!msg || !sim) return;
+      if (msg.t === "frame") {
+        pendingFrames.push(msg);
+        if (!msg.init) busy = false;
+        flush();
+        return;
+      }
+      if (msg.t === "ready") {
+        ready = true;
+        stats.readyAt = perf.now();
+        if (initHash && msg.hash !== initHash) {
+          fallback(`initial checksum differs (page ${initHash}, worker ${msg.hash})`);
+          return;
+        }
+        flush();
+        return;
+      }
+      if (msg.t === "error") {
+        const w2 = msg.q != null && waiting.get(msg.q);
+        if (w2) {
+          waiting.delete(msg.q);
+          w2.reject(Error(msg.message));
+          return;
+        }
+        stats.error = msg.message;
+        fallback("worker error: " + msg.message);
+        return;
+      }
+      const w = waiting.get(msg.q);
+      if (w) {
+        waiting.delete(msg.q);
+        w.resolve(msg);
+      }
+    }
+    const api = {
+      enabled: true,
+      stats,
+      get failed() {
+        return failed;
+      },
+      get ready() {
+        return ready;
+      },
+      owns(s) {
+        return !!sim && s === sim;
+      },
+      /* setup: {difficulty, options} for a new game, or {difficulty, saved} (the saved state, untouched by a constructor). */
+      adopt(target, setup) {
+        api.release();
+        const K = getK?.() || root2.KingdomSim;
+        try {
+          worker = new root2.Worker(url);
+        } catch (e) {
+          failed = "worker unavailable: " + (e && e.message || e);
+          onFallback?.(failed, target);
+          return target;
+        }
+        sim = target;
+        ready = false;
+        busy = false;
+        owed = 0;
+        queue = [];
+        pendingFrames = [];
+        localFx = [];
+        prev = /* @__PURE__ */ new Map();
+        failed = null;
+        appliedAt = perf.now();
+        span = STEP3 * 1e3;
+        frameStep = 0;
+        navRev = -1;
+        predicted.clear();
+        stats.hashes = [];
+        worker.onmessage = onMessage;
+        worker.onerror = (ev) => {
+          ev?.preventDefault?.();
+          fallback("worker failed: " + (ev?.message || "script error"));
+        };
+        initHash = checksum(target).hash;
+        onAdopt?.(target);
+        install2(target);
+        target.events = target.events || [];
+        K.activateWorld?.(target.s.world);
+        post({ t: "init", difficulty: setup.difficulty, options: setup.options || {}, saved: setup.saved || null, created: (/* @__PURE__ */ new Date()).toISOString(), hashes: setup.hashes | 0, prewarm: true });
+        return target;
+      },
+      /* Stop the worker and keep the game on the main thread from its latest frame (switching to online, tutorial, new war). */
+      release() {
+        if (sim) fallback(null);
+        else stop();
+      },
+      /* n more steps are due (expansion.js frame loop). */
+      request(n) {
+        if (!sim) return;
+        if (n > 0) {
+          owed += n;
+          if (owed > MAX_STEPS) {
+            stats.owedDropped += owed - MAX_STEPS;
+            owed = MAX_STEPS;
+          }
+        }
+        flush();
+      },
+      /* Apply what arrived since the last display frame. capture(sim) = KingdomArt.captureMotion (interpolation origin). */
+      pump(now, capture) {
+        if (!sim) return;
+        const dt = lastPump ? Math.min(0.25, (now - lastPump) / 1e3) : 0;
+        lastPump = now;
+        if (localFx.length) {
+          for (const f of localFx) f.life -= dt;
+          localFx = localFx.filter((f) => f.life > 0);
+        }
+        if (!pendingFrames.length) return;
+        const t0 = perf.now(), target = sim;
+        const a = api.alpha(now), units = target.s.units;
+        for (let i = 0; i < units.length; i++) {
+          const u = units[i], p = prev.get(u.id);
+          if (p && p.kind === u.kind && Math.abs(u.x - p.x) + Math.abs(u.y - p.y) < 220) {
+            u.x = p.x + (u.x - p.x) * a;
+            u.y = p.y + (u.y - p.y) * a;
+          }
+        }
+        capture?.(target);
+        prev = new Map(units.map((u) => [u.id, { x: u.x, y: u.y, kind: u.kind }]));
+        const first = frameStep;
+        for (const f of pendingFrames) applyFrame(target, f);
+        const last = pendingFrames[pendingFrames.length - 1];
+        pendingFrames = [];
+        frameStep = last.step;
+        const kept = localFx.filter((f) => !target.s.effects.includes(f));
+        if (kept.length) target.s.effects.push(...kept);
+        span = Math.max(1, frameStep - first) * STEP3 * 1e3;
+        appliedAt = now;
+        const ms = perf.now() - t0;
+        stats.frames++;
+        stats.applyMs += ms;
+        if (ms > stats.maxApplyMs) stats.maxApplyMs = ms;
+      },
+      alpha(now) {
+        return Math.min(1, Math.max(0, (now - appliedAt) / span));
+      },
+      /* Saves come from the worker (its serialize(), the same text a main-thread game writes). */
+      save(write) {
+        if (!sim || !ready) return false;
+        const extra = {};
+        for (const k of UI_KEYS) if (sim.s[k] !== void 0) extra[k] = sim.s[k];
+        ask("save", { extra }).then((m) => write(m.text)).catch(() => {
+        });
+        return true;
+      },
+      replay() {
+        return ask("replay").then((m) => m.data);
+      },
+      checksum() {
+        return ask("checksum");
+      },
+      /* Benchmarks only (?perf=1): run a script against the worker's simulation. */
+      eval(src) {
+        if (!debug) return Promise.reject(Error("eval needs ?perf=1"));
+        return ask("eval", { src: String(src) }).then((m) => m.value);
+      }
+    };
+    return api;
+  }
+
   // src/index.js
   var root = typeof window !== "undefined" ? window : globalThis;
   var query = (() => {
@@ -1673,6 +2073,27 @@
     }
   };
   core.installed = install(root.KingdomSim);
+  core.clock = { STEP: STEP3, MAX_DT, MAX_STEPS, FixedStep };
+  core.simWorker = query.get("simWorker") === "1" && typeof root.Worker === "function" ? createSimWorker(root, {
+    url: "sim-worker.js",
+    debug: query.has("perf"),
+    getK: () => root.KingdomSim,
+    // the worker records the game (its own replay recorder); the page's recorder on this instance would only see predictions
+    onAdopt: (sim) => {
+      const r = core.replay.current;
+      if (r && r.sim === sim) {
+        r.detach();
+        core.replay.current = null;
+      }
+    },
+    onFallback: (reason) => {
+      core.simWorker.lastFallback = reason;
+      try {
+        root.console?.warn?.("simWorker fallback to main thread:", reason);
+      } catch {
+      }
+    }
+  }) : null;
   debugButton();
   root.KingdomCore = core;
   var index_default = core;
