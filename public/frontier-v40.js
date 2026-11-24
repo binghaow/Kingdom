@@ -25,7 +25,12 @@ function fairShares(owner,players){const shared=owner.filter(o=>o.length===playe
 function hashSeed(...v){let h=2166136261>>>0;for(const x of v.join('|'))h=Math.imul(h^x.charCodeAt(0),16777619)>>>0;return h||1}
 function rng(seed){let a=seed>>>0;return()=>{a=(a+0x6D2B79F5)>>>0;let t=a;t=Math.imul(t^t>>>15,t|1);t^=t+Math.imul(t^t>>>7,t|61);return((t^t>>>14)>>>0)/4294967296}}
 /* Connected land (bridges count as land) on a 48 px grid; islands are land regions that hold no start. */
-function landRegions(w){const cols=Math.ceil(w.width/CELL),rows=Math.ceil(w.height/CELL),lab=new Int32Array(cols*rows).fill(-1),cells=[];const land=(x,y)=>K.worldPlayable?.(w,x,y)!==false&&(!K.worldWater(w,x,y)||!!K.worldBridge?.(w,x,y));let n=0;
+/* landRegions is a pure function of the static terrain; memoised per world signature (the server and lockstep clients rebuild
+   the world object on every hydrate, so a per-object cache alone would recompute it each time). */
+const REGION_MEMO=new Map();
+function worldSignature(w){return [w.id,w.seed??'',w.width,w.height,w.layout||'',w.style||'',w.geography??'',w.count??'',(w.lakes||[]).length,(w.cliffs||[]).length,(w.dryCells||[]).length,(w.starts||[]).map(p=>Math.round(p.x)+','+Math.round(p.y)).join(';')].join('|')}
+function landRegions(w){const key=worldSignature(w);let r=REGION_MEMO.get(key);if(!r){r=computeLandRegions(w);REGION_MEMO.set(key,r);if(REGION_MEMO.size>4)REGION_MEMO.delete(REGION_MEMO.keys().next().value)}return r}
+function computeLandRegions(w){const cols=Math.ceil(w.width/CELL),rows=Math.ceil(w.height/CELL),lab=new Int32Array(cols*rows).fill(-1),cells=[];const land=(x,y)=>K.worldPlayable?.(w,x,y)!==false&&(!K.worldWater(w,x,y)||!!K.worldBridge?.(w,x,y));let n=0;
  for(let i=0;i<cols*rows;i++){const c=i%cols,r=(i/cols)|0;if(lab[i]>=0||!land(c*CELL+24,r*CELL+24))continue;const q=[i],list=[];lab[i]=n;while(q.length){const j=q.pop();list.push(j);const jc=j%cols,jr=(j/cols)|0;for(const [dc,dr]of[[1,0],[-1,0],[0,1],[0,-1]]){const a=jc+dc,b=jr+dr;if(a<0||b<0||a>=cols||b>=rows)continue;const k=b*cols+a;if(lab[k]>=0||!land(a*CELL+24,b*CELL+24))continue;lab[k]=n;q.push(k)}}cells.push(list);n++}
  const at=(x,y)=>{const c=Math.min(cols-1,Math.max(0,Math.floor(x/CELL))),r=Math.min(rows-1,Math.max(0,Math.floor(y/CELL)));return lab[r*cols+c]};
  const center=i=>{let x=0,y=0;for(const j of cells[i]){x+=(j%cols)*CELL+24;y+=((j/cols)|0)*CELL+24}return{x:x/cells[i].length,y:y/cells[i].length}};
@@ -218,6 +223,6 @@ class FrontierV40 extends Base{
   if(N.stage==='board'&&(cargo.length>=Math.min(N.ids.length,4)||s.time-N.since>45&&cargo.length)){N.stage='sail';N.shore=this.aiShore(N.target);if(!N.shore){F.naval=null;return}this.order([ship],{type:'move',x:N.shore.x,y:N.shore.y})}
   else if(N.stage==='sail'&&(dist(ship,N.shore)<150||s.time-N.since>150)){this.unload(ship);const landed=N.ids.map(id=>this.byId(id)).filter(u=>u?.hp>0&&!u.embarkedOn);if(landed.length)this.order(landed,{type:'advance',x:N.target.x,y:N.target.y});F.naval=null}}
 }
-const api={...K,Sim:FrontierV40,landRegions,resourceZones,v40Balloon:BALLOON,v40Hero:HERO,v40Layout:{CAMP_REWARD,HOME_KEEP,SITES,CENTER,ISLAND_PER_PLAYER,HOME_RADIUS}};
+const api={...K,Sim:FrontierV40,landRegions,worldSignature,resourceZones,v40Balloon:BALLOON,v40Hero:HERO,v40Layout:{CAMP_REWARD,HOME_KEEP,SITES,CENTER,ISLAND_PER_PLAYER,HOME_RADIUS}};
 if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.KingdomSim=api;
 })(typeof window==='undefined'?globalThis:window);

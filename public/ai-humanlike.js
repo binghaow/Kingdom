@@ -29,8 +29,24 @@ const SKILL={
 const TOWN_AI={normal:{extra:1,start:900,every:90,rich:5000},hard:{extra:2,start:720,every:60,rich:4000},expert:{extra:2,start:600,every:45,rich:3500}};
 const HALLS=['barracks','range','stable','workshop'],ECO=['mill','lumbercamp','miningcamp','quarry','market'],CAMP_RES={lumbercamp:['wood'],miningcamp:['gold','stone'],quarry:['stone']};
 const r2=v=>Math.round(v*100)/100;
+/* v45 AI behaviour registry (docs/ai/naval-air-audit.md): the explicit registration point for new computer behaviours, instead
+   of another Sim class layer or a wrapped function. A behaviour is {id, jobs:[names], active(sim,team), run(sim,team,job) →
+   seconds until that job is due again, prewarm?(sim)}. aiBehaviorStep runs at most ONE due job per simulation step for all
+   computer seats together (round robin over seat × behaviour × job), so the extra work is spread over steps instead of piling
+   up in one. Due times and the cursor live in s.aiJobs (saved, synced, hydrate-safe); behaviours keep their own memory in s. */
+const AI_BEHAVIORS=[],AI_JOB_KEYS=[];
+function registerAIBehavior(b){if(!b?.id||!Array.isArray(b.jobs)||AI_BEHAVIORS.some(x=>x.id===b.id))return false;AI_BEHAVIORS.push(b);for(const job of b.jobs)AI_JOB_KEYS.push({b,job,key:b.id+':'+job});return true}
+const NavalAir=typeof module!=='undefined'&&module.exports?require('./ai-naval-air.js'):root.KingdomAINavalAir;
+if(NavalAir)registerAIBehavior(NavalAir.create(K));
 
 class HumanlikeAI extends Base{
+ /* prewarm pure terrain caches of registered behaviours (instance/module caches only, never simulation state) */
+ constructor(difficulty,saved,options={}){super(difficulty,saved,options);for(const b of AI_BEHAVIORS)b.prewarm?.(this)}
+ aiBehaviorStep(){const s=this.s,n=s.nations.length,k=AI_JOB_KEYS.length,total=n*k;if(!total)return;const J=s.aiJobs??={cursor:0,due:{}};
+  for(let i=0;i<total;i++){const idx=(J.cursor+i)%total,team=Math.floor(idx/k),slot=AI_JOB_KEYS[idx%k];if(!team)continue;const due=J.due[team]??={};const at=due[slot.key];
+   if(at===undefined){due[slot.key]=s.time+(this.aiHumanOn(team)?1+(team*1.7+(idx%k)*2.3)%6:10);continue}if(at>s.time)continue;
+   if(!this.aiHumanOn(team)||!slot.b.active(this,team)){due[slot.key]=s.time+10;continue}
+   const next=+slot.b.run(this,team,slot.job);due[slot.key]=s.time+Math.max(.5,next>0?next:5);J.cursor=(idx+1)%total;return}}
  aiHumanOn(team){const s=this.s;return team>0&&!s.aiHumanOff&&!s.humanTeams?.includes(team)&&!s.defeated?.includes(team)&&!!this.doctrineActive?.(team)}
  aiSkill(team){return SKILL[this.s.aiDifficulties?.[team]||this.s.difficulty]||SKILL.normal}
  aiH(team){const s=this.s;s.aiHuman??={};let h=s.aiHuman[team];if(!h){h=s.aiHuman[team]={seen:{},ep:0,tokens:4,tokAt:s.time,microAt:0,alert:-1,flee:{},eco:{},rebuild:[],harassAt:-1,wait:-1,
@@ -164,11 +180,11 @@ class HumanlikeAI extends Base{
    const res=this.construct('town',x,y,pool.slice(0,3),team);if(!res?.error){E.built++;E.site=null;this.emit('aiTown',{team,x:Math.round(x),y:Math.round(y)});return}}
   if(dist(v,best)>220){this.order([v],{type:'move',x:best.x,y:best.y});E.next=s.time+Math.min(P.every,15)}}
  aiPlayer(team){super.aiPlayer(team);this.aiExpandTowns(team);if(!this.aiHumanOn(team)||this.s.ended)return;const town=this.townOf(team);if(!town)return;this.aiH(team);if(this.s.cooperation?.[team]?.until>this.s.time)return;this.aiCounterHall(team,town)}
- tick(dt){super.tick(dt);const s=this.s;if(s.ended||!s.aiHuman)return;for(const key of Object.keys(s.aiHuman)){const team=+key;if(!this.aiHumanOn(team))continue;const h=s.aiHuman[key];const k=this.aiSkill(team);
+ tick(dt){super.tick(dt);const s=this.s;if(!s.ended&&AI_JOB_KEYS.length)this.aiBehaviorStep();if(s.ended||!s.aiHuman)return;for(const key of Object.keys(s.aiHuman)){const team=+key;if(!this.aiHumanOn(team))continue;const h=s.aiHuman[key];const k=this.aiSkill(team);
   /* alarms are checked on the reaction cadence of the difficulty (not the 7 s think), the battle micro on its own cadence */
   if(s.time>=(h.defendAt||0)){h.defendAt=s.time+Math.max(1.5,k.react);const town=this.townOf(team);if(town)this.aiDefend(team,town)}
   if(s.time<(h.microAt||0))continue;h.microAt=s.time+k.micro;this.aiMicro(team)}}
 }
-const api={...K,Sim:HumanlikeAI,aiHumanSkill:SKILL,aiTownPlan:TOWN_AI};
+const api={...K,Sim:HumanlikeAI,aiHumanSkill:SKILL,aiTownPlan:TOWN_AI,registerAIBehavior,aiBehaviors:AI_BEHAVIORS,aiNavalAirLevels:NavalAir?.LEVEL};
 if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.KingdomSim=api;
 })(typeof window==='undefined'?globalThis:window);
