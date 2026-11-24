@@ -48,6 +48,12 @@ export class LockstepClient {
     this.waitingSince = null; this.log = []; this.margin = 30;
     this.aiSeats = new Set(); this.aiTeams = new Set(); this.desyncInfo = null; this.reclaim = false; this.control = [];
     this.stats = { requests: 0, failures: 0, up: 0, down: 0, latency: [], turnLatency: [], catchup: 0, stalls: 0, stallMs: 0, commands: 0, rejected: 0 };
+    /* 3e: a room restored from a save that carries a snapshot has no commands before the snapshot turn (the host uploads
+       only the turns after it). resumeAt {turn, hash}: no turn runs until a snapshot of at least that turn is loaded and
+       verified (src/net/snapshots.js fetches it from the relay). lastSnap: the newest snapshot this client made or loaded
+       ({turn, step, hash, text, aiSeats}); online saves include it (src/net/saves.js). */
+    this.resumeAt = opts.resumeAt && Number.isSafeInteger(opts.resumeAt.turn) && opts.resumeAt.turn > 0 ? { turn: opts.resumeAt.turn, hash: opts.resumeAt.hash } : null;
+    this.lastSnap = null;
   }
 
   /* ---- clock ---- */
@@ -147,7 +153,7 @@ export class LockstepClient {
     for (let i = 0; i < STEPS_PER_TURN; i++) {
       this.sim.tick(STEP); this.step++;
       if (i === STEPS_PER_TURN - 1 && (turn + 1) % SNAP_EVERY === 0) this.normalize(turn + 1);
-      if (this.hashes && this.step % (catching ? CATCHUP_HASH : HASH_EVERY) === 0) { const h = checksum(this.sim).hash; this.hashQueue.push([this.step, h]); this.hashLog.push([this.step, h]); if (this.snapshot && this.snapshot.step === this.step) { this.snapshot.hash = h; this.onSnapshot?.(this.snapshot); } }
+      if (this.hashes && this.step % (catching ? CATCHUP_HASH : HASH_EVERY) === 0) { const h = checksum(this.sim).hash; this.hashQueue.push([this.step, h]); this.hashLog.push([this.step, h]); if (this.snapshot && this.snapshot.step === this.step) { this.snapshot.hash = h; this.lastSnap = { ...this.snapshot }; this.onSnapshot?.(this.snapshot); } }
     }
     this.nextTurn++;
     this.onTurn?.(turn);
@@ -184,13 +190,19 @@ export class LockstepClient {
     if (Number.isSafeInteger(snap.seq) && snap.seq > this.seq) this.seq = snap.seq;
     this.logFrom = snap.turn; this.log = []; this.hashLog.push([this.step, hash]);
     this.stats.snapshotTurn = snap.turn;
+    this.lastSnap = { turn: snap.turn, step: this.step, hash, text: snap.text, aiSeats: [...this.aiSeats], encoded: snap.encoded || null };
+    if (this.resumeAt && snap.turn >= this.resumeAt.turn) this.resumeAt = null;
     return { ok: true, hash };
   }
   /* Catch-up progress (refresh / reconnect / restored room): null when on time. */
-  progress() { const behind = this.sealed - this.nextTurn; return behind > CATCHUP ? { turn: this.nextTurn, target: this.sealed, behind } : null; }
+  progress() {
+    if (this.resumeAt) return { turn: this.nextTurn, target: Math.max(this.sealed, this.resumeAt.turn), behind: Math.max(this.sealed, this.resumeAt.turn) - this.nextTurn, snapshot: true };
+    const behind = this.sealed - this.nextTurn; return behind > CATCHUP ? { turn: this.nextTurn, target: this.sealed, behind } : null;
+  }
   /* Runs every turn that is both sealed and due, within a time budget (ms). A device that fell behind (background tab,
      slow frame) runs extra turns until it is back on the horizon (catch-up). Returns turns executed. */
   advance(budget = 12) {
+    if (this.resumeAt) return 0; // waiting for the restore snapshot (see resumeAt)
     const start = this.now(), limit = Math.min(this.horizon(), this.sealed);
     let n = 0;
     while (this.nextTurn <= limit && !this.desync) {
@@ -220,10 +232,13 @@ export class LockstepClient {
   }
 }
 
-/* Replays a lockstep recording headless (Node or browser): same Sim, same command order. Returns the checksum list. */
-export function replayLockstep(K, commands, rec, { turns = rec.turns } = {}) {
+/* Replays a lockstep recording headless (Node or browser): same Sim, same command order. Returns the checksum list.
+   snapshot {turn, hash, text, aiSeats} (3e): start from that verified snapshot instead of turn 0 (a recording of a room
+   restored from a snapshot has no commands before it). */
+export function replayLockstep(K, commands, rec, { turns = rec.turns, snapshot = null } = {}) {
   const c = new LockstepClient({ K, commands, setup: rec.setup, seat: -1, seats: rec.seats, startAt: 0, period: rec.period, now: () => 0 });
   for (const r of rec.commands) c.receive({ t: [[r.turn, r.seat, r.seq, r.c]] });
+  if (snapshot) { const l = c.loadSnapshot(snapshot); if (!l.ok) throw new Error('snapshot checksum ' + l.hash + ' != ' + snapshot.hash); }
   c.sealed = turns - 1; c.hashes = rec.hashes !== false; c.sparseCatchup = false;
   while (c.nextTurn < turns) c.runTurn();
   return { checksums: c.hashLog.map(([step, hash]) => ({ step, hash })), final: checksum(c.sim) };

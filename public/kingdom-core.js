@@ -482,6 +482,8 @@
       this.reclaim = false;
       this.control = [];
       this.stats = { requests: 0, failures: 0, up: 0, down: 0, latency: [], turnLatency: [], catchup: 0, stalls: 0, stallMs: 0, commands: 0, rejected: 0 };
+      this.resumeAt = opts.resumeAt && Number.isSafeInteger(opts.resumeAt.turn) && opts.resumeAt.turn > 0 ? { turn: opts.resumeAt.turn, hash: opts.resumeAt.hash } : null;
+      this.lastSnap = null;
     }
     /* ---- clock ---- */
     serverNow() {
@@ -607,6 +609,7 @@
           this.hashLog.push([this.step, h]);
           if (this.snapshot && this.snapshot.step === this.step) {
             this.snapshot.hash = h;
+            this.lastSnap = { ...this.snapshot };
             this.onSnapshot?.(this.snapshot);
           }
         }
@@ -666,16 +669,20 @@
       this.log = [];
       this.hashLog.push([this.step, hash]);
       this.stats.snapshotTurn = snap.turn;
+      this.lastSnap = { turn: snap.turn, step: this.step, hash, text: snap.text, aiSeats: [...this.aiSeats], encoded: snap.encoded || null };
+      if (this.resumeAt && snap.turn >= this.resumeAt.turn) this.resumeAt = null;
       return { ok: true, hash };
     }
     /* Catch-up progress (refresh / reconnect / restored room): null when on time. */
     progress() {
+      if (this.resumeAt) return { turn: this.nextTurn, target: Math.max(this.sealed, this.resumeAt.turn), behind: Math.max(this.sealed, this.resumeAt.turn) - this.nextTurn, snapshot: true };
       const behind = this.sealed - this.nextTurn;
       return behind > CATCHUP ? { turn: this.nextTurn, target: this.sealed, behind } : null;
     }
     /* Runs every turn that is both sealed and due, within a time budget (ms). A device that fell behind (background tab,
        slow frame) runs extra turns until it is back on the horizon (catch-up). Returns turns executed. */
     advance(budget = 12) {
+      if (this.resumeAt) return 0;
       const start = this.now(), limit = Math.min(this.horizon(), this.sealed);
       let n = 0;
       while (this.nextTurn <= limit && !this.desync) {
@@ -722,9 +729,13 @@
       };
     }
   };
-  function replayLockstep(K, commands, rec, { turns = rec.turns } = {}) {
+  function replayLockstep(K, commands, rec, { turns = rec.turns, snapshot = null } = {}) {
     const c = new LockstepClient({ K, commands, setup: rec.setup, seat: -1, seats: rec.seats, startAt: 0, period: rec.period, now: () => 0 });
     for (const r of rec.commands) c.receive({ t: [[r.turn, r.seat, r.seq, r.c]] });
+    if (snapshot) {
+      const l = c.loadSnapshot(snapshot);
+      if (!l.ok) throw new Error("snapshot checksum " + l.hash + " != " + snapshot.hash);
+    }
     c.sealed = turns - 1;
     c.hashes = rec.hashes !== false;
     c.sparseCatchup = false;
@@ -1128,7 +1139,7 @@
       return data;
     };
     const stats = { uploads: 0, uploadBytes: 0, uploadMs: 0, loads: 0, loadMs: 0, failures: 0 };
-    let busy = false, tried = /* @__PURE__ */ new Set();
+    let busy = false, tried = /* @__PURE__ */ new Set(), retryAt = 0;
     const keeper = () => {
       const live = (client.seatInfo || []).filter((s) => !s.mode && s.age < 5e3).map((s) => s.seat).sort((a, b) => a - b);
       return live.length ? live[0] === client.seat : client.seat === Math.min(...client.teams.keys());
@@ -1152,23 +1163,34 @@
       stats,
       /* Called every pump: load an offered snapshot when it saves more than ~1 minute of replay. */
       tick() {
-        const offer = client.offer;
-        if (busy || !offer || tried.has(offer.turn) || client.nextTurn >= offer.turn - 600) return;
+        const need = client.resumeAt, offer = need ? client.offer && client.offer.turn >= need.turn ? client.offer : need : client.offer;
+        if (busy || !offer || !need && tried.has(offer.turn) || need && Date.now() < retryAt || client.nextTurn >= offer.turn - (need ? 0 : 600)) return;
         busy = true;
         tried.add(offer.turn);
         const t0 = Date.now();
         (async () => {
           const r = await post({ snapget: offer.turn });
-          if (r.hash !== offer.hash || client.nextTurn >= r.turn) return;
+          if (r.hash !== offer.hash || client.nextTurn >= r.turn) {
+            if (need) {
+              stats.failures++;
+              retryAt = Date.now() + 2e3;
+            }
+            return;
+          }
           const text = (await Promise.all(r.data.map((p) => p))).join("");
-          const loaded = client.loadSnapshot({ turn: r.turn, hash: r.hash, text: await decode(text, r.meta?.enc), aiSeats: r.meta?.aiSeats || [], seq: r.seq });
+          const loaded = client.loadSnapshot({ turn: r.turn, hash: r.hash, text: await decode(text, r.meta?.enc), aiSeats: r.meta?.aiSeats || [], seq: r.seq, encoded: { enc: r.meta?.enc === "gzip" ? "gzip" : "json", data: text } });
           if (loaded.ok) {
             stats.loads++;
             stats.loadMs += Date.now() - t0;
+            stats.lastLoad = { turn: r.turn, ms: Date.now() - t0, bytes: text.length };
             onLoaded?.(r.turn, Date.now() - t0);
-          } else stats.failures++;
+          } else {
+            stats.failures++;
+            retryAt = Date.now() + 2e3;
+          }
         })().catch((e) => {
           stats.failures++;
+          retryAt = Date.now() + 2e3;
           onError?.(e);
         }).finally(() => {
           busy = false;
@@ -1255,6 +1277,7 @@
       startAt: ls.startAt,
       period: ls.period,
       now,
+      resumeAt: ls.snap || null,
       onResult: (result, cmd, latency) => {
         executed.push({ type: cmd.type, latency, at: now() });
         if (executed.length > 500) executed.shift();
@@ -1305,13 +1328,18 @@
   function startReplayViewer(root2, opts) {
     const K = root2.KingdomSim, commands = root2.KingdomNetCommands, rec = opts.recording;
     const seat = Number.isSafeInteger(opts.seat) ? opts.seat : rec.self ?? rec.seats?.[0]?.seat ?? 0;
-    let clock = 0, last = root2.performance.now(), speed = opts.speed || 1, paused = false;
+    let last = root2.performance.now(), speed = opts.speed || 1, paused = false;
     const total = rec.turns ?? (rec.commands.length ? rec.commands[rec.commands.length - 1].turn + 1 : 0);
     const client = new LockstepClient({ K, commands, setup: rec.setup, seat, seats: rec.seats, startAt: 0, period: rec.period || 100, now: () => root2.performance.timeOrigin + root2.performance.now(), hashes: false });
     client.issue = () => false;
     for (const r of rec.commands) client.receive({ t: [[r.turn, r.seat, r.seq, r.c]] });
+    if (opts.snapshot) {
+      const l = client.loadSnapshot(opts.snapshot);
+      if (!l.ok) throw new Error("snapshot checksum");
+    }
     client.sealed = total - 1;
     client.sparseCatchup = false;
+    let clock = client.nextTurn;
     client.horizon = () => {
       const t = root2.performance.now();
       if (!paused) clock += (t - last) / client.period * speed;
@@ -1356,12 +1384,16 @@
     KEEP: () => KEEP,
     SEGMENT_BYTES: () => SEGMENT_BYTES,
     VERSION: () => VERSION2,
+    attachSnapshot: () => attachSnapshot,
     download: () => download,
     list: () => list,
     load: () => load,
     makeSave: () => makeSave,
     remove: () => remove,
+    restoreBase: () => restoreBase,
+    saveSnapshot: () => saveSnapshot,
     segments: () => segments,
+    snapshotParts: () => snapshotParts,
     store: () => store,
     validSave: () => validSave
   });
@@ -1372,7 +1404,7 @@
   var DB_NAME = "kingdom-online-saves";
   var STORE = "saves";
   var LS_PREFIX = "kingdom-online-save:";
-  function makeSave(client, room, { auto = false, commands = null } = {}) {
+  function makeSave(client, room, { auto = false, commands = null, from = null } = {}) {
     const players = (room.players || []).map((p, seat) => p ? { seat, name: p.name, nation: p.nation, group: p.group, team: p.team ?? null } : null).filter(Boolean);
     return {
       format: FORMAT2,
@@ -1389,17 +1421,40 @@
       hash: checksum(client.sim).hash,
       aiSeats: [...client.aiSeats],
       // A client that resumed from a relay snapshot has no local log before it: the caller passes the relay recording instead.
+      from: from ?? (commands ? 0 : client.logFrom || 0),
       commands: (commands || client.log).filter((r) => r.turn < client.nextTurn).map((r) => ({ turn: r.turn, seat: r.seat, seq: r.seq, c: r.c }))
     };
   }
+  async function attachSnapshot(save, client) {
+    const snap = client.lastSnap;
+    if (!snap || !snap.text && !snap.encoded || snap.turn > save.turns || snap.turn < (save.from || 0)) return save;
+    if (!snap.encoded) snap.encoded = await encode(snap.text);
+    save.snapshot = { turn: snap.turn, step: snap.step, hash: snap.hash, aiSeats: snap.aiSeats || [], enc: snap.encoded.enc, data: snap.encoded.data };
+    return save;
+  }
+  async function saveSnapshot(save) {
+    const s = save?.snapshot;
+    if (!s) return null;
+    return { turn: s.turn, hash: s.hash, aiSeats: s.aiSeats || [], text: await decode(s.data, s.enc), encoded: { enc: s.enc, data: s.data } };
+  }
+  var restoreBase = (save) => save?.snapshot ? save.snapshot.turn : 0;
+  function snapshotParts(save, size = SEGMENT_BYTES) {
+    const d = save.snapshot.data, out = [];
+    for (let i = 0; i < d.length; i += size) out.push(d.slice(i, i + size));
+    return out.length ? out : [""];
+  }
   function validSave(save) {
-    return !!save && save.format === FORMAT2 && save.version === VERSION2 && save.setup && Array.isArray(save.commands) && Array.isArray(save.seats) && Number.isSafeInteger(save.turns);
+    if (!(!!save && save.format === FORMAT2 && save.version === VERSION2 && save.setup && Array.isArray(save.commands) && Array.isArray(save.seats) && Number.isSafeInteger(save.turns))) return false;
+    const s = save.snapshot, from = save.from || 0;
+    if (s && !(Number.isSafeInteger(s.turn) && s.turn > 0 && s.turn % 3e3 === 0 && s.turn <= save.turns && s.turn >= from && s.step === s.turn * 2 && /^[0-9a-f]{8}$/.test(s.hash || "") && typeof s.data === "string" && (s.enc === "gzip" || s.enc === "json"))) return false;
+    return from === 0 || !!s;
   }
   function segments(save, maxBytes = SEGMENT_BYTES) {
     const out = [];
     let rows = [], bytes = 2;
-    const byTurn = /* @__PURE__ */ new Map();
+    const base = restoreBase(save), byTurn = /* @__PURE__ */ new Map();
     for (const r of save.commands) {
+      if (r.turn < base) continue;
       if (!byTurn.has(r.turn)) byTurn.set(r.turn, []);
       byTurn.get(r.turn).push([r.turn, r.seat, r.seq, r.c]);
     }
@@ -1431,7 +1486,7 @@
     t.oncomplete = () => resolve(out.result ?? out);
     t.onerror = () => reject(t.error);
   });
-  var meta = (key, save) => ({ key, savedAt: save.savedAt, auto: !!save.auto, room: save.room?.code || save.room?.id || "", map: save.setup?.options?.mapId, turns: save.turns, seconds: Math.round(save.turns / 10), players: (save.room?.players || []).map((p) => p.name), commands: save.commands.length });
+  var meta = (key, save) => ({ key, savedAt: save.savedAt, auto: !!save.auto, room: save.room?.code || save.room?.id || "", map: save.setup?.options?.mapId, turns: save.turns, seconds: Math.round(save.turns / 10), snapshot: save.snapshot ? save.snapshot.turn : null, players: (save.room?.players || []).map((p) => p.name), commands: save.commands.length });
   async function store(save) {
     const key = "room:" + (save.room?.id || "local");
     try {

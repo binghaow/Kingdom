@@ -34,12 +34,16 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
     const A = await tab('A'), B = await tab('B');
     await A.page.click('#open-online'); await sleep(400);
     await A.page.fill('#net-name', '甲'); await A.page.selectOption('#net-capacity', LEGACY ? '3' : '2');
-    if (LEGACY) await A.page.check('#net-fill'); else await A.page.check('#net-lockstep');
+    // 3e: Lockstep is the lobby default (nothing to tick); --legacy ticks "旧联机（备用）" and fills the empty seat with the computer.
+    const defaults = await A.page.evaluate(() => ({ legacyBox: !!document.getElementById('net-legacy'), legacyChecked: !!document.getElementById('net-legacy')?.checked, betaBox: !!document.getElementById('net-lockstep') }));
+    if (!defaults.legacyBox || defaults.legacyChecked || defaults.betaBox) throw new Error('lobby default is not Lockstep: ' + JSON.stringify(defaults));
+    if (LEGACY) { await A.page.check('#net-fill'); await A.page.check('#net-legacy'); }
     if (PRIVATE) await A.page.check('#net-private');
     await A.page.click('#net-create');
     await A.page.waitForFunction(() => document.getElementById('net-room-code')?.textContent?.trim(), null, { timeout: 20000 });
     const code = (await A.page.textContent('#net-room-code')).trim(), roomId = await A.page.evaluate(() => KingdomOnline.room.id), invite = await A.page.inputValue('#net-invite-link');
-    const joinInfo = { mode: PRIVATE ? 'invite-link' : JOIN, code, roomId };
+    const joinInfo = { mode: PRIVATE ? 'invite-link' : JOIN, code, roomId, defaults, lockstepRoom: await A.page.evaluate(() => !!KingdomOnline.room.config.lockstep) };
+    if (joinInfo.lockstepRoom === LEGACY) throw new Error('room kind does not match the lobby choice: ' + JSON.stringify(joinInfo));
     if (PRIVATE) {
       await B.page.click('#open-online'); await sleep(5000);
       joinInfo.listedWhilePrivate = await B.page.evaluate((id) => !!document.querySelector('#net-open-list [data-room="' + id + '"]'), roomId);
