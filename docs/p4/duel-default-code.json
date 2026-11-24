@@ -1,0 +1,109 @@
+{
+ "seconds": 65,
+ "delayMs": 0,
+ "room": "706",
+ "join": {
+  "mode": "code",
+  "code": "706",
+  "roomId": "RRME556E",
+  "defaults": {
+   "legacyBox": true,
+   "legacyChecked": false,
+   "betaBox": false
+  },
+  "lockstepRoom": true
+ },
+ "transport": {
+  "A": {
+   "mode": "ws",
+   "fallbackReason": null
+  },
+  "B": {
+   "mode": "ws",
+   "fallbackReason": null
+  }
+ },
+ "statuses": {
+  "rooms 200": 16,
+  "rooms 201": 1
+ },
+ "nonOk": [],
+ "pageErrors": [],
+ "consistency": {
+  "comparedChecksums": 76,
+  "mismatch": null,
+  "desyncA": null,
+  "desyncB": null,
+  "lastStep": 1522,
+  "lastHash": [
+   1520,
+   "5e23f079"
+  ]
+ },
+ "clickToExecute": {
+  "n": 32,
+  "of": 32,
+  "p50": 290,
+  "p90": 330,
+  "max": 406
+ },
+ "issueToExecute": {
+  "n": 44,
+  "p50": 230,
+  "p90": 300,
+  "max": 336
+ },
+ "tabs": [
+  {
+   "tab": "A",
+   "turn": 761,
+   "gameTime": 76.1,
+   "units": 38,
+   "rtt": 35,
+   "delay": 2,
+   "lagTurns": 1.32,
+   "stalls": 9,
+   "stallMs": 1708,
+   "catchup": 36,
+   "requests": 1602,
+   "failures": 0,
+   "upBps": 209,
+   "downBps": 695,
+   "rejected": 0,
+   "commands": 22,
+   "viewMsAvg": 4.25,
+   "viewMsMax": 47.2
+  },
+  {
+   "tab": "B",
+   "turn": 761,
+   "gameTime": 76.1,
+   "units": 38,
+   "rtt": 39,
+   "delay": 2,
+   "lagTurns": 1.31,
+   "stalls": 10,
+   "stallMs": 1306,
+   "catchup": 37,
+   "requests": 1610,
+   "failures": 0,
+   "upBps": 211,
+   "downBps": 698,
+   "rejected": 0,
+   "commands": 22,
+   "viewMsAvg": 3.98,
+   "viewMsMax": 102.4
+  }
+ ],
+ "frameIntervalMs": {
+  "A": {
+   "p50": 33,
+   "p90": 50
+  },
+  "B": {
+   "p50": 33,
+   "p90": 50
+  }
+ },
+ "pass": true
+}

@@ -1,0 +1,35 @@
+{
+ "legacy": true,
+ "seconds": 65,
+ "join": {
+  "mode": "list",
+  "code": "012",
+  "roomId": "9XSV5CGP",
+  "defaults": {
+   "legacyBox": true,
+   "legacyChecked": false,
+   "betaBox": false
+  },
+  "lockstepRoom": false,
+  "listMs": 56
+ },
+ "statuses": {
+  "rooms 200": 385,
+  "rooms 201": 1
+ },
+ "nonOk": [],
+ "pageErrors": [],
+ "tabs": [
+  {
+   "time": 67.8,
+   "nations": 3,
+   "connected": true
+  },
+  {
+   "time": 67.8,
+   "nations": 3,
+   "connected": true
+  }
+ ],
+ "pass": true
+}
