@@ -8,10 +8,11 @@
    3. Air: both computers start in age V with a bank; bombers are built and raid economy buildings, withdraw from anti-air.
    4. Land map (镜湖 lake_s, expert vs normal): army size, attacks launched and outcome with the module on vs off.
    5. Determinism: identical replays; identical replays when rebuilt from saved state every 10 s (server/lockstep style).
-   Prints numbers for the docs. usage: node check-ai-naval-air.cjs [--quick] [--only=1,3] */
+   Prints numbers for the docs. usage: node check-ai-naval-air.cjs [--quick] [--full: section 1 also runs with the module off] [--only=1,3]
+   Section 4 runs from check-ai-naval-air-land.cjs in check-all (time limit per check). */
 'use strict';
 const assert=require('node:assert/strict'),K=require('./public/network-model.js'),D=K.defs,DT=.1;
-const QUICK=process.argv.includes('--quick'),ONLY=(process.argv.find(a=>a.startsWith('--only='))||'').slice(7).split(',').filter(Boolean),want=k=>!ONLY.length||ONLY.includes(k);
+const QUICK=process.argv.includes('--quick'),FULL=process.argv.includes('--full'),ONLY=(process.argv.find(a=>a.startsWith('--only='))||'').slice(7).split(',').filter(Boolean),want=k=>!ONLY.length||ONLY.includes(k);
 const now=()=>Number(process.hrtime.bigint())/1e6;
 const NATIONS=['britain','france','prussia'];
 function make({map='straits',seed=7,level='expert',levels=null,groups=[1,2,3],net=false,humans=null,off=false,observer=true}){
@@ -33,7 +34,7 @@ const out=[];const row=(...a)=>{out.push(a.join(' | '));console.log(a.join(' | '
 
 /* ---- 1. island duel ---- */
 if(want('1')){const SEC=QUICK?1200:1500;console.log('== 1. island duel (straits seed 7, seat 1 mainland expert vs seat 2 island expert, seat 0 empty observer, '+SEC+' s) ==');
- const R={};for(const off of [true,false]){const t0=now(),r=run(make({off}),SEC);R[off]=r;const wall=now()-t0;
+ const R={};for(const off of FULL?[true,false]:[false]){const t0=now(),r=run(make({off}),SEC);R[off]=r;const wall=now()-t0;
   for(const t of [1,2]){const N=naval(r,t),tr=r.st[t].trained;row(off?'off':'on','seat '+t+(t===2?' (island)':' (mainland)'),'docks built '+(r.st[t].built.dock||0),'warships '+sum(tr,['sloop','frigate','bombketch']),'transports '+(tr.transport||0),
    'loads '+(N.loads||0)+' (full '+(N.fullLoads||0)+')','landings '+count(r,t,'aiLanding',e=>e.region==='enemy')+' units '+(N.landed||0),'assaults '+(N.assaults||0),'aborts '+(N.aborts||0),'fleet defend/raid '+(N.fleetDefend||0)+'/'+(N.fleetRaids||0),
    'air units '+sum(tr,['scoutballoon','bomber'])+' (bombers '+(tr.bomber||0)+')','air raids '+(N.airRaids||0)+' back '+(N.airBack||0),'damage taken '+Math.round(r.st[t].hits)+' (landed '+Math.round(r.st[t].hitsByLanded)+', sea '+Math.round(r.st[t].hitsBySea)+', air '+Math.round(r.st[t].hitsByAir)+')','age '+r.s.s.ages[t])}
@@ -46,8 +47,8 @@ if(want('1')){const SEC=QUICK?1200:1500;console.log('== 1. island duel (straits 
  assert(on.st[2].hitsByLanded>0||on.st[1].hitsByLanded>0,'landed troops hurt the other side');
  assert(on.st[2].hits>0,'the island side is attacked');
  assert([1,2].some(t=>sum(on.st[t].trained,['scoutballoon','bomber'])>0),'flying units trained');
- assert.equal(o.log.filter(e=>e.type==='aiLanding').length,0,'off: no landings from this module');
- row('summary','island side damage taken off/on '+Math.round(o.st[2].hits)+' / '+Math.round(on.st[2].hits),'landings off/on 0 / '+landed.length,'full loads '+full)}
+ if(o){assert.equal(o.log.filter(e=>e.type==='aiLanding').length,0,'off: no landings from this module');row('summary','island side damage taken off/on '+Math.round(o.st[2].hits)+' / '+Math.round(on.st[2].hits))}
+ row('summary','landings on enemy land '+landed.length,'full loads '+full)}
 
 /* ---- 2. a human on the island ---- */
 if(want('2')){const SEC=QUICK?900:1080;console.log('== 2. idle human seat on the island (straits seed 7, seat 2 human, seat 0 idle ally of computer seat 1, '+SEC+' s) ==');
@@ -63,7 +64,7 @@ if(want('3')){const SEC=QUICK?420:540;console.log('== 3. air (lake_s seed 5, bot
  assert([1,2].some(t=>(r.st[t].trained.bomber||0)>=2),'bombers trained');assert([1,2].some(t=>(naval(r,t).airRaids||0)+(naval(r,t).airSupport||0)>=1),'bombers sent on a raid');assert(r.st[1].hitsByAir+r.st[2].hitsByAir>0,'bombs hit')}
 
 /* ---- 4. land map unchanged ---- */
-if(want('4')){const SEC=QUICK?600:720;console.log('== 4. land map (lake_s seed 7, three seats, seat 0 empty observer, '+SEC+' s): module off vs on ==');
+if(ONLY.includes('4')||FULL&&!ONLY.length){const SEC=QUICK?600:720;console.log('== 4. land map (lake_s seed 7, three seats, seat 0 empty observer, '+SEC+' s): module off vs on ==');
  const strength=(r,t)=>{const army=r.s.s.units.filter(u=>u.team===t&&D[u.kind]?.damage>0&&u.kind!=='villager');return{army:army.length,power:Math.round(army.reduce((n,u)=>n+r.s.aiPower(u),0)),villagers:r.s.s.units.filter(u=>u.team===t&&u.kind==='villager').length,buildings:r.s.s.buildings.filter(b=>b.team===t).length,waves:(r.s.s.aiWar[t].log||[]).filter(l=>l.kind==='main').length,first:(r.s.s.aiWar[t].log||[]).find(l=>l.kind==='main')?.t??null,defeated:r.s.s.defeated.includes(t)}};
  const V={};for(const levels of [['expert','normal'],['normal','expert']])for(const off of [true,false]){const r=run(make({map:'lake_s',seed:7,levels:[null,...levels],off}),SEC),k=levels.join('-')+(off?' off':' on');V[k]=[null,strength(r,1),strength(r,2)];
   for(const t of [1,2]){const x=V[k][t];row(k,'seat '+t+' '+levels[t-1],'army '+x.army+' power '+x.power,'villagers '+x.villagers,'buildings '+x.buildings,'main attacks '+x.waves+' (first '+(x.first??'-')+' s)',x.defeated?'DEFEATED':'alive','air units '+sum(r.st[t].trained,['scoutballoon','bomber'])+', warships '+sum(r.st[t].trained,['sloop','frigate','bombketch']))}}

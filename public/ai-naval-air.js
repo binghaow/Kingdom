@@ -23,7 +23,7 @@ const CELL=48;
    think: seconds between jobs of one kind; margin: resources kept in the bank on top of a cost. */
 const LEVEL={
  beginner:{ferry:1,alone:1,ships:1,loadWait:70,full:0,beachWait:35,abortHp:.35,navy:0,navyAge:0,navyMax:0,counter:0,control:9,raidMin:99,bombketch:0,airAge:0,balloons:0,bombers:0,airEvery:0,aa:1,think:9,margin:250,escort:0},
- easy:{ferry:1,alone:1,ships:1,loadWait:60,full:0,beachWait:40,abortHp:.4,navy:1,navyAge:0,navyMax:2,counter:.5,control:9,raidMin:99,bombketch:0,airAge:0,balloons:0,bombers:0,airEvery:0,aa:1,think:7,margin:200,escort:0},
+ easy:{ferry:1,alone:1,ships:1,loadWait:60,full:0,beachWait:40,abortHp:.4,navy:0,navyAge:0,navyMax:0,counter:0,control:9,raidMin:99,bombketch:0,airAge:0,balloons:0,bombers:0,airEvery:0,aa:1,think:7,margin:200,escort:0},
  normal:{ferry:1,alone:0,ships:1,loadWait:50,full:1,beachWait:45,abortHp:.45,navy:2,navyAge:1,navyMax:6,counter:1,control:1.4,raidMin:3,bombketch:0,airAge:4,balloons:1,bombers:2,airEvery:160,aa:.7,think:5,margin:150,escort:1},
  hard:{ferry:1,alone:0,ships:2,loadWait:45,full:1,beachWait:50,abortHp:.5,navy:3,navyAge:1,navyMax:9,counter:1.2,control:1.2,raidMin:3,bombketch:1,airAge:3,balloons:1,bombers:4,airEvery:110,aa:.9,think:3.5,margin:120,escort:1},
  expert:{ferry:1,alone:0,ships:2,loadWait:40,full:1,beachWait:55,abortHp:.55,navy:4,navyAge:2,navyMax:12,counter:1.4,control:1.05,raidMin:3,bombketch:2,airAge:3,balloons:2,bombers:6,airEvery:75,aa:1.1,think:2.5,margin:100,escort:1}};
@@ -101,7 +101,8 @@ function create(K){
  /* ======== job: build ======== */
  function jobBuild(sim,team,L,N,G){const s=sim.s,view=sim.view(team),P=picture(sim,team,G,view);if(!P)return L.think*2;const age=s.ages[team],own=s.units.filter(u=>u.team===team&&u.hp>0);
   const ds=docks(sim,team,G),complete=ds.filter(d=>d.b.complete),navy=own.filter(u=>armedShip(sim,u)),transports=own.filter(u=>u.kind==='transport');
-  const naval=P.over.length>0||N.enemySea>0||P.shared.length>0&&age>=2&&L.navy>0;
+  /* a naval map for this seat: an enemy over the water, or enemy warships / boats seen on a shared sea (a lake alone is not) */
+  const naval=P.over.length>0||N.enemySea>0||P.shared.length>0&&age>=2&&L.navy>0&&N.enemySea>0;
   /* dock on a sea that reaches the targets (overseas enemy first) */
   const wantSeas=P.over.length?P.seas.filter(sea=>P.over.some(b=>G.touches[sea].has(G.landAt(b.x,b.y)))):P.shared;
   if(naval&&age>=2&&(L.ferry&&P.over.length||L.navy>0)&&wantSeas.length&&!ds.some(d=>d.seas.some(x=>wantSeas.includes(x)))&&!s.buildings.some(b=>b.team===team&&b.kind==='dock'&&!b.complete)){
@@ -125,16 +126,17 @@ function create(K){
    const fs=foreignShips(sim,team),dseas=ds.find(d=>d.b===dock)?.seas||[],mine=transports.filter(u=>!fs.has(u.id)&&dseas.includes(G.seaAt(u.x,u.y)>=0?G.seaAt(u.x,u.y):G.seaNear(u.x,u.y,150))).length+queued('transport');
    if(L.ferry&&P.over.length&&(!L.alone||!P.land.length)&&mine<L.ships&&popRoom(sim,team,'transport')&&bank(sim,team,sim.costFor('transport',team),L.margin*.5)&&!sim.unitError(dock,'transport')){if(!sim.train(dock,'transport'))N.stats.transports++;return L.think}
    /* warships: base by age, answer what was seen at sea */
-   let want=0;if(naval&&L.navy){want=L.navy+L.navyAge*Math.max(0,age-1);const per=age>=3?150:80;if(N.enemySea>0)want=Math.max(want,Math.ceil(N.enemySea*L.counter/per)+1);want=Math.min(want,L.navyMax)}
+   let want=0;if(naval&&L.navy){want=P.over.length?L.navy+L.navyAge*Math.max(0,age-1):Math.min(2,L.navy);const per=age>=3?150:80;if(N.enemySea>0)want=Math.max(want,Math.ceil(N.enemySea*L.counter/per)+1);want=Math.min(want,L.navyMax)}
    const have=navy.length+queued('sloop')+queued('frigate')+queued('bombketch');
    if(have<want){const ketches=navy.filter(u=>u.kind==='bombketch').length+queued('bombketch'),coastal=age>=3&&L.bombketch&&ketches<L.bombketch&&navy.length>=2&&(P.over.length||view.buildings.some(b=>b.hp>0&&b.team>=0&&sim.hostile(team,b.team)&&G.seaNear(b.x,b.y,380)>=0));
     const sloops=navy.filter(u=>u.kind==='sloop').length;const kind=coastal?'bombketch':age>=3&&(sloops>=2||N.enemySeaN>=2)?'frigate':'sloop';
     if(!sim.unitError(dock,kind)&&popRoom(sim,team,kind)&&bank(sim,team,sim.costFor(kind,team),L.margin)){if(!sim.train(dock,kind))N.stats.warships++}}}
   /* air: aerodrome, balloons, aeronautics, bombers */
-  if(L.airAge&&age>=L.airAge){const aero=s.buildings.filter(b=>b.team===team&&b.kind==='aerodrome'&&b.hp>0);
+  /* air: on a land map the aerodrome waits one more age (the land army comes first) */
+  if(L.airAge&&age>=(P.over.length?L.airAge:Math.max(4,L.airAge))){const aero=s.buildings.filter(b=>b.team===team&&b.kind==='aerodrome'&&b.hp>0);
    if(!aero.length){const cost=sim.costFor('aerodrome',team);if(bank(sim,team,cost,L.margin)&&!s.buildings.some(b=>b.team===team&&!b.complete&&b.hp>0&&D[b.kind]?.trains)&&sim.aiAct(team)){const v=freeWorker(sim,team,P.town,G,P.home);if(v){const sp=sim.aiBaseSpread?.(team)??1;for(let i=0;i<14;i++){const a=sim.rand(0,Math.PI*2),r=(280+sim.rand(0,220))*sp,p={x:P.town.x+Math.cos(a)*r,y:P.town.y+Math.sin(a)*r};if(G.landAt(p.x,p.y)!==P.home||sim.placementError('aerodrome',p.x,p.y,team))continue;if(!sim.construct('aerodrome',p.x,p.y,[v],team)?.error){N.stats.aerodromes++;sim.emit('aiAerodrome',{team});break}}}}return L.think}
    const a=aero.find(b=>b.complete&&(b.queue||[]).length<2);if(a){const balloons=own.filter(u=>u.kind==='scoutballoon').length+(a.queue||[]).filter(q=>q.kind==='scoutballoon').length,bombers=own.filter(u=>u.kind==='bomber').length+(a.queue||[]).filter(q=>q.kind==='bomber').length;
-    if(balloons<L.balloons&&!sim.unitError(a,'scoutballoon')&&popRoom(sim,team,'scoutballoon')&&bank(sim,team,sim.costFor('scoutballoon',team),L.margin)){if(!sim.train(a,'scoutballoon'))N.stats.balloons++}
+    if(balloons<(P.over.length?L.balloons:1)&&!sim.unitError(a,'scoutballoon')&&popRoom(sim,team,'scoutballoon')&&bank(sim,team,sim.costFor('scoutballoon',team),L.margin)){if(!sim.train(a,'scoutballoon'))N.stats.balloons++}
     else if(L.bombers&&age>=5&&!(s.tech[team]?.aeronautics>0)&&!(a.queue||[]).some(q=>q.type==='research')){if(!sim.researchError(a,'aeronautics')&&bank(sim,team,sim.researchCost?sim.researchCost('aeronautics',team):{},L.margin))sim.research(a,'aeronautics')}
     else if(bombers<L.bombers&&!sim.unitError(a,'bomber')&&popRoom(sim,team,'bomber')&&bank(sim,team,sim.costFor('bomber',team),L.margin)){if(!sim.train(a,'bomber'))N.stats.bombers++}}}
   return L.think}
@@ -142,8 +144,8 @@ function create(K){
  /* ======== job: fleet ======== */
  function jobFleet(sim,team,L,N,G){const s=sim.s,view=sim.view(team),town=sim.townOf(team);if(!town)return L.think*2;
   /* sea memory: visible hostile warships (decays like the land memory) */
-  let seen=0,seenN=0;const foes=[];for(const e of view.units){if(e.hp<=0||e.team<0||!sim.hostile(team,e.team)||!sim.sea(e))continue;if(sim.canSee&&s.fogEnabled&&!sim.canSee(team,e))continue;foes.push(e);if(D[e.kind].damage>0){seen+=sim.aiPower(e);seenN++}}
-  markBase(sim,team,view);N.enemySea=Math.round(Math.max(seen,N.enemySea*.97));N.enemySeaN=Math.max(seenN,Math.floor(N.enemySeaN*.97));if(N.enemySea<5){N.enemySea=0;N.enemySeaN=0}
+  let seen=0,seenN=0,boats=0;const foes=[];for(const e of view.units){if(e.hp<=0||e.team<0||!sim.hostile(team,e.team)||!sim.sea(e))continue;if(sim.canSee&&s.fogEnabled&&!sim.canSee(team,e))continue;foes.push(e);if(D[e.kind].damage>0){seen+=sim.aiPower(e);seenN++}else boats++}
+  markBase(sim,team,view);N.enemySea=Math.round(Math.max(seen,N.enemySea*.97));N.enemySeaN=Math.max(seenN,Math.floor(N.enemySeaN*.97));N.enemyBoats=Math.max(boats,Math.floor((N.enemyBoats||0)*.97));if(N.enemySea<5){N.enemySea=0;N.enemySeaN=0}
   const fleet=s.units.filter(u=>u.team===team&&u.hp>0&&armedShip(sim,u));if(!fleet.length)return L.think*1.5;
   const ds=docks(sim,team,G),home=ds[0],fc=centroid(fleet),own=power(sim,fleet),F=N.fleet;const harbour=(home&&G.waterNear(home.b.x,home.b.y,home.sea,300))||fc;
   /* 0. an unseen overseas enemy: a ship scouts its coast (the land scout cannot cross) */
