@@ -365,6 +365,8 @@ Q5、Q6、Q8、Q9 未单独提供结论；Q9（真机操作延迟）仍是 3d �
 - `check-lobby.cjs` 新增“新联机为默认、旧联机为备用”；`browser-duel.cjs` 断言大厅默认是新联机，`--legacy` 勾备用项。
 - 模拟代码没有改动；P1 录像回放（check-replay）、check-consistency-page、check-lockstep、check-lockstep-resilience、check-lobby 通过（见交付检查）。
 
+**交付检查（代码提交 97e82df，本机 2 vCPU 云虚拟机）**：`node .resumable-checkall.cjs` 分段跑完 check-all 62 项 ALL PASS（含新的 check-lockstep-restore；check-lockstep-resilience 单独运行 9 分 49 秒 PASS 后记入进度文件）；`npm run build` 通过（Worker 29 个模块）；`node check-artifact.cjs` 通过；完整 `npm run release-check`：**112 PASS / 1 WARN / 0 FAIL**（362 s，报告 `docs/release-reports/2026-11-24-97e82df.md`），未改基线。WARN 是 main 上已有的千兵 >40 ms 尖峰（只记录）。
+
 ### 9.7 合规影响
 
 没有新的数据收集。存档里多了对局状态快照（无个人信息），仍只存在玩家自己的设备或玩家下载的文件里；恢复时快照上传到 D1，随房间过期删除。没有新的 App Store 合规依赖。
