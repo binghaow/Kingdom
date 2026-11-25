@@ -124,8 +124,13 @@ class Sim{
     per step and roster refresh; the query covers radius + AUTO_SCAN_SLACK, which absorbs what targets move later in the same step.
     The scan still tests live positions, so a bucket can only hide a target that jumped more than the slack within one step (it is
     picked up by the next scan). */
- autoTargetNear(u,radius){const s=this.s,R=this.autoTargetRoster;let B=this._targetBuckets;if(!B||B.time!==s.time||B.gen!==this._rosterGen||B.n!==R.length){const cells=new Map();for(let i=0;i<R.length;i++){const c=R[i],k=(Math.floor(c.x/256)+512)*2048+Math.floor(c.y/256)+512;let a=cells.get(k);if(!a)cells.set(k,a=[]);a.push(i)}B=this._targetBuckets={time:s.time,gen:this._rosterGen,n:R.length,cells}}
-  const r=radius+AUTO_SCAN_SLACK,x0=Math.floor((u.x-r)/256)+512,x1=Math.floor((u.x+r)/256)+512,y0=Math.floor((u.y-r)/256)+512,y1=Math.floor((u.y+r)/256)+512,idx=[];for(let x=x0;x<=x1;x++)for(let y=y0;y<=y1;y++){const a=B.cells.get(x*2048+y);if(a)for(const i of a)idx.push(i)}idx.sort((a,b)=>a-b);const out=new Array(idx.length);for(let i=0;i<idx.length;i++)out[i]=R[idx[i]];return out}
+ autoTargetNear(u,radius){const s=this.s,R=this.autoTargetRoster;let B=this._targetBuckets;if(!B||B.time!==s.time||B.gen!==this._rosterGen||B.n!==R.length){const n=R.length,W=Math.max(256,MAP.width||0),H=Math.max(256,MAP.height||0);
+   /* P5: the same 256 px buckets (positions at the first query of the step) as a counting-sort PointGrid with typed columns; a query keeps
+      exactly the entries whose bucket lies in the window (the grid clamps off-map positions to its border, the bucket test removes them) */
+   if(!B||B.cap<n||B.W!==W||B.H!==H){const cap=Math.max(n+256,B?.cap||0);B={cap,W,H,xs:new Float64Array(cap),ys:new Float64Array(cap),qx:new Float64Array(cap),qy:new Float64Array(cap),grid:B&&B.W===W&&B.H===H?B.grid:new Spatial.PointGrid(W,H,256),list:[]}}
+   for(let i=0;i<n;i++){const c=R[i];B.xs[i]=c.x;B.ys[i]=c.y;B.qx[i]=Math.floor(c.x/256);B.qy[i]=Math.floor(c.y/256)}B.grid.build(n,B.xs,B.ys,null);B.time=s.time;B.gen=this._rosterGen;B.n=n;this._targetBuckets=B}
+  const r=radius+AUTO_SCAN_SLACK,x0=Math.floor((u.x-r)/256),x1=Math.floor((u.x+r)/256),y0=Math.floor((u.y-r)/256),y1=Math.floor((u.y+r)/256),m=B.grid.queryCells(x0,y0,x1,y1),idx=B.grid.out,out=B.list,qx=B.qx,qy=B.qy;out.length=0;
+  for(let k=0;k<m;k++){const i=idx[k];if(qx[i]>=x0&&qx[i]<=x1&&qy[i]>=y0&&qy[i]<=y1)out.push(R[i])}return out}
  acquireAutoTarget(u){const s=this.s;/* P0: the (pure) radius is only computed when a target is held or a scan is due */let radius,radius2;const need=()=>{if(radius===undefined){radius=this.autoAcquireRadius(u);radius2=radius*radius}};let state=this.autoTargets.get(u);if(!state){state={targetId:null,scanAt:0,anchor:null,ignoredId:null,ignoredAnchor:null};this.autoTargets.set(u,state)}
   let target=state.targetId?this.byId(state.targetId):null;if(state.targetId&&(!target||target.hp<=0||target.embarkedOn||this.canTarget?.(u,target)===false))state.scanAt=0;
   if(target&&target.hp>0&&!target.embarkedOn&&this.canTarget?.(u,target)!==false&&this.autoTargetReachable(u,target)){
