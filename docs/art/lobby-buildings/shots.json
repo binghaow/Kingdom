@@ -1,0 +1,88 @@
+[
+ {
+  "file": "lobby-desktop-britain.png",
+  "nation": "britain",
+  "bg": "1:36665/assets/sized/ten-capitals.webp\")",
+  "pos": "0% 0%",
+  "w": 315,
+  "h": 315,
+  "visible": true
+ },
+ {
+  "file": "lobby-desktop-china.png",
+  "nation": "china",
+  "bg": "1:36665/assets/sized/ten-capitals.webp\")",
+  "pos": "50% 0%",
+  "w": 315,
+  "h": 315,
+  "visible": true
+ },
+ {
+  "file": "lobby-desktop-usa.png",
+  "nation": "usa",
+  "bg": "1:36665/assets/sized/ten-capitals.webp\")",
+  "pos": "100% 100%",
+  "w": 315,
+  "h": 315,
+  "visible": true
+ },
+ {
+  "file": "game-miningcamp.png",
+  "kind": "miningcamp",
+  "node": 149,
+  "x": 1970,
+  "y": 2286,
+  "dist": 84
+ },
+ {
+  "file": "game-mill.png",
+  "kind": "mill",
+  "node": 107,
+  "x": 1634,
+  "y": 2644,
+  "dist": 72
+ },
+ {
+  "file": "game-lumbercamp.png",
+  "kind": "lumbercamp",
+  "node": 65,
+  "x": 1313,
+  "y": 2237,
+  "dist": 52
+ },
+ {
+  "context": "desktop",
+  "errors": []
+ },
+ {
+  "file": "lobby-phone-britain.png",
+  "nation": "britain",
+  "bg": "1:36665/assets/sized/ten-capitals.webp\")",
+  "pos": "0% 0%",
+  "w": 220,
+  "h": 220,
+  "visible": true
+ },
+ {
+  "file": "lobby-phone-china.png",
+  "nation": "china",
+  "bg": "1:36665/assets/sized/ten-capitals.webp\")",
+  "pos": "50% 0%",
+  "w": 220,
+  "h": 220,
+  "visible": true
+ },
+ {
+  "file": "lobby-phone-usa.png",
+  "nation": "usa",
+  "bg": "1:36665/assets/sized/ten-capitals.webp\")",
+  "pos": "100% 100%",
+  "w": 220,
+  "h": 220,
+  "visible": true
+ },
+ {
+  "context": "phone",
+  "errors": []
+ }
+]

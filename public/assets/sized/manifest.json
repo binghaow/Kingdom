@@ -1374,14 +1374,14 @@
    "scale": 1,
    "raw": 1,
    "why": "unreached by the tracer: full size, format only",
-   "hash": "fcafec62a93d",
+   "hash": "83404561b3be",
    "quality": 92,
-   "w": 1113,
-   "h": 692,
-   "bytes": 263332,
-   "srcW": 1113,
-   "srcH": 692,
-   "srcBytes": 1242049
+   "w": 1107,
+   "h": 660,
+   "bytes": 232818,
+   "srcW": 1107,
+   "srcH": 660,
+   "srcBytes": 1114973
   },
   "guardian-actions-v29.png": {
    "out": "sized/guardian-actions-v29.webp",

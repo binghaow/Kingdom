@@ -72,6 +72,10 @@ for r in range(ROWS):
                 ok[i] = True
         keep[y0:y1, x0:x1] = ok[l]
 keep = ndimage.binary_fill_holes(keep) | (keep & fg)
+# What the growth above cannot tell from painted stone is the inner, grey part of the baked band (5-8 px wide on the source).
+# Trim the outer silhouette by ERODE px (about 2-3 screen px at the in-game size); interior holes are not touched.
+ERODE = 6
+keep = ndimage.binary_erosion(keep, iterations=ERODE, border_value=0) | (keep & ~ndimage.binary_dilation(~keep & bg, iterations=ERODE))
 # soft edge: blur the hard mask a little, but never make interior pixels transparent
 soft = ndimage.gaussian_filter(keep.astype(np.float32), 0.6)
 alpha = np.where(ndimage.binary_erosion(keep, iterations=1), 1.0, np.clip(soft * keep + soft * 0.5 * ~keep, 0, 1))
