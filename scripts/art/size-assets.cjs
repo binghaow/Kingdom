@@ -18,7 +18,7 @@ const DESIGN_ZOOM=2,DESIGN_DPR=2,QUALITY=92,MARGIN=1.05;
 const CSS_COPIES=['world-atlas.png'];
 const SKIP=new Set(['app-180.png','app-192.png','app-512.png']);
 /* Not referenced by any code (superseded); kept in the repo as source, not deployed. */
-const UNREFERENCED=new Set(['carrier-v34.png']);
+const UNREFERENCED=new Set(['carrier-v34.png','functional-buildings-v1.jpg']); // v1 JPEG: source of the keyed v2 PNG
 /* Paths the tracer cannot see, sized by reading the code (reason kept in the manifest). */
 const MANUAL={
   'meadow.jpg':{scale:520/1254,why:'visuals.js art.terrain draws it once into a 520x520 pattern tile'},

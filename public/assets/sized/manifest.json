@@ -7,7 +7,8 @@
   "margin": 1.05
  },
  "unreferenced": [
-  "carrier-v34.png"
+  "carrier-v34.png",
+  "functional-buildings-v1.jpg"
  ],
  "assets": {
   "architecture-v2.png": {
@@ -1368,19 +1369,19 @@
    "srcH": 1263,
    "srcBytes": 1719113
   },
-  "functional-buildings-v1.jpg": {
-   "out": "sized/functional-buildings-v1.webp",
+  "functional-buildings-v2.png": {
+   "out": "sized/functional-buildings-v2.webp",
    "scale": 1,
    "raw": 1,
    "why": "unreached by the tracer: full size, format only",
-   "hash": "19f727089861",
+   "hash": "fcafec62a93d",
    "quality": 92,
-   "w": 1024,
-   "h": 683,
-   "bytes": 279906,
-   "srcW": 1024,
-   "srcH": 683,
-   "srcBytes": 214849
+   "w": 1113,
+   "h": 692,
+   "bytes": 263332,
+   "srcW": 1113,
+   "srcH": 692,
+   "srcBytes": 1242049
   },
   "guardian-actions-v29.png": {
    "out": "sized/guardian-actions-v29.webp",

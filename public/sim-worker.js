@@ -47,7 +47,7 @@
           netherlands: { roof: "#98533e", cloth: "#bd7037", trim: "#e2cc9b", wall: "#b38364", wood: "#664a37", style: "stepped" },
           usa: { roof: "#5b6b73", cloth: "#4f7094", trim: "#e1cba0", wall: "#d5d4bb", wood: "#655443", style: "portico" }
         };
-        const sizes = { mill: [212, 205], miningcamp: [218, 187], town: [236, 211], house: [150, 151], barracks: [189, 172], range: [183, 159], farm: [169, 112], stable: [187, 155], tower: [113, 173], blacksmith: [167, 154], market: [193, 154], church: [177, 211], workshop: [193, 166], fort: [310, 270], dock: [200, 149], shipyard: [235, 190], bath: [185, 142], quarry: [180, 146], lumbercamp: [168, 145], coastbattery: [201, 151], royalarsenal: [203, 182], ridingacademy: [246, 203], repeaterworks: [201, 173], dojo: [197, 177], divan: [202, 205], kremlin: [218, 225], drillhall: [199, 177], casahall: [209, 200], guildhall: [199, 218], congress: [222, 187], university: [212, 202], arsenal: [213, 185], foundry: [211, 220], palace: [285, 270], steelworks: [228, 224], signalbureau: [199, 230], wall: [108, 82], wallvertical: [90, 174], gate: [145, 145], gatevertical: [130, 205], cannonturret: [149, 162], siegeyard: [218, 182], aerodrome: [253, 244], kcreclaimed: [315, 300] };
+        const sizes = { mill: [154, 149], miningcamp: [152, 130], town: [236, 211], house: [150, 151], barracks: [189, 172], range: [183, 159], farm: [169, 112], stable: [187, 155], tower: [113, 173], blacksmith: [167, 154], market: [193, 154], church: [177, 211], workshop: [193, 166], fort: [310, 270], dock: [200, 149], shipyard: [235, 190], bath: [185, 142], quarry: [180, 146], lumbercamp: [140, 121], coastbattery: [201, 151], royalarsenal: [203, 182], ridingacademy: [246, 203], repeaterworks: [201, 173], dojo: [197, 177], divan: [202, 205], kremlin: [218, 225], drillhall: [199, 177], casahall: [209, 200], guildhall: [199, 218], congress: [222, 187], university: [212, 202], arsenal: [213, 185], foundry: [211, 220], palace: [285, 270], steelworks: [228, 224], signalbureau: [199, 230], wall: [108, 82], wallvertical: [90, 174], gate: [145, 145], gatevertical: [130, 205], cannonturret: [149, 162], siegeyard: [218, 182], aerodrome: [253, 244], kcreclaimed: [315, 300] };
         for (const [kind, size] of Object.entries(sizes)) {
           if (["wall", "wallvertical", "gate", "gatevertical"].includes(kind)) continue;
           const scale = kind === "house" ? 1.25 : kind === "town" ? 1.2 : kind === "farm" ? 1.12 : 1.16;
@@ -1077,6 +1077,13 @@
             if (own.some((b) => distance(b, { x, y }) < TOWN_RULES.gap)) return "离己方城镇中心太近";
             return "";
           }
+          /* Clear distance from a resource node's centre to a building's footprint edge. Gold/stone rocks (drawn ~132 px wide) and berry
+             bushes are much larger than a tree, so a building may not sit on them and a ring of free nav cells stays for the villagers
+             working the node (ore 50, berries 34; trees, fish and other nodes keep the old base distance). */
+          nodeClearance(n, base = 20) {
+            const r = n.resource || n.kind;
+            return n.subtype === "fish" || n.subtype === "seaFish" ? base : r === "gold" || r === "stone" ? Math.max(base, 50) : n.subtype === "berries" ? Math.max(base, 34) : base;
+          }
           placementError(kind, x, y, team = 0) {
             const d = D[kind];
             if (!d?.building) return "不能建造此建筑";
@@ -1088,7 +1095,7 @@
             if (!this.canPay(d, team)) return "资源不足";
             if (x < d.r + 30 || x > MAP.width - d.r - 30 || y < d.r + 30 || y > MAP.height - d.r - 30) return "超出地图";
             if ([[-d.r, -d.r], [d.r, -d.r], [-d.r, d.r], [d.r, d.r], [0, 0]].some(([dx, dy]) => river(x + dx, y + dy))) return "不能在河流上建造";
-            if (this.s.buildings.some((b) => distance(b, { x, y }) < D[b.kind].r + d.r + 30) || this.s.nodes.some((n) => distance(n, { x, y }) < d.r + 22)) return "需要远离建筑与资源";
+            if (this.s.buildings.some((b) => distance(b, { x, y }) < D[b.kind].r + d.r + 30) || this.s.nodes.some((n) => distance(n, { x, y }) < d.r + this.nodeClearance(n, 22))) return "需要远离建筑与资源";
             if (!this.s.buildings.some((b) => b.team === team && b.complete && distance(b, { x, y }) < 600)) return "请在己方建筑附近建造";
             return "";
           }
@@ -1854,7 +1861,7 @@
             if (d.coastal) {
               if (y < coast(x) - 72 || y > coast(x) + 30 || onIsland(x, y)) return "需要在主大陆海岸线附近建造";
             } else if ([[-d.r, -d.r], [d.r, -d.r], [-d.r, d.r], [d.r, d.r], [0, 0]].some(([dx, dy]) => water(x + dx, y + dy))) return "需要陆地，港口与浴场请选海岸";
-            if (this.s.buildings.some((b) => dist(b, { x, y }) < D[b.kind].r + d.r + 28) || this.s.nodes.some((n) => dist(n, { x, y }) < d.r + 20)) return "需要远离建筑与资源";
+            if (this.s.buildings.some((b) => dist(b, { x, y }) < D[b.kind].r + d.r + 28) || this.s.nodes.some((n) => dist(n, { x, y }) < d.r + this.nodeClearance(n))) return "需要远离建筑与资源";
             if (!this.s.buildings.some((b) => b.team === team && b.complete && dist(b, { x, y }) < 650) && !this.s.units.some((u) => u.team === team && (this.builder ? this.builder(u) : u.kind === "villager") && !u.embarkedOn && dist(u, { x, y }) < 180)) return "需要己方营地，或先派村民到附近";
             return "";
           }
@@ -3322,7 +3329,7 @@
               for (let a = 0; a < Math.PI * 2; a += Math.PI / 8) if (water(this.world, x + Math.cos(a) * (d.r + 80), y + Math.sin(a) * (d.r + 80))) shore = true;
               if (!shore) return "需要附近有海、湖泊或河流水域";
             } else if ([[0, 0], [-d.r, -d.r], [d.r, d.r], [-d.r, d.r], [d.r, -d.r]].some(([dx, dy]) => !playable(this.world, x + dx, y + dy) || water(this.world, x + dx, y + dy) || rocky(this.world, x + dx, y + dy))) return "需要可通行陆地，避开水域与断崖";
-            if (this.s.buildings.some((b) => dist(b, { x, y }) < D[b.kind].r + d.r + 30) || this.s.nodes.some((n) => dist(n, { x, y }) < d.r + 20)) return "需要远离建筑和资源";
+            if (this.s.buildings.some((b) => dist(b, { x, y }) < D[b.kind].r + d.r + 30) || this.s.nodes.some((n) => dist(n, { x, y }) < d.r + this.nodeClearance(n))) return "需要远离建筑和资源";
             if (dist({ x, y }, this.world.objective || this.world.center) < 430) return "KC 要塞周围无法建造";
             if (!this.s.buildings.some((b) => b.team === team && b.complete && dist(b, { x, y }) < 650) && !this.s.units.some((u) => u.team === team && this.builder(u) && dist(u, { x, y }) < 180)) return "先派村民或工程师到附近";
             return "";
@@ -6086,6 +6093,18 @@
             }
             return true;
           }
+          /* Gather reach: 38 px from a resource node (a farm: its edge + 48). Paths run on 48 px nav cells; when the node's own cell is
+             blocked (a drop site, wall or rock built against it), the closest a path can end is a neighbouring cell centre, up to ~1.5
+             cells (72 px) away, so villagers stood just out of reach, re-pathed every 1.8 s and never mined. Only then (path used up,
+             within 74 px) does the reach grow to 74; the check reads the cached nav grid's rule for that one cell. */
+          gatherReach(u, target) {
+            const d = D[target.kind];
+            if (d?.building) return d.r + 48;
+            if (u.path?.length) return 38;
+            const far = dist(u, target);
+            if (far <= 38 || far > 74) return 38;
+            return this.blocked(Math.floor(target.x / 48) * 48 + 24, Math.floor(target.y / 48) * 48 + 24, u) ? 74 : 38;
+          }
           gatherTick(u, target, dt) {
             if (u.kind !== "villager") return false;
             const o = u.order;
@@ -6105,7 +6124,7 @@
             }
             if (this.hunt(u, target, dt)) return true;
             u.haulSource = target.id;
-            if (this.walk(u, target, D[target.kind]?.building ? D[target.kind].r + 48 : 38, dt)) {
+            if (this.walk(u, target, this.gatherReach(u, target), dt)) {
               this.face(u, target);
               u.working = true;
               u.workResource = resource;
