@@ -1144,14 +1144,25 @@
               for (const other of [...this.s.units, ...this.s.buildings]) if (other.id !== target.id && other.team !== u.team && other.hp > 0 && distance(other, target) < d.splash) this.damage(other, damage * 0.55, u);
             } else this.fx("impact", { x: target.x, y: target.y - 20, weapon }, 0.35);
           }
+          /* P4 4b: one step = the system pipeline (addSimLayer below): commands, then every layer's 'pre' systems from the outermost
+             class inwards, the core systems, then the 'post' systems from the innermost class outwards - the order the old chain of tick
+             overrides ran in. Each system has a name and can be timed (profileSystems). */
           tick(dt) {
+            runPipeline(this, dt);
+          }
+          sysEnded() {
+            if (this.s.ended) return SKIP;
+          }
+          sysClock(dt, c) {
             const s = this.s;
-            if (s.ended) return;
             this._stepDt = dt;
             this._ticks = (this._ticks || 0) + 1;
             s.time += dt;
             s.aiTimer += dt;
             s.raidTimer += dt;
+          }
+          sysBuildings(dt, c) {
+            const s = this.s;
             for (const b of s.buildings) {
               if (b.hp <= 0) continue;
               b.cool = Math.max(0, b.cool - dt);
@@ -1180,6 +1191,9 @@
                 if (enemy && distance(b, enemy) < range) this.strike(b, enemy);
               }
             }
+          }
+          sysUnits(dt, c) {
+            const s = this.s;
             for (const u of s.units) {
               if (u.hp <= 0 || u.embarkedOn) continue;
               const d = D[u.kind];
@@ -1298,8 +1312,14 @@
                 }
               }
             }
+          }
+          sysCollision(dt, c) {
+            const s = this.s;
             const perf = typeof window !== "undefined" ? window.PerformanceAudit : null, collisionStart = perf ? performance.now() : 0, collisionPairs = this.separateCrowd();
             if (perf) perf.collision(performance.now() - collisionStart, collisionPairs, s.units.length * (s.units.length - 1) / 2);
+          }
+          sysDeaths(dt, c) {
+            const s = this.s;
             for (const u of s.units.filter((u2) => u2.hp <= 0)) {
               this.pathFailures?.delete(u.id);
               this.pathGoals?.delete(u.id);
@@ -1320,11 +1340,17 @@
                 }
               }
             }
+          }
+          sysCleanup(dt, c) {
+            const s = this.s;
             s.units = s.units.filter((u) => u.hp > 0);
             s.buildings = s.buildings.filter((b) => b.hp > 0);
             s.nodes = s.nodes.filter((n) => n.amount > 0);
             for (const fx of s.effects) fx.life -= dt;
             s.effects = s.effects.filter((f) => f.life > 0);
+          }
+          sysAITurns(dt, c) {
+            const s = this.s;
             this.aiScope(() => {
               if (this._ticks % 600 === 0) this.aiPruneUnits();
               this.aiTurns(dt);
@@ -1378,6 +1404,75 @@
             return JSON.stringify({ ...this.s, effects: [] });
           }
         }
+        const SKIP = typeof Symbol === "function" ? /* @__PURE__ */ Symbol("skipInner") : "__skipInner", LAYERS = [], EXTRA = [];
+        let pipeGen = 0;
+        function addSimLayer(Ctor, layer, { pre = [], post = [] } = {}) {
+          LAYERS.push({ Ctor, layer, pre: pre.map(([name, fn]) => ({ name, fn })), post: post.map(([name, fn]) => ({ name, fn })) });
+          pipeGen++;
+        }
+        function registerSystem({ name, before, after, run }) {
+          if (!name || typeof run !== "function" || !(before || after)) throw Error("registerSystem: name, run and before/after are required");
+          EXTRA.push({ name, before, after, fn: run });
+          pipeGen++;
+        }
+        const drainSystem = { name: "commands", kind: "pre", depth: -1, fn() {
+          if (this.s.commandQueue?.length && !this.s.ended && !this._aiPhase) this.drainCommands();
+        } };
+        function pipelineFor(Ctor) {
+          const own = Object.prototype.hasOwnProperty.call(Ctor, "__pipeline") ? Ctor.__pipeline : null;
+          if (own && own.gen === pipeGen) return own.list;
+          const chain = [];
+          for (let p = Ctor.prototype; p && p !== Object.prototype; p = Object.getPrototypeOf(p)) chain.push(p);
+          const layers = LAYERS.map((L) => ({ ...L, depth: chain.indexOf(L.Ctor.prototype) })).filter((L) => L.depth >= 0).sort((x, y) => x.depth - y.depth);
+          const list = [drainSystem];
+          for (const L of layers) for (const sys of L.pre) list.push({ ...sys, kind: "pre", depth: L.depth, layer: L.layer });
+          for (const L of layers.slice().reverse()) for (const sys of L.post) list.push({ ...sys, kind: "post", depth: L.depth, layer: L.layer });
+          for (const x of EXTRA) {
+            const at = list.findIndex((y) => y.name === (x.before || x.after));
+            if (at < 0) continue;
+            const anchor = list[at];
+            list.splice(x.before ? at : at + 1, 0, { name: x.name, fn: x.fn, kind: anchor.kind, depth: anchor.depth, layer: "registered" });
+          }
+          Object.defineProperty(Ctor, "__pipeline", { value: { gen: pipeGen, list }, configurable: true, writable: true });
+          return list;
+        }
+        const perfNow = typeof performance !== "undefined" && performance.now ? () => performance.now() : null;
+        function runPipeline(sim, dt) {
+          const list = pipelineFor(sim.constructor), c = {}, prof = sim._sysProfile || globalProf;
+          let skipFrom = null;
+          for (let i = 0; i < list.length; i++) {
+            const x = list[i];
+            if (skipFrom !== null && (x.kind === "pre" || x.depth >= skipFrom)) continue;
+            let r;
+            if (prof && perfNow) {
+              const t0 = perfNow();
+              r = x.fn.call(sim, dt, c);
+              const ms = perfNow() - t0, e = prof[x.name] || (prof[x.name] = { ms: 0, n: 0, max: 0 });
+              e.ms += ms;
+              e.n++;
+              if (ms > e.max) e.max = ms;
+            } else r = x.fn.call(sim, dt, c);
+            if (r === SKIP && x.kind === "pre") skipFrom = x.depth;
+          }
+        }
+        let globalProf = null;
+        function profileSystems(on = true) {
+          globalProf = on ? globalProf || {} : null;
+          return globalProf;
+        }
+        function takeSystemProfile() {
+          const p = globalProf;
+          if (p) globalProf = {};
+          return p;
+        }
+        Sim.prototype.profileSystems = function(on = true) {
+          this._sysProfile = on ? this._sysProfile || {} : null;
+          return this._sysProfile;
+        };
+        Sim.prototype.systemNames = function() {
+          return pipelineFor(this.constructor).map((x) => x.name);
+        };
+        addSimLayer(Sim, "engine", { pre: [["engine.ended", Sim.prototype.sysEnded], ["engine.clock", Sim.prototype.sysClock], ["buildings", Sim.prototype.sysBuildings], ["units", Sim.prototype.sysUnits], ["collision", Sim.prototype.sysCollision], ["deaths", Sim.prototype.sysDeaths], ["cleanup", Sim.prototype.sysCleanup], ["ai.turns", Sim.prototype.sysAITurns]] });
         const Commands = typeof module !== "undefined" && module.exports ? require_kingdom_commands() : root.KingdomCommands;
         const GATED = typeof Symbol === "function" ? /* @__PURE__ */ Symbol("commandGate") : "__commandGate";
         function gateCommands(Ctor) {
@@ -1392,11 +1487,6 @@
               return this._aiPhase > 0 ? this.aiCommand(name, args) : inner.apply(this, args);
             } });
           }
-          const tick = P.tick;
-          Object.defineProperty(P, "tick", { configurable: true, writable: true, value: function(dt) {
-            if (this.s.commandQueue?.length && !this.s.ended && !this._aiPhase) this.drainCommands();
-            return tick.call(this, dt);
-          } });
         }
         Sim.prototype.aiScope = function(fn) {
           this._aiPhase++;
@@ -1446,7 +1536,7 @@
             this._applyingAI = false;
           }
         };
-        const api = { Sim, defs: D, tech: TECH, map: MAP, ageNames, river, riverCenter: center, distance, townRules: TOWN_RULES };
+        const api = { addSimLayer, registerSystem, SKIP, profileSystems, takeSystemProfile, Sim, defs: D, tech: TECH, map: MAP, ageNames, river, riverCenter: center, distance, townRules: TOWN_RULES };
         if (typeof module !== "undefined" && module.exports) module.exports = api;
         else root.KingdomSim = api;
       })(typeof window !== "undefined" ? window : globalThis);
@@ -1824,11 +1914,14 @@
             ship.cargo = [];
             return "已卸载 " + cargo.length + " 名单位";
           }
-          tick(dt) {
-            if (this.s.ended) return;
-            const beforeBuildings = this.s.buildings.length;
-            const transports = this.s.units.filter((u) => u.kind === "transport").map((u) => u.id);
-            super.tick(dt);
+          /* P4 4b: this layer's per-step work runs as named systems of the simulation pipeline (engine.js addSimLayer), not a tick override. */
+          sysEmpiresPre(dt, c) {
+            if (this.s.ended) return K2.SKIP;
+            c.beforeBuildings = this.s.buildings.length;
+            c.transports = this.s.units.filter((u) => u.kind === "transport").map((u) => u.id);
+          }
+          sysEmpires(dt, c) {
+            const beforeBuildings = c.beforeBuildings, transports = c.transports;
             if (beforeBuildings !== this.s.buildings.length) this.seaGrid = null;
             for (const u of this.s.units.filter((u2) => u2.embarkedOn)) {
               const ship = this.byId(u.embarkedOn);
@@ -1850,16 +1943,20 @@
                 for (const u of this.s.units) if (u.team === b.team && !u.embarkedOn && u.hp < u.maxhp && !u.combatTarget && u.order?.type !== "attack" && dist(b, u) < 170) u.hp = Math.min(u.maxhp, u.hp + dt * 2);
               }
             }
-            this.s.navalTimer += dt;
-            if (!this.raids && this.s.navalTimer > (this.s.difficulty === "easy" ? 260 : 155)) {
-              this.s.navalTimer = 0;
-              const dock = this.s.buildings.find((b) => b.team === 0 && b.kind === "dock"), navy = this.s.units.filter((u) => u.team === 1 && this.sea(u) && D[u.kind].damage > 0);
-              if (dock && navy.length >= 2) {
-                const target = { x: dock.x, y: coast(dock.x) + 145 };
-                for (const u of navy.slice(0, this.s.difficulty === "easy" ? 3 : 5)) this.order([u], { type: "advance", ...target });
-                this.emit("navalRaid");
+          }
+          sysAINavalRaid(dt, c) {
+            this.aiScope(() => {
+              this.s.navalTimer += dt;
+              if (!this.raids && this.s.navalTimer > (this.s.difficulty === "easy" ? 260 : 155)) {
+                this.s.navalTimer = 0;
+                const dock = this.s.buildings.find((b) => b.team === 0 && b.kind === "dock"), navy = this.s.units.filter((u) => u.team === 1 && this.sea(u) && D[u.kind].damage > 0);
+                if (dock && navy.length >= 2) {
+                  const target = { x: dock.x, y: coast(dock.x) + 145 };
+                  for (const u of navy.slice(0, this.s.difficulty === "easy" ? 3 : 5)) this.order([u], { type: "advance", ...target });
+                  this.emit("navalRaid");
+                }
               }
-            }
+            });
           }
           aiResourcePlan(team, workers) {
             const s = this.s, age = s.ages[team], bank2 = s.resources[team], resources = ["food", "wood", "gold", "stone"];
@@ -2019,6 +2116,7 @@
             }
           }
         }
+        K2.addSimLayer(Empires, "empires", { pre: [["empires.before", Empires.prototype.sysEmpiresPre]], post: [["embarked+bath+quarry", Empires.prototype.sysEmpires], ["ai.navalRaid", Empires.prototype.sysAINavalRaid]] });
         const api = { ...K2, Sim: Empires, counterMultiplier, structureMultiplier, structureFollowup, nations: N, coast, islands, lakes, hills, isWater: water, isOcean: ocean, onIsland };
         if (typeof module !== "undefined" && module.exports) module.exports = api;
         else root.KingdomSim = api;
@@ -2200,9 +2298,11 @@
               if (market && this.s.units.filter((u) => u.team === team && u.kind === "trader").length < 2 && !market.queue.length) this.train(market, "trader");
             }
           }
-          tick(dt) {
-            if (this.s.ended) return;
-            super.tick(dt);
+          /* P4 4b: this layer's per-step work runs as named systems of the simulation pipeline (engine.js addSimLayer), not a tick override. */
+          sysCoalitionsPre(dt, c) {
+            if (this.s.ended) return K2.SKIP;
+          }
+          sysTrade(dt, c) {
             if (this.s.ended) return;
             const s = this.s;
             for (const u of s.units.filter((u2) => u2.kind === "trader" && u2.trade && !u2.embarkedOn)) {
@@ -2248,6 +2348,7 @@
             }
           }
         }
+        K2.addSimLayer(Coalitions, "coalitions", { pre: [["coalitions.ended", Coalitions.prototype.sysCoalitionsPre]], post: [["trade+relics", Coalitions.prototype.sysTrade]] });
         const api = { ...K2, Sim: Coalitions, colors, starts, posts };
         if (typeof module !== "undefined" && module.exports) module.exports = api;
         else root.KingdomSim = api;
@@ -2753,18 +2854,29 @@
               }
             }
           }
-          tick(dt) {
-            if (this.s.ended) return;
-            const heroes = this.s.units.filter((u) => D[u.kind].hero).map((u) => ({ id: u.id, team: u.team }));
+          /* P4 4b: this layer's per-step work runs as named systems of the simulation pipeline (engine.js addSimLayer), not a tick override. */
+          sysDynastiesPre(dt, c) {
+            if (this.s.ended) return K2.SKIP;
+            c.heroes = this.s.units.filter((u) => D[u.kind].hero).map((u) => ({ id: u.id, team: u.team }));
             this.s.raidTimer = 0;
-            super.tick(dt);
+          }
+          sysHeroRespawn(dt, c) {
+            const heroes = c.heroes;
             const s = this.s;
             for (const h of heroes) if (!this.byId(h.id)) s.heroRespawn[h.team] = s.time + (this.heroRespawnDelay?.() ?? 180);
+            if (s.ended) return;
+          }
+          sysAIRaids(dt, c) {
+            const s = this.s;
             if (s.ended) return;
             if ((s.raidPulse = (s.raidPulse || 0) + dt) > 5) {
               s.raidPulse = 0;
               this.aiScope(() => this.raids());
             }
+          }
+          sysDynasties(dt, c) {
+            const s = this.s;
+            if (s.ended) return;
             for (const u of s.units) {
               if (u.embarkedOn) continue;
               if (u.kind === "engineer") {
@@ -2794,6 +2906,7 @@
         function pAllowsHero(p) {
           return p.cap >= 36;
         }
+        K2.addSimLayer(Dynasties, "dynasties", { pre: [["heroes.before", Dynasties.prototype.sysDynastiesPre]], post: [["heroes.respawn", Dynasties.prototype.sysHeroRespawn], ["ai.raids", Dynasties.prototype.sysAIRaids], ["engineers+medicine+trade", Dynasties.prototype.sysDynasties]] });
         const api = { ...K2, Sim: Dynasties, difficulties: levels, skills: skillDefs };
         if (typeof module !== "undefined" && module.exports) module.exports = api;
         else root.KingdomSim = api;
@@ -3474,11 +3587,15 @@
             this.emit("sound", { kind: "magic", x: u.x, y: u.y });
             return (type === "frost" ? "霜环" : "守护结界") + " · " + targets.length + " 个目标";
           }
-          tick(dt) {
-            if (!this.world) return super.tick(dt);
+          /* P4 4b: this layer's per-step work runs as named systems of the simulation pipeline (engine.js addSimLayer), not a tick override. */
+          sysMonsters(dt, c) {
+            if (!this.world) {
+              c.worldsOff = true;
+              return;
+            }
             activate(this.world);
             const s = this.s;
-            if (s.ended) return;
+            if (s.ended) return K2.SKIP;
             for (const u of s.units) {
               if (D[u.kind].monster) {
                 const enemy = this.nearest(u, s.units.filter((e) => e.team >= 0 && e.hp > 0 && !e.embarkedOn && dist(e, this.world.objective || this.world.center) < 610));
@@ -3494,13 +3611,16 @@
                 else if (u.lastKnown) this.order([u], { type: "advance", x: u.lastKnown.x, y: u.lastKnown.y });
               }
             }
-            super.tick(dt);
+          }
+          sysWorlds(dt, c) {
+            if (c.worldsOff) return;
+            const s = this.s;
             if (s.ended) return;
             for (const u of s.units) if (D[u.kind].hero) u.mana = Math.min(this.s.loot[u.team]?.chosen === "book" ? 100 : 80, (u.mana ?? 80) + dt * 0.7);
             for (const b of s.breaths.filter((b2) => b2.at <= s.time)) {
               const source = this.byId(b.source);
               if (!source) continue;
-              const targets = s.units.filter((e) => e.team >= 0 && !e.embarkedOn && dist(e, b) < b.radius).sort((a, c) => dist(a, b) - dist(c, b)).slice(0, 8);
+              const targets = s.units.filter((e) => e.team >= 0 && !e.embarkedOn && dist(e, b) < b.radius).sort((a, c2) => dist(a, b) - dist(c2, b)).slice(0, 8);
               for (const e of targets) this.damage(e, b.damage * (s.loot[e.team]?.chosen === "armor" && D[e.kind].hero ? 0.8 : 1), source);
               source.guardianFireUntil = s.time + 1;
               source.guardianAction = "fire";
@@ -3527,7 +3647,13 @@
               s.lastAlert = s.time;
               this.emit("attackAlert", { team: 0, x: home.x, y: home.y });
             }
+          }
+          sysFog(dt, c) {
+            if (c.worldsOff || this.s.ended) return;
             this.fogTurn(dt);
+          }
+          sysAIScout(dt, c) {
+            if (c.worldsOff || this.s.ended) return;
             this._scoutTimer = (this._scoutTimer || 0) + dt;
             if (this._scoutTimer > 30) {
               this._scoutTimer = 0;
@@ -3542,6 +3668,7 @@
             return super.serialize();
           }
         }
+        K2.addSimLayer(Worlds, "worlds", { pre: [["monsters+lastKnown", Worlds.prototype.sysMonsters]], post: [["worlds.mana+breath+lair+alert", Worlds.prototype.sysWorlds], ["fog", Worlds.prototype.sysFog], ["ai.scout", Worlds.prototype.sysAIScout]] });
         const api = { ...K2, Sim: Worlds, maps, rewards, makeWorld: descriptor, worldPlayable: playable, worldIslands: islandShapes, worldWater: water, carrierWaterClear, worldBridge: bridge, riverCenter, riverWidth, worldRocky: rocky, activateWorld: activate, coast: (x) => coast(active, x), river: (x, y) => river(active, x, y), isWater: (x, y) => water(active, x, y), isOcean: (x, y) => active.style === "coast" && water(active, x, y) && y > coast(active, x), islands: [], lakes: [], hills: [] };
         if (typeof module !== "undefined" && module.exports) module.exports = api;
         else root.KingdomSim = api;
@@ -3589,8 +3716,8 @@
           sight(e) {
             return super.sight(e) * (this.s.tech[e.team]?.telegraph && !this.sea(e) ? 1.15 : 1);
           }
-          tick(dt) {
-            super.tick(dt);
+          /* P4 4b: this layer's per-step work runs as named systems of the simulation pipeline (engine.js addSimLayer), not a tick override. */
+          sysMedics(dt, c) {
             if (this.s.ended) return;
             for (const u of this.s.units.filter((u2) => u2.kind === "combatmedic" && !u2.embarkedOn)) {
               const target = this.nearest(u, this.s.units.filter((e) => this.allied(u.team, e.team) && e.id !== u.id && !this.sea(e) && !this.air?.(e) && e.hp < e.maxhp && K2.distance(e, u) < 170 && this.s.time - (e.lastHurtAt || 0) > 4));
@@ -3630,6 +3757,7 @@
             }
           }
         }
+        K2.addSimLayer(Frontiers, "frontiers", { pre: [], post: [["medics", Frontiers.prototype.sysMedics]] });
         const api = { ...K2, Sim: Frontiers };
         if (typeof module !== "undefined" && module.exports) module.exports = api;
         else root.KingdomSim = api;
@@ -4263,15 +4391,18 @@
             if (this.s.units.some((u) => this.hostile(ship.team, u.team) && u.hp > 0 && !u.embarkedOn && dist(ship, u) < 150)) return "附近有敌军，无法安全卸载";
             return super.unload(ship);
           }
-          tick(dt) {
-            if (this.s.ended) return;
+          /* P4 4b: this layer's per-step work runs as named systems of the simulation pipeline (engine.js addSimLayer), not a tick override. */
+          sysSiegePre(dt, c) {
+            if (this.s.ended) return K2.SKIP;
             const s = this.s;
             if (this._ticks >= 20 && !this._navRoom && this.s.units.length >= 150) this.prewarmTerrain();
             if (s.lair && !s.lair.cleared && !s.lair.guards.some((id) => this.byId(id)?.hp > 0)) {
               const lair = this.byId(s.lair.id);
               if (lair) lair.hp = 0;
             }
-            super.tick(dt);
+          }
+          sysSiege(dt, c) {
+            const s = this.s;
             if (s.ended) return;
             if (s.lair?.cleared && !s.fortress) {
               const best = Math.max(...s.lair.contribution);
@@ -4321,6 +4452,7 @@
             }
           }
         }
+        K2.addSimLayer(Siege, "siege", { pre: [["siege.prewarm+lair", Siege.prototype.sysSiegePre]], post: [["siege.fortress+repair", Siege.prototype.sysSiege]] });
         const api = { ...K2, Sim: Siege };
         if (typeof module !== "undefined" && module.exports) module.exports = api;
         else root.KingdomSim = api;
@@ -4522,9 +4654,11 @@
             if (!this._wallConstructing && cmd.type !== "build") for (const u of units) delete u.buildQueue;
             return super.order(units, cmd);
           }
-          tick(dt) {
+          /* P4 4b: this layer's per-step work runs as named systems of the simulation pipeline (engine.js addSimLayer), not a tick override. */
+          sysWalls(dt, c) {
             this.refreshWalls();
-            super.tick(dt);
+          }
+          sysGates(dt, c) {
             if (this.s.ended) return;
             for (const b of this.s.buildings) {
               if (!D[b.kind]?.gate || !b.complete) continue;
@@ -4551,6 +4685,7 @@
             }
           }
         }
+        K2.addSimLayer(Fortification, "fortification", { pre: [["walls", Fortification.prototype.sysWalls]], post: [["gates+buildQueue", Fortification.prototype.sysGates]] });
         const api = { ...K2, Sim: Fortification, wallPlan, wallRects, wallCrosses };
         if (typeof module !== "undefined" && module.exports) module.exports = api;
         else root.KingdomSim = api;
@@ -4675,8 +4810,8 @@
             this.order([u], { type: "move", ...p });
             this.fx("spawnFlag", { ...p, team: u.team }, 2);
           }
-          tick(dt) {
-            super.tick(dt);
+          /* P4 4b: this layer's per-step work runs as named systems of the simulation pipeline (engine.js addSimLayer), not a tick override. */
+          sysWorkFacing(dt, c) {
             if (this.s.ended) return;
             for (const u of this.s.units) {
               const target = this.byId(u.combatTarget || (["attack", "gather", "build"].includes(u.order?.type) ? u.order.id : null));
@@ -4695,6 +4830,7 @@
             }
           }
         }
+        K2.addSimLayer(Tactics, "tactics", { pre: [], post: [["work.facing", Tactics.prototype.sysWorkFacing]] });
         const api = { ...K2, Sim: Tactics };
         if (typeof module !== "undefined" && module.exports) module.exports = api;
         else root.KingdomSim = api;
@@ -5035,7 +5171,8 @@
             for (const other of this.s.units.filter((v) => v.id !== e.id && this.canTarget(u, v) && dist(v, e) < 85).slice(0, 4)) this.damage(other, this.stat(u, "damage") * 0.5, u);
             this.emit("sound", { kind: u.kind === "panda" ? "pandaStrike" : "petStrike", x: u.x, y: u.y });
           }
-          tick(dt) {
+          /* P4 4b: this layer's per-step work runs as named systems of the simulation pipeline (engine.js addSimLayer), not a tick override. */
+          sysCompanionsPre(dt, c) {
             if (!this.singlePlayer()) this.s.debugMode = false;
             if (this.debugActive()) for (const b of [...this.s.buildings, ...this.s.units.filter((u) => u.kind === "carrier")].filter((b2) => b2.team === 0)) {
               for (const q of b.queue) if (!q.debugFast) {
@@ -5066,7 +5203,8 @@
               this.s.units = this.s.units.filter((u) => !D[u.kind]?.companion);
               this.s.easterEggUsed = false;
             }
-            super.tick(dt);
+          }
+          sysCompanions(dt, c) {
             this.refillResources();
             if (this.s.ended) return;
             for (const u of this.s.units) if (D[u.kind]?.companion) u.hp = Math.min(u.maxhp, u.hp + dt * 75);
@@ -5083,6 +5221,7 @@
             }
           }
         }
+        K2.addSimLayer(Companions, "companions", { pre: [["debug+cheats", Companions.prototype.sysCompanionsPre]], post: [["companions+ai.cooperation", Companions.prototype.sysCompanions]] });
         const api = { ...K2, Sim: Companions, chatProtocol: protocol };
         if (typeof module !== "undefined" && module.exports) module.exports = api;
         else root.KingdomSim = api;
@@ -5459,9 +5598,10 @@
               }
             }
           }
-          tick(dt) {
+          /* P4 4b: this layer's per-step work runs as named systems of the simulation pipeline (engine.js addSimLayer), not a tick override. */
+          sysAirResupply(dt, c) {
             this.migrateCampaign();
-            const s = this.s, before = s.resources.map((r) => ({ ...r })), spent = s.battleStats?.map((x) => ({ ...x.spentBy })) || [];
+            const s = this.s, before = c.resBefore = s.resources.map((r) => ({ ...r })), spent = c.spentBefore = s.battleStats?.map((x) => ({ ...x.spentBy })) || [];
             s.bombs ?? (s.bombs = []);
             this.tickCarrierAircraft(dt);
             for (const u of s.units) {
@@ -5499,7 +5639,9 @@
                 }
               }
             }
-            super.tick(dt);
+          }
+          sysCampaign(dt, c) {
+            const s = this.s, before = c.resBefore, spent = c.spentBefore;
             for (const ship of s.units) {
               if (ship.kind === "carrier") {
                 ship.queue ?? (ship.queue = []);
@@ -5560,6 +5702,7 @@
             }
           }
         }
+        K2.addSimLayer(Campaign, "campaign", { pre: [["air.resupply", Campaign.prototype.sysAirResupply]], post: [["boarding+bombs+stats", Campaign.prototype.sysCampaign]] });
         const api = { ...K2, Sim: Campaign, retiredBuildings: retired, nationalMagic: magic };
         if (typeof module !== "undefined" && module.exports) module.exports = api;
         else root.KingdomSim = api;
@@ -6013,14 +6156,15 @@
             super.rallySpawn(u, b);
             b.spawnCursor = ((b.spawnCursor || 0) + 1) % 5;
           }
-          tick(dt) {
-            super.tick(dt);
+          /* P4 4b: this layer's per-step work runs as named systems of the simulation pipeline (engine.js addSimLayer), not a tick override. */
+          sysCargoFacing(dt, c) {
             for (const u of this.s.units) if (u.kind === "villager" && u.cargoPhase === "return") {
               const depot = this.byId(u.depotId);
               if (depot) this.face(u, depot);
             }
           }
         }
+        K2.addSimLayer(Economy, "economy", { pre: [], post: [["cargo.facing", Economy.prototype.sysCargoFacing]] });
         const api = { ...K2, Sim: Economy, resourceDepots: accepts };
         if (typeof module !== "undefined" && module.exports) module.exports = api;
         else root.KingdomSim = api;
@@ -6108,26 +6252,29 @@
             this.fx("wildStrike", { x: e.x, y: e.y - 18, kind: u.kind }, 0.45);
             this.emit("sound", { kind: u.kind + "Attack", x: u.x, y: u.y });
           }
-          tick(dt) {
+          /* P4 4b: this layer's per-step work runs as named systems of the simulation pipeline (engine.js addSimLayer), not a tick override. */
+          sysWildlife(dt, c) {
             for (const u of this.s.units.filter((u2) => D[u2.kind]?.wildlife)) {
               const enemy = this.nearest(u, this.s.units.filter((e) => e.team >= 0 && e.hp > 0 && !e.embarkedOn && !this.air(e) && dist(e, u.anchor) < 400));
               if (enemy && dist(u, u.anchor) < 460) this.order([u], { type: "attack", id: enemy.id });
               else if (dist(u, u.anchor) > 40) this.order([u], { type: "move", ...u.anchor });
               else u.order = { type: "hold" };
             }
-            super.tick(dt);
-            for (const c of this.s.wildCamps) {
-              if (c.cleared || c.guards.some((id) => this.byId(id)?.hp > 0)) continue;
-              c.cleared = true;
-              const best = Math.max(...c.contribution), team = c.contribution.indexOf(best);
+          }
+          sysWildCamps(dt, c) {
+            for (const c2 of this.s.wildCamps) {
+              if (c2.cleared || c2.guards.some((id) => this.byId(id)?.hp > 0)) continue;
+              c2.cleared = true;
+              const best = Math.max(...c2.contribution), team = c2.contribution.indexOf(best);
               if (best > 0) {
                 this.s.resources[team].gold += 120;
                 this.s.resources[team].wood += 80;
-                this.emit("wildReward", { team, x: c.x, y: c.y, text: "高地守卫已击败：获得黄金 120、木材 80，富集矿区已开放" });
+                this.emit("wildReward", { team, x: c2.x, y: c2.y, text: "高地守卫已击败：获得黄金 120、木材 80，富集矿区已开放" });
               }
             }
           }
         }
+        K2.addSimLayer(Wildlands, "wildlands", { pre: [["wildlife", Wildlands.prototype.sysWildlife]], post: [["wildcamps", Wildlands.prototype.sysWildCamps]] });
         const api = { ...K2, Sim: Wildlands };
         if (typeof module !== "undefined" && module.exports) module.exports = api;
         else root.KingdomSim = api;
@@ -6754,9 +6901,12 @@
             for (const t of teams) this.logChat(t, this.coordinate(t, type, { targetTeam, point }), "reply");
             return this.s.chatLog.at(-1);
           }
-          tick(dt) {
-            const positions = new Map(this.s.units.map((u) => [u.id, { x: u.x, y: u.y }]));
-            super.tick(dt);
+          /* P4 4b: this layer's per-step work runs as named systems of the simulation pipeline (engine.js addSimLayer), not a tick override. */
+          sysFacingCapture(dt, c) {
+            c.positions = new Map(this.s.units.map((u) => [u.id, { x: u.x, y: u.y }]));
+          }
+          sysFacing(dt, c) {
+            const positions = c.positions;
             for (const u of this.s.units) {
               F.update(u, positions.get(u.id) || u);
               if (u.healActionAt === this.s.time) {
@@ -6764,6 +6914,8 @@
                 u.visualDirection = u.viewDirection;
               }
             }
+          }
+          sysAIRaidRetreat(dt, c) {
             this.aiScope(() => {
               for (const u of this.s.units) {
                 const m = this.aiUnitOf(u);
@@ -6776,6 +6928,7 @@
             });
           }
         }
+        K2.addSimLayer(Commander, "commander", { pre: [["facing.capture", Commander.prototype.sysFacingCapture]], post: [["facing", Commander.prototype.sysFacing], ["ai.raidRetreat", Commander.prototype.sysAIRaidRetreat]] });
         const api = { ...K2, Sim: Commander, aiCompositions: plans, aiDoctrines: doctrines };
         if (typeof module !== "undefined" && module.exports) module.exports = api;
         else root.KingdomSim = api;
@@ -7015,8 +7168,8 @@
           aiChooseUnit(team, choices, counts, reserve) {
             return super.aiChooseUnit(team, choices.filter((k) => !this.trainHidden({ team }, k)), counts, reserve);
           }
-          tick(dt) {
-            super.tick(dt);
+          /* P4 4b: this layer's per-step work runs as named systems of the simulation pipeline (engine.js addSimLayer), not a tick override. */
+          sysRoster(dt, c) {
             const s = this.s;
             if (s.ended) return;
             for (const b of s.buildings) {
@@ -7040,6 +7193,7 @@
             }
           }
         }
+        K2.addSimLayer(Roster, "roster", { pre: [], post: [["roster.church+levy", Roster.prototype.sysRoster]] });
         const api = { rosterTechHome: TECH_HOME, rosterLineHome: LINE_HOME, ...K2, Sim: Roster, rosterRetired: { units: RETIRED_UNITS, buildings: RETIRED_BUILDINGS, merged: MERGED }, rosterNational: NATIONAL, rosterLandmarkEvery: LANDMARK_EVERY, rosterAirHalf: AIR_HALF, rosterLines: LINES, rosterLineOf: lineOf };
         if (typeof module !== "undefined" && module.exports) module.exports = api;
         else root.KingdomSim = api;
@@ -7412,10 +7566,13 @@
               }
             }
           }
-          tick(dt) {
-            const before = /* @__PURE__ */ new Map();
+          /* P4 4b: this layer's per-step work runs as named systems of the simulation pipeline (engine.js addSimLayer), not a tick override. */
+          sysHeroWatch(dt, c) {
+            const before = c.heroesBefore = /* @__PURE__ */ new Map();
             for (const u of this.s.units) if (D[u.kind]?.hero && !D[u.kind].companion) before.set(u.id, u.team);
-            super.tick(dt);
+          }
+          sysHeroGuardSurvey(dt, c) {
+            const before = c.heroesBefore;
             const s = this.s;
             for (const [id, team] of before) {
               if (!this.byId(id)) {
@@ -7954,6 +8111,7 @@
             }
           }
         }
+        K2.addSimLayer(FrontierV40, "frontier-v40", { pre: [["heroes.watch", FrontierV40.prototype.sysHeroWatch]], post: [["heroes.guard+survey", FrontierV40.prototype.sysHeroGuardSurvey]] });
         const api = { ...K2, Sim: FrontierV40, landRegions, worldSignature, resourceZones, v40Balloon: BALLOON, v40Hero: HERO, v40Layout: { CAMP_REWARD, HOME_KEEP, SITES, CENTER, ISLAND_PER_PLAYER, HOME_RADIUS } };
         if (typeof module !== "undefined" && module.exports) module.exports = api;
         else root.KingdomSim = api;
@@ -9845,8 +10003,8 @@
             if (this.s.cooperation?.[team]?.until > this.s.time) return;
             this.aiCounterHall(team, town);
           }
-          tick(dt) {
-            super.tick(dt);
+          /* P4 4b: this layer's per-step work runs as named systems of the simulation pipeline (engine.js addSimLayer), not a tick override. */
+          sysAIHumanlike(dt, c) {
             this.aiScope(() => this.aiHumanTurn());
           }
           /* P4 4a: computer players (behaviour registry + v42 defend/micro) run in the AI phase: they only queue commands. */
@@ -9870,6 +10028,7 @@
             }
           }
         }
+        K2.addSimLayer(HumanlikeAI, "ai-humanlike", { pre: [], post: [["ai.humanlike", HumanlikeAI.prototype.sysAIHumanlike]] });
         const api = { ...K2, Sim: HumanlikeAI, aiHumanSkill: SKILL, aiTownPlan: TOWN_AI, registerAIBehavior, aiBehaviors: AI_BEHAVIORS, aiNavalAirLevels: NavalAir?.LEVEL };
         if (typeof module !== "undefined" && module.exports) module.exports = api;
         else root.KingdomSim = api;
@@ -10161,7 +10320,8 @@
               this.emit("end", { winners: s.winners });
             }
           }
-          tick(dt) {
+          /* P4 4b: this layer's per-step work runs as named systems of the simulation pipeline (engine.js addSimLayer), not a tick override. */
+          sysTreaties(dt, c) {
             for (const [key, p] of Object.entries(this.s.netTreaties)) if (p.warAt && p.warAt <= this.s.time) {
               delete this.s.netTreaties[key];
               this.grid = null;
@@ -10171,7 +10331,6 @@
               this.announce(this.label(a) + " 与 " + this.label(b) + " 现已敌对");
             }
             this.s.netOffers = this.s.netOffers.filter((p) => p.expires > this.s.time);
-            super.tick(dt);
           }
         }
         function hydrate(state, options = {}) {
@@ -10340,6 +10499,7 @@
           navTerrain.clear();
           navStats.hits = navStats.misses = navStats.builds = 0;
         }, signature: staticSignature };
+        K2.addSimLayer(NetworkSim, "network-model", { pre: [["net.treaties", NetworkSim.prototype.sysTreaties]], post: [] });
         const api = { ...K2, NetworkSim, networkHydrate: hydrate, networkPersistent: persistent, networkSnapshot: snapshot, networkAttach: attach, networkExpand: expand, navCache: navCacheApi, NETWORK_PROTOCOL: 2 };
         if (typeof module !== "undefined" && module.exports) module.exports = api;
         else root.KingdomSim = api;
@@ -10503,8 +10663,8 @@
             }
             return r;
           }
-          tick(dt) {
-            super.tick(dt);
+          /* P4 4b: this layer's per-step work runs as named systems of the simulation pipeline (engine.js addSimLayer), not a tick override. */
+          sysAnts(dt, c) {
             if (!this.s.antActive) return;
             const s = this.s;
             let any = false;
@@ -10563,6 +10723,7 @@
             }
           }
         }
+        K2.addSimLayer(LittleAnt, "little-ant", { pre: [], post: [["ants", LittleAnt.prototype.sysAnts]] });
         const api = { ...K2, Sim: LittleAnt, littleAnt: { config: ANT, pattern: ANT_RE } };
         if (typeof module !== "undefined" && module.exports) module.exports = api;
         else root.KingdomSim = api;

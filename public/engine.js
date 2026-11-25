@@ -155,11 +155,16 @@ class Sim{
  damage(target,amount,source){if(target.hp<=0)return;if(target.kind==='tower'&&D[source?.kind]?.role==='archer')amount*=.7;const damage=Math.max(1,amount-this.stat(target,'armor'));target.hp-=damage;target.flash=.18;this.fx('damage',{x:target.x,y:target.y-45,text:'−'+Math.round(damage),team:target.team},.9);if(target.hp<=0&&source&&!this.building(source)){source.kills=(source.kills||0)+1;const rank=source.kills>=8?2:source.kills>=3?1:0;if(rank>source.rank){source.rank=rank;const max=this.stat(source,'hp');source.hp+=max-source.maxhp;source.maxhp=max;this.fx('upgrade',{x:source.x,y:source.y},1.5);this.emit('veteran',{team:source.team})}}}
  strike(u,target){const d=D[u.kind];u.cool=d.cooldown||1;u.attackPulse=.3;u.facing=target.x>=u.x?1:-1;let damage=this.stat(u,'damage');if((u.kind==='infantry'&&target.kind==='cavalry')||(u.kind==='cavalry'&&['archer','musketeer','cannon'].includes(target.kind))||(u.kind==='archer'&&target.kind==='infantry')||(u.kind==='musketeer'&&target.kind==='cavalry'))damage*=1.65;if(this.building(target)){if(u.kind==='cannon')damage*=3;if(u.kind==='grenadier')damage*=2}
  const weapon=['cannon','fort'].includes(u.kind)?'cannon':u.kind==='musketeer'?'musket':u.kind==='grenadier'?'grenade':d.range>80?'arrow':'melee';this.fx('attack',{x:u.x,y:u.y-30,tx:target.x,ty:target.y-25,weapon,team:u.team},weapon==='melee'?.3:.5);this.emit('sound',{kind:weapon,x:u.x,y:u.y});this.damage(target,damage,u);if(d.splash){this.fx('explosion',{x:target.x,y:target.y-8,size:d.splash},.7);for(const other of [...this.s.units,...this.s.buildings])if(other.id!==target.id&&other.team!==u.team&&other.hp>0&&distance(other,target)<d.splash)this.damage(other,damage*.55,u)}else this.fx('impact',{x:target.x,y:target.y-20,weapon},.35)}
- tick(dt){const s=this.s;if(s.ended)return;this._stepDt=dt;this._ticks=(this._ticks||0)+1;s.time+=dt;s.aiTimer+=dt;s.raidTimer+=dt;
- for(const b of s.buildings){if(b.hp<=0)continue;b.cool=Math.max(0,b.cool-dt);b.flash=Math.max(0,b.flash-dt);b.attackPulse=Math.max(0,b.attackPulse-dt);if(!b.complete)continue;if(b.kind==='farm')b.amount=Math.min(9000,b.amount+dt*2);if(b.kind==='market'&&!D.market.noPassiveGold)s.resources[b.team].gold+=dt;
+ /* P4 4b: one step = the system pipeline (addSimLayer below): commands, then every layer's 'pre' systems from the outermost
+    class inwards, the core systems, then the 'post' systems from the innermost class outwards - the order the old chain of tick
+    overrides ran in. Each system has a name and can be timed (profileSystems). */
+ tick(dt){runPipeline(this,dt)}
+ sysEnded(){if(this.s.ended)return SKIP}
+ sysClock(dt,c){const s=this.s;this._stepDt=dt;this._ticks=(this._ticks||0)+1;s.time+=dt;s.aiTimer+=dt;s.raidTimer+=dt;}
+ sysBuildings(dt,c){const s=this.s;for(const b of s.buildings){if(b.hp<=0)continue;b.cool=Math.max(0,b.cool-dt);b.flash=Math.max(0,b.flash-dt);b.attackPulse=Math.max(0,b.attackPulse-dt);if(!b.complete)continue;if(b.kind==='farm')b.amount=Math.min(9000,b.amount+dt*2);if(b.kind==='market'&&!D.market.noPassiveGold)s.resources[b.team].gold+=dt;
  if(b.queue.length){const q=b.queue[0];q.left-=dt;if(q.left<=0){b.queue.shift();if(q.type==='research')this.applyResearch(b.team,q.kind);else{const angle=this.rand(0,Math.PI*2),u=this.add(q.kind,b.team,b.x+Math.cos(angle)*(D[b.kind].r+64),b.y+Math.sin(angle)*(D[b.kind].r+64));this.freeSpawn(u);this.emit('trained',{team:b.team,kind:q.kind});if(this.rallySpawn)this.rallySpawn(u,b);else if(b.team&&u.kind!=='villager')this.order([u],{type:'move',x:2810+this.rand(-100,100),y:850+this.rand(-90,90)})}}}
- if(D[b.kind].damage&&!b.cool){/* v44: only units already inside range can pass the range test below, so the nearest valid one inside range is the same pick */const range=this.stat(b,'range'),enemy=this.nearest(b,s.units.filter(u=>u.team!==b.team&&u.hp>0&&!u.embarkedOn&&distance(b,u)<range&&(!this.canTarget||this.canTarget(b,u))));if(enemy&&distance(b,enemy)<range)this.strike(b,enemy)}}
- for(const u of s.units){if(u.hp<=0||u.embarkedOn)continue;const d=D[u.kind];u.cool=Math.max(0,u.cool-dt);u.flash=Math.max(0,u.flash-dt);u.attackPulse=Math.max(0,u.attackPulse-dt);u.combatTarget=null;u.working=false;let o=u.order,target=o?.id?this.byId(o.id):null;
+ if(D[b.kind].damage&&!b.cool){/* v44: only units already inside range can pass the range test below, so the nearest valid one inside range is the same pick */const range=this.stat(b,'range'),enemy=this.nearest(b,s.units.filter(u=>u.team!==b.team&&u.hp>0&&!u.embarkedOn&&distance(b,u)<range&&(!this.canTarget||this.canTarget(b,u))));if(enemy&&distance(b,enemy)<range)this.strike(b,enemy)}}}
+ sysUnits(dt,c){const s=this.s;for(const u of s.units){if(u.hp<=0||u.embarkedOn)continue;const d=D[u.kind];u.cool=Math.max(0,u.cool-dt);u.flash=Math.max(0,u.flash-dt);u.attackPulse=Math.max(0,u.attackPulse-dt);u.combatTarget=null;u.working=false;let o=u.order,target=o?.id?this.byId(o.id):null;
  // Workers retain gathering/build orders. v40: a move (or retreat) order is the player's highest-priority command: it
  // breaks off combat at once and walks to the destination without auto-targeting; automatic retaliation resumes only on
  // arrival (retreats keep 8 s of disengagement after arrival). Attack-move ('advance') still fights along the way.
@@ -176,20 +181,49 @@ target=null}
  if(target&&o?.type==='attack'&&target.team!==u.team&&(!this.canTarget||this.canTarget(u,target))){this.autoTargets.delete(u);enemy=target;}
  else if((!o||['advance','move','hold'].includes(o.type))&&mobileCombatant&&(u.disengageUntil||0)<s.time){enemy=this.acquireAutoTarget(u)}
  else this.autoTargets.delete(u);
- if(enemy){u.combatTarget=enemy.id;const reach=this.attackReach?this.attackReach(u,enemy):this.stat(u,'range')+(this.building(enemy)?D[enemy.kind].r:D[enemy.kind].r*.5);if(distance(u,enemy)<=reach&&distance(u,enemy)>=(d.minRange||0)&&(!this.meleeClear||this.meleeClear(u,enemy))){u.engagementBlocked=false;u.path=[];if(!u.cool)this.strike(u,enemy)}else this.walk(u,enemy,reach,dt)}else if(o?.type==='advance'||o?.type==='move'){if(this.walk(u,o,38,dt)){u.order=null;u.disengageUntil=o.retreat?s.time+8:s.time}}}
- // Separate nearby bodies without allowing a push through walls or water.
- const perf=typeof window!=='undefined'?window.PerformanceAudit:null,collisionStart=perf?performance.now():0,collisionPairs=this.separateCrowd();if(perf)perf.collision(performance.now()-collisionStart,collisionPairs,s.units.length*(s.units.length-1)/2);
- for(const u of s.units.filter(u=>u.hp<=0)){this.pathFailures?.delete(u.id);this.pathGoals?.delete(u.id);this.fx('death',{x:u.x,y:u.y,kind:u.kind,team:u.team,facing:u.facing||1,viewDirection:u.viewDirection,lookAngle:u.lookAngle},6);this.emit('sound',{kind:u.kind==='cannon'?'cannon':'death',x:u.x,y:u.y})}
- const dead=s.buildings.filter(b=>b.hp<=0);if(dead.length)this.grid=null;for(const b of dead){this.fx('collapse',{x:b.x,y:b.y,kind:b.kind,team:b.team},12);this.emit('sound',{kind:'collapse',x:b.x,y:b.y});if(b.kind==='town'&&!s.buildings.some(o=>o!==b&&o.team===b.team&&o.kind==='town'&&o.complete&&o.hp>0)){if(this.townDestroyed)this.townDestroyed(b);else{s.ended=true;s.result=b.team===1;this.emit('end',{win:s.result})}}}
- s.units=s.units.filter(u=>u.hp>0);s.buildings=s.buildings.filter(b=>b.hp>0);s.nodes=s.nodes.filter(n=>n.amount>0);for(const fx of s.effects)fx.life-=dt;s.effects=s.effects.filter(f=>f.life>0);
- this.aiScope(()=>{if(this._ticks%600===0)this.aiPruneUnits();this.aiTurns(dt);if(s.raidTimer>(s.difficulty==='easy'?210:115)){s.raidTimer=0;if(this.raids)this.raids();else{const army=s.units.filter(u=>u.team===1&&u.kind!=='villager'&&D[u.kind].damage>0&&D[u.kind].domain!=='sea'&&!u.embarkedOn&&u.order?.type!=='attack').slice(0,s.difficulty==='easy'?8:14),town=this.townOf(0);if(town&&army.length>=4){this.order(army,{type:'advance',x:town.x,y:town.y});this.emit('raid')}}}});
- }
+ if(enemy){u.combatTarget=enemy.id;const reach=this.attackReach?this.attackReach(u,enemy):this.stat(u,'range')+(this.building(enemy)?D[enemy.kind].r:D[enemy.kind].r*.5);if(distance(u,enemy)<=reach&&distance(u,enemy)>=(d.minRange||0)&&(!this.meleeClear||this.meleeClear(u,enemy))){u.engagementBlocked=false;u.path=[];if(!u.cool)this.strike(u,enemy)}else this.walk(u,enemy,reach,dt)}else if(o?.type==='advance'||o?.type==='move'){if(this.walk(u,o,38,dt)){u.order=null;u.disengageUntil=o.retreat?s.time+8:s.time}}}}
+ sysCollision(dt,c){const s=this.s;// Separate nearby bodies without allowing a push through walls or water.
+ const perf=typeof window!=='undefined'?window.PerformanceAudit:null,collisionStart=perf?performance.now():0,collisionPairs=this.separateCrowd();if(perf)perf.collision(performance.now()-collisionStart,collisionPairs,s.units.length*(s.units.length-1)/2);}
+ sysDeaths(dt,c){const s=this.s;for(const u of s.units.filter(u=>u.hp<=0)){this.pathFailures?.delete(u.id);this.pathGoals?.delete(u.id);this.fx('death',{x:u.x,y:u.y,kind:u.kind,team:u.team,facing:u.facing||1,viewDirection:u.viewDirection,lookAngle:u.lookAngle},6);this.emit('sound',{kind:u.kind==='cannon'?'cannon':'death',x:u.x,y:u.y})}
+ const dead=s.buildings.filter(b=>b.hp<=0);if(dead.length)this.grid=null;for(const b of dead){this.fx('collapse',{x:b.x,y:b.y,kind:b.kind,team:b.team},12);this.emit('sound',{kind:'collapse',x:b.x,y:b.y});if(b.kind==='town'&&!s.buildings.some(o=>o!==b&&o.team===b.team&&o.kind==='town'&&o.complete&&o.hp>0)){if(this.townDestroyed)this.townDestroyed(b);else{s.ended=true;s.result=b.team===1;this.emit('end',{win:s.result})}}}}
+ sysCleanup(dt,c){const s=this.s;s.units=s.units.filter(u=>u.hp>0);s.buildings=s.buildings.filter(b=>b.hp>0);s.nodes=s.nodes.filter(n=>n.amount>0);for(const fx of s.effects)fx.life-=dt;s.effects=s.effects.filter(f=>f.life>0);}
+ sysAITurns(dt,c){const s=this.s;this.aiScope(()=>{if(this._ticks%600===0)this.aiPruneUnits();this.aiTurns(dt);if(s.raidTimer>(s.difficulty==='easy'?210:115)){s.raidTimer=0;if(this.raids)this.raids();else{const army=s.units.filter(u=>u.team===1&&u.kind!=='villager'&&D[u.kind].damage>0&&D[u.kind].domain!=='sea'&&!u.embarkedOn&&u.order?.type!=='attack').slice(0,s.difficulty==='easy'?8:14),town=this.townOf(0);if(town&&army.length>=4){this.order(army,{type:'advance',x:town.x,y:town.y});this.emit('raid')}}}});}
  /* Computer turns: every 7 s. Dynasties (all real games) overrides this to give every computer seat its own phase. */
  aiTurns(){const s=this.s;if(s.aiTimer>7){s.aiTimer=0;this.ai()}}
  ai(){const s=this.s,team=1,town=this.townOf(team),workers=s.units.filter(u=>u.team===team&&u.kind==='villager');if(!town)return;for(const u of workers.filter(u=>!u.order)){const resource=['food','wood','gold'][u.id%3],n=this.nearest(u,this.resources().filter(n=>(n.resource||n.kind)===resource&&n.amount>0&&(!D[n.kind]?.building||n.team===team)));if(n)this.order([u],{type:'gather',id:n.id,resource})}if(workers.length<11&&town.queue.length<1)this.train(town,'villager');if(s.time>(s.difficulty==='easy'?280:180)&&!this.researchError(town,'age'))this.research(town,'age');const age=s.ages[team];let desired=this.population(team)>=this.capacity(team)-3?'house':!s.buildings.some(b=>b.team===team&&b.kind==='market')?'market':age>=2&&!s.buildings.some(b=>b.team===team&&b.kind==='stable')?'stable':age>=3&&!s.buildings.some(b=>b.team===team&&b.kind==='workshop')?'workshop':null;
  if(desired&&workers.length&&!s.buildings.some(b=>b.team===team&&!b.complete)){for(let i=0;i<24;i++){const x=town.x+this.rand(-430,360),y=town.y+this.rand(-260,430);if(!this.placementError(desired,x,y,team)){this.construct(desired,x,y,[workers[0]],team);break}}}if(s.units.filter(u=>u.team===team&&u.kind!=='villager').length<42)for(const b of s.buildings.filter(b=>b.team===team&&b.complete&&D[b.kind].trains&&b.kind!=='town'&&b.queue.length<1)){const options=D[b.kind].trains.filter(k=>D[k].age<=age);if(options.length)this.train(b,options[Math.floor(this.rand(0,options.length))])}}
  serialize(){return JSON.stringify({...this.s,effects:[]})}
 }
+/* ---- P4 4b: the simulation system pipeline ----
+   addSimLayer(Class, layer, {pre:[[name, fn]...], post:[[name, fn]...]}) - called once per simulation layer at load time; fn runs with
+   this = the sim, (dt, c), c = a per-step scratch object shared by the systems of one step (values a 'pre' system hands to its 'post').
+   The pipeline of a class = 'commands', the pre systems of its layers from the most derived class inwards, then the post systems from
+   the innermost outwards (exactly the old super.tick() nesting). A pre system that returns SKIP stops the inner part of the step: the
+   remaining pre systems, and the post systems of its own and inner layers, are skipped; outer post systems still run (as the old
+   "if(ended)return" before super.tick did).
+   registerSystem({name, before|after: <system name>, run(dt, c)}) - THE registration point for new per-step behaviour (no more tick
+   overrides; check-pipeline.cjs fails on one). Diagnostics: sim.profileSystems(true) times every system (ms per system, opt-in). */
+const SKIP=typeof Symbol==='function'?Symbol('skipInner'):'__skipInner',LAYERS=[],EXTRA=[];let pipeGen=0;
+function addSimLayer(Ctor,layer,{pre=[],post=[]}={}){LAYERS.push({Ctor,layer,pre:pre.map(([name,fn])=>({name,fn})),post:post.map(([name,fn])=>({name,fn}))});pipeGen++}
+function registerSystem({name,before,after,run}){if(!name||typeof run!=='function'||!(before||after))throw Error('registerSystem: name, run and before/after are required');EXTRA.push({name,before,after,fn:run});pipeGen++}
+const drainSystem={name:'commands',kind:'pre',depth:-1,fn(){if(this.s.commandQueue?.length&&!this.s.ended&&!this._aiPhase)this.drainCommands()}};
+function pipelineFor(Ctor){const own=Object.prototype.hasOwnProperty.call(Ctor,'__pipeline')?Ctor.__pipeline:null;if(own&&own.gen===pipeGen)return own.list;
+ const chain=[];for(let p=Ctor.prototype;p&&p!==Object.prototype;p=Object.getPrototypeOf(p))chain.push(p);
+ const layers=LAYERS.map(L=>({...L,depth:chain.indexOf(L.Ctor.prototype)})).filter(L=>L.depth>=0).sort((x,y)=>x.depth-y.depth);
+ const list=[drainSystem];for(const L of layers)for(const sys of L.pre)list.push({...sys,kind:'pre',depth:L.depth,layer:L.layer});
+ for(const L of layers.slice().reverse())for(const sys of L.post)list.push({...sys,kind:'post',depth:L.depth,layer:L.layer});
+ for(const x of EXTRA){const at=list.findIndex(y=>y.name===(x.before||x.after));if(at<0)continue;const anchor=list[at];list.splice(x.before?at:at+1,0,{name:x.name,fn:x.fn,kind:anchor.kind,depth:anchor.depth,layer:'registered'})}
+ Object.defineProperty(Ctor,'__pipeline',{value:{gen:pipeGen,list},configurable:true,writable:true});return list}
+const perfNow=typeof performance!=='undefined'&&performance.now?()=>performance.now():null;
+function runPipeline(sim,dt){const list=pipelineFor(sim.constructor),c={},prof=sim._sysProfile||globalProf;let skipFrom=null;
+ for(let i=0;i<list.length;i++){const x=list[i];if(skipFrom!==null&&(x.kind==='pre'||x.depth>=skipFrom))continue;
+  let r;if(prof&&perfNow){const t0=perfNow();r=x.fn.call(sim,dt,c);const ms=perfNow()-t0,e=prof[x.name]||(prof[x.name]={ms:0,n:0,max:0});e.ms+=ms;e.n++;if(ms>e.max)e.max=ms}else r=x.fn.call(sim,dt,c);
+  if(r===SKIP&&x.kind==='pre')skipFrom=x.depth}}
+/* ?perf=1 (performance-audit.js) turns on the page-wide profile; it reads and resets it every HUD refresh. */
+let globalProf=null;function profileSystems(on=true){globalProf=on?(globalProf||{}):null;return globalProf}function takeSystemProfile(){const p=globalProf;if(p)globalProf={};return p}
+Sim.prototype.profileSystems=function(on=true){this._sysProfile=on?(this._sysProfile||{}):null;return this._sysProfile};
+Sim.prototype.systemNames=function(){return pipelineFor(this.constructor).map(x=>x.name)};
+addSimLayer(Sim,'engine',{pre:[['engine.ended',Sim.prototype.sysEnded],['engine.clock',Sim.prototype.sysClock],['buildings',Sim.prototype.sysBuildings],['units',Sim.prototype.sysUnits],['collision',Sim.prototype.sysCollision],['deaths',Sim.prototype.sysDeaths],['cleanup',Sim.prototype.sysCleanup],['ai.turns',Sim.prototype.sysAITurns]]});
 /* P4 4a - one command interface (src/commands/index.js, loaded as public/kingdom-commands.js). Computer players run in an AI phase
    (aiScope); there every player entry point (Commands.TYPES: order, construct, train, research, ...) is turned into a command
    {type, team, args} appended to s.commandQueue instead of running, and the AI gets the entry point's dry-run answer. The queue
@@ -200,7 +234,7 @@ const Commands=typeof module!=='undefined'&&module.exports?require('./kingdom-co
 const GATED=typeof Symbol==='function'?Symbol('commandGate'):'__commandGate';
 function gateCommands(Ctor){const P=Ctor&&Ctor.prototype;if(!P||Object.prototype.hasOwnProperty.call(P,GATED))return;if(!Commands)throw Error('kingdom-commands.js must be loaded before engine.js');Object.defineProperty(P,GATED,{value:true});
  for(const name of Commands.TYPES){const inner=P[name];if(typeof inner!=='function')continue;Object.defineProperty(P,name,{configurable:true,writable:true,value:function(...args){return this._aiPhase>0?this.aiCommand(name,args):inner.apply(this,args)}})}
- const tick=P.tick;Object.defineProperty(P,'tick',{configurable:true,writable:true,value:function(dt){if(this.s.commandQueue?.length&&!this.s.ended&&!this._aiPhase)this.drainCommands();return tick.call(this,dt)}})}
+}
 Sim.prototype.aiScope=function(fn){this._aiPhase++;try{return fn.call(this)}finally{this._aiPhase--}};
 Sim.prototype.aiCommand=function(name,args){if(!Commands.AI_TYPES.includes(name))throw Error('AI phase: '+name+' is not a computer command');if(name==='train'&&this.aiTrainKind&&args[0])args=[args[0],this.aiTrainKind(args[0],args[1])];
  if(name==='order'&&this.aiPrepareOrder&&Array.isArray(args[0])){args=[this.aiPrepareOrder(args[0],args[1]||{}),...args.slice(1)];if(!args[0].length)return undefined}
@@ -212,5 +246,5 @@ Sim.prototype.aiUnitOf=function(u){return this.s.aiUnits?.[u.id]};
 Sim.prototype.aiPrepareOrder=function(units){return units};
 Sim.prototype.aiPruneUnits=function(){const m=this.s.aiUnits;if(!m)return;for(const id of Object.keys(m))if(!this.byId(+id))delete m[id]};
 Sim.prototype.drainCommands=function(){this._applyingAI=true;try{return Commands.drainCommands(this)}finally{this._applyingAI=false}};
-const api={Sim,defs:D,tech:TECH,map:MAP,ageNames,river,riverCenter:center,distance,townRules:TOWN_RULES};if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.KingdomSim=api;
+const api={addSimLayer,registerSystem,SKIP,profileSystems,takeSystemProfile,Sim,defs:D,tech:TECH,map:MAP,ageNames,river,riverCenter:center,distance,townRules:TOWN_RULES};if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.KingdomSim=api;
 })(typeof window!=='undefined'?window:globalThis);

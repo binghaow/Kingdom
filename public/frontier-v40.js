@@ -125,7 +125,9 @@ class FrontierV40 extends Base{
  surveyed(team,e){return !!this.s.surveyed?.[team]?.includes(e.id)}
  survey(){const s=this.s,f=this.fog;if(!f||!s.fogEnabled)return;s.surveyed??=s.nations.map(()=>[]);for(const [team,list]of this._balloonMap||[]){if(team<0)continue;for(const b of list){const r=this.sight(b)*BALLOON.surveyMult;for(let t=0;t<s.nations.length;t++){if(!this.allied(t,team))continue;const mem=f.memory[t];for(const n of s.nodes)if(n.amount>0&&!mem[n.id]&&dist(n,b)<=r){mem[n.id]={...n,remembered:true,surveyed:true};const i=Math.floor(n.y/96)*f.cols+Math.floor(n.x/96);f.explored[t][i]=1}
      for(const p of s.landmarks||[])if(dist(p,b)<=r&&!s.surveyed[t].includes(p.id)){s.surveyed[t].push(p.id);f.explored[t][Math.floor(p.y/96)*f.cols+Math.floor(p.x/96)]=1;this.emit('surveyed',{team:t,id:p.id,type:p.type})}}}}}
- tick(dt){const before=new Map();for(const u of this.s.units)if(D[u.kind]?.hero&&!D[u.kind].companion)before.set(u.id,u.team);super.tick(dt);const s=this.s;
+ /* P4 4b: this layer's per-step work runs as named systems of the simulation pipeline (engine.js addSimLayer), not a tick override. */
+ sysHeroWatch(dt,c){const before=c.heroesBefore=new Map();for(const u of this.s.units)if(D[u.kind]?.hero&&!D[u.kind].companion)before.set(u.id,u.team);}
+ sysHeroGuardSurvey(dt,c){const before=c.heroesBefore;const s=this.s;
   for(const [id,team]of before){if(!this.byId(id)){s.heroMourning??=s.nations.map(()=>0);s.heroMourning[team]=s.time+HERO.mournFor;this.emit('heroFallen',{team,until:s.heroMourning[team]})}}
   if(s.ended)return;this.heroGuard();const half=Math.floor(s.time*2);if(half!==this._surveyHalf){this._surveyHalf=half;this.balloons(0);this.survey()}}
 
@@ -225,6 +227,7 @@ class FrontierV40 extends Base{
   if(N.stage==='board'&&(cargo.length>=Math.min(N.ids.length,4)||s.time-N.since>45&&cargo.length)){N.stage='sail';N.shore=this.aiShore(N.target);if(!N.shore){F.naval=null;return}this.order([ship],{type:'move',x:N.shore.x,y:N.shore.y})}
   else if(N.stage==='sail'&&(dist(ship,N.shore)<150||s.time-N.since>150)){this.unload(ship);const landed=N.ids.map(id=>this.byId(id)).filter(u=>u?.hp>0&&!u.embarkedOn);if(landed.length)this.order(landed,{type:'advance',x:N.target.x,y:N.target.y});F.naval=null}}
 }
+K.addSimLayer(FrontierV40,'frontier-v40',{pre:[['heroes.watch',FrontierV40.prototype.sysHeroWatch]],post:[['heroes.guard+survey',FrontierV40.prototype.sysHeroGuardSurvey]]});
 const api={...K,Sim:FrontierV40,landRegions,worldSignature,resourceZones,v40Balloon:BALLOON,v40Hero:HERO,v40Layout:{CAMP_REWARD,HOME_KEEP,SITES,CENTER,ISLAND_PER_PLAYER,HOME_RADIUS}};
 if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.KingdomSim=api;
 })(typeof window==='undefined'?globalThis:window);

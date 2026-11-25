@@ -192,13 +192,15 @@ class HumanlikeAI extends Base{
    const res=this.construct('town',x,y,pool.slice(0,3),team);if(!res?.error){E.built++;E.site=null;this.emit('aiTown',{team,x:Math.round(x),y:Math.round(y)});return}}
   if(dist(v,best)>220){this.order([v],{type:'move',x:best.x,y:best.y});E.next=s.time+Math.min(P.every,15)}}
  aiPlayer(team){super.aiPlayer(team);this.aiExpandTowns(team);if(!this.aiHumanOn(team)||this.s.ended)return;const town=this.townOf(team);if(!town)return;this.aiH(team);if(this.s.cooperation?.[team]?.until>this.s.time)return;this.aiCounterHall(team,town)}
- tick(dt){super.tick(dt);this.aiScope(()=>this.aiHumanTurn());}
+ /* P4 4b: this layer's per-step work runs as named systems of the simulation pipeline (engine.js addSimLayer), not a tick override. */
+ sysAIHumanlike(dt,c){this.aiScope(()=>this.aiHumanTurn());}
  /* P4 4a: computer players (behaviour registry + v42 defend/micro) run in the AI phase: they only queue commands. */
  aiHumanTurn(){const s=this.s;if(!s.ended&&AI_JOB_KEYS.length)this.aiBehaviorStep();if(s.ended||!s.aiHuman)return;for(const key of Object.keys(s.aiHuman)){const team=+key;if(!this.aiHumanOn(team))continue;const h=s.aiHuman[key];const k=this.aiSkill(team);
   /* alarms are checked on the reaction cadence of the difficulty (not the 7 s think), the battle micro on its own cadence */
   if(s.time>=(h.defendAt||0)){h.defendAt=s.time+Math.max(1.5,k.react);const town=this.townOf(team);if(town)this.aiDefend(team,town)}
   if(s.time<(h.microAt||0))continue;h.microAt=s.time+k.micro;this.aiMicro(team)}}
 }
+K.addSimLayer(HumanlikeAI,'ai-humanlike',{pre:[],post:[['ai.humanlike',HumanlikeAI.prototype.sysAIHumanlike]]});
 const api={...K,Sim:HumanlikeAI,aiHumanSkill:SKILL,aiTownPlan:TOWN_AI,registerAIBehavior,aiBehaviors:AI_BEHAVIORS,aiNavalAirLevels:NavalAir?.LEVEL};
 if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.KingdomSim=api;
 })(typeof window==='undefined'?globalThis:window);

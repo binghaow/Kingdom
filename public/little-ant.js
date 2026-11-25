@@ -38,12 +38,14 @@ class LittleAnt extends Base{
  stat(e,key){const v=super.stat(e,key);if(key!=='speed'||e?.kind!=='ant')return v;return v*((e.sprintLeft||0)>0?ANT.sprintMult:1)*(e.swimming?ANT.swimMult:1)}
  /* sprint: a long move, or a quick second order, gives a short burst (cooldown) */
  order(units,cmd){const ants=this.s.antActive?units.filter(u=>u.kind==='ant'):[];const r=super.order(units,cmd);for(const u of ants){u.antIdleSince=this.s.time;if(u.antSleeping){u.antSleeping=false;u.antWake=.8}if(!['move','advance','gather','returnCargo'].includes(cmd?.type))continue;u.antEmote={kind:'cheer',left:1};const goal=cmd.id!==undefined?this.byId(cmd.id):cmd;const far=goal&&Number.isFinite(goal.x)&&dist(u,goal)>ANT.sprintDistance,chained=this.s.time-(u.antLastOrderAt??-99)<ANT.chainWindow;u.antLastOrderAt=this.s.time;if((far||chained)&&(u.sprintReady??0)<=this.s.time){u.sprintLeft=ANT.sprintTime;u.sprintReady=this.s.time+ANT.sprintCooldown}}return r}
- tick(dt){super.tick(dt);if(!this.s.antActive)return;const s=this.s;let any=false;for(const u of s.units){if(u.kind!=='ant')continue;any=true;this.antTick(u,dt)}if(!any)s.antActive=false}
+ /* P4 4b: this layer's per-step work runs as named systems of the simulation pipeline (engine.js addSimLayer), not a tick override. */
+ sysAnts(dt,c){if(!this.s.antActive)return;const s=this.s;let any=false;for(const u of s.units){if(u.kind!=='ant')continue;any=true;this.antTick(u,dt)}if(!any)s.antActive=false}
  antTick(u,dt){const s=this.s;u.hp=u.maxhp;u.combatTarget=null;if(u.sprintLeft>0)u.sprintLeft=Math.max(0,u.sprintLeft-dt);if(u.antEmote){u.antEmote.left-=dt;if(u.antEmote.left<=0)u.antEmote=null}if(u.antHop>0)u.antHop=Math.max(0,u.antHop-dt);if(u.antWake>0)u.antWake=Math.max(0,u.antWake-dt);if(u.antSleeping)u.antSleepFor=(u.antSleepFor||0)+dt;else if(u.antSleepFor)u.antSleepFor=0;
   const w=this.world,wet=!!w&&K.worldWater(w,u.x,u.y)&&!K.worldBridge?.(w,u.x,u.y);if(wet!==!!u.swimming){u.swimming=wet;u.antHop=.7}
   const busy=!!(u.order||u.path?.length||u.working);if(busy){u.antIdleSince=s.time;if(u.antSleeping){u.antSleeping=false;u.antWake=.8}}else if(!u.antSleeping&&!u.swimming&&s.time-(u.antIdleSince??s.time)>ANT.sleepAfter){u.antSleeping=true;u.antSleepAt=s.time}
   u.antScan=(u.antScan||0)-dt;if(u.antScan<=0){u.antScan=ANT.alarmEvery;const fight=s.units.some(v=>v.combatTarget&&v.hp>0&&Math.abs(v.x-u.x)<ANT.alarmRadius&&Math.abs(v.y-u.y)<ANT.alarmRadius);if(fight&&!u.antAlarm){u.antEmote={kind:'surprised',left:1.3};if(u.antSleeping){u.antSleeping=false;u.antWake=.8}}u.antAlarm=fight;
    if(u.path?.length&&!(u.antHop>0)&&(u.antHopReady??0)<=s.time&&s.buildings.some(b=>b.hp>0&&(D[b.kind]?.wall||D[b.kind]?.gate)&&dist(b,u)<(D[b.kind].r||20)+ANT.hopNear)){u.antHop=.7;u.antHopReady=s.time+3}}}
 }
+K.addSimLayer(LittleAnt,'little-ant',{pre:[],post:[['ants',LittleAnt.prototype.sysAnts]]});
 const api={...K,Sim:LittleAnt,littleAnt:{config:ANT,pattern:ANT_RE}};if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.KingdomSim=api;
 })(typeof window!=='undefined'?window:globalThis);

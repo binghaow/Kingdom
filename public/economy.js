@@ -17,7 +17,9 @@ class Economy extends Base{
  defaultRallyPoint(b){return this.spawnAnchor(b,{kind:D[b.kind].trains[0],team:b.team,x:b.x,y:b.y})}
  exitPoint(b,u){const sea=this.sea(u),base=this.spawnAnchor(b,u),serial=(b.spawnCursor||0)+1,space=sea?76:this.air(u)?58:34,cols=[0,-1,1,-2,2];for(let r=0;r<9;r++)for(let k=0;k<5;k++){const i=(k+serial-1)%5,p={x:base.x+cols[i]*space,y:base.y+r*space};if(!K.worldPlayable(this.world,p.x,p.y)||this.blocked(p.x,p.y,u))continue;if(this.s.units.some(v=>v!==u&&v.hp>0&&!v.embarkedOn&&D[v.kind].domain===D[u.kind].domain&&dist(v,p)<Math.max(space*.8,(D[v.kind].r+D[u.kind].r)*1.1)))continue;return p}return super.exitPoint(b,u)}
  rallySpawn(u,b){super.rallySpawn(u,b);b.spawnCursor=((b.spawnCursor||0)+1)%5}
- tick(dt){super.tick(dt);for(const u of this.s.units)if(u.kind==='villager'&&u.cargoPhase==='return'){const depot=this.byId(u.depotId);if(depot)this.face(u,depot)}}
+ /* P4 4b: this layer's per-step work runs as named systems of the simulation pipeline (engine.js addSimLayer), not a tick override. */
+ sysCargoFacing(dt,c){for(const u of this.s.units)if(u.kind==='villager'&&u.cargoPhase==='return'){const depot=this.byId(u.depotId);if(depot)this.face(u,depot)}}
 }
+K.addSimLayer(Economy,'economy',{pre:[],post:[['cargo.facing',Economy.prototype.sysCargoFacing]]});
 const api={...K,Sim:Economy,resourceDepots:accepts};if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.KingdomSim=api;
 })(typeof window==='undefined'?globalThis:window);

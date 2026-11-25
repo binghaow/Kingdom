@@ -57,7 +57,9 @@ class Coalitions extends Base{
  }}
  aiPlayer(team){super.ai(team)}
  ai(){for(let team=1;team<this.s.nations.length;team++){if(this.s.defeated.includes(team))continue;super.ai(team);const market=this.s.buildings.find(b=>b.team===team&&b.kind==='market'&&b.complete);if(market&&this.s.units.filter(u=>u.team===team&&u.kind==='trader').length<2&&!market.queue.length)this.train(market,'trader')}}
- tick(dt){if(this.s.ended)return;super.tick(dt);if(this.s.ended)return;const s=this.s;
+ /* P4 4b: this layer's per-step work runs as named systems of the simulation pipeline (engine.js addSimLayer), not a tick override. */
+ sysCoalitionsPre(dt,c){if(this.s.ended)return K.SKIP;}
+ sysTrade(dt,c){if(this.s.ended)return;const s=this.s;
   for(const u of s.units.filter(u=>u.kind==='trader'&&u.trade&&!u.embarkedOn)){
    const r=u.trade,home=this.byId(r.home),target=this.byId(r.target)||s.landmarks.find(p=>p.id===r.target),p=r.leg==='out'?target:home;
    if(!home||home.hp<=0||!target||target.hp<=0||(target.team>=0&&this.hostile(u.team,target.team))){u.trade=null;u.order=null;u.path=[];continue}
@@ -67,5 +69,6 @@ class Coalitions extends Base{
   for(const p of s.landmarks.filter(p=>p.type==='relic'&&p.claimedBy===null)){const worker=s.units.find(u=>u.kind==='villager'&&!u.embarkedOn&&dist(u,p)<70);if(worker){p.claimedBy=worker.team;s.resources[worker.team].gold+=140;s.resources[worker.team].stone+=80;this.fx('upgrade',{x:p.x,y:p.y},2);this.emit('discovery',{team:worker.team,text:'探索遗迹：黄金 +140，石料 +80'})}}
  }
 }
+K.addSimLayer(Coalitions,'coalitions',{pre:[['coalitions.ended',Coalitions.prototype.sysCoalitionsPre]],post:[['trade+relics',Coalitions.prototype.sysTrade]]});
 const api={...K,Sim:Coalitions,colors,starts,posts};if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.KingdomSim=api;
 })(typeof window!=='undefined'?window:globalThis);

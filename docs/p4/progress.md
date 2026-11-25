@@ -115,3 +115,11 @@
 - 录像校验值：4 段标准录像全部重录（`make-fixtures.cjs`），**原因只有一个**：电脑的指令晚一步执行，第一处不同都在第 160 步（8 s，电脑第一次思考之后），玩家指令序列逐条相同；consistency 页面的 3 段录像同理重录。
 - 已有检查里依赖“AI 立刻生效”或单样本的断言改为读 AI 记忆 / 三种子均值（check-ai-phase1/2、companions、economy、worlds、ai-humanlike、ai-naval-air 第 1 节飞行单位改为“训练飞行单位或开建飞艇工场”），均在提交说明里写明。
 - 发现但未改：`networkHydrate` 恢复时会把各队迷雾一次全刷新，恢复出的状态与连续运行的状态在约 30 s 后分叉（d6c62cf 上同样）。锁步靠“所有端在快照回合一起规范化”不受影响，但“从存档恢复 == 从没中断”目前不成立。
+
+## 2. 4b 系统管线（已完成：全部 21 层迁完）
+- `public/engine.js`：`addSimLayer(Class, layer, {pre, post})` + `registerSystem({name, before|after, run})` + `runPipeline`。一步 = `commands` → 各层 pre 系统（从最外层类往里）→ 核心系统 → 各层 post 系统（从最里层往外），与原来 `super.tick()` 嵌套的执行顺序逐条相同；pre 系统返回 `SKIP` 等价于原来的“`if(ended)return` 不调 super”（内层和本层 post 跳过，外层 post 照常）。每步一个临时对象 `c` 传递原来 pre/post 之间的局部变量（建造前数量、英雄名单、位置快照……）。
+- **21 个模拟层的 `tick` 覆盖全部删除**（脚本化拆分，原代码逐字搬进命名方法，方法里的 `super.xxx` 仍然有效）；engine 的 tick 拆成 `engine.ended / engine.clock / buildings / units / collision / deaths / cleanup / ai.turns`；世界层拆出 `fog`、`ai.scout`，王朝层拆出 `ai.raids`，指挥层拆出 `ai.raidRetreat`。完整顺序（单机 43 个系统）见 `node check-pipeline.cjs` 输出。
+- 计时：`sim.profileSystems(true)` / `KingdomSim.profileSystems`，`?perf=1` 的 HUD 多一行“sim systems x ms/step: 前 8 个系统”（只在打开诊断时计时，正常游玩每个系统只多一次空指针判断）。示例（Node，lake_l 4 国，660 s，241 单位）：总 8.21 ms/步 = units（移动+寻路+采集+战斗，同一个单位循环，没法再拆而不改顺序）4.79、collision 1.02、fog 0.57、buildings 0.37、ai.humanlike 0.15、ai.turns 0.14（最大 17.1：电脑思考那一步）……
+- 验收：`check-replay` 4 段录像校验值与 4a 完全相同（未重录）；另用 3 局电脑对电脑（cliff/straits/lake，600–1200 s）和一局“打掉对方全部建筑后再跑 900 步”比对 4a 提交与 4b 的整份状态 SHA-1，全部相同。`check-pipeline.cjs`（入 check-all）：模拟层不得再有 tick 覆盖/`super.tick`、顺序、registerSystem 插入位置、计时、结束后跳过内层。
+- 性能（Node，`scripts/perf/late-game.cjs 600`，371 单位，与 4a 提交交替各 3 次）：每步均值 9.35/9.00/8.91 → 8.70/9.49/9.50 ms，p95 16.6–17.0 → 16.1–17.8 ms，在本机噪声内（完整 release-check 见报告）。
+- 剩下没做：`window.PerformanceAudit` 的寻路/碰撞/迷雾两处旧计时钩子仍在（只在页面主线程有效）；Worker 模式下 HUD 看不到系统分项（Worker 自己可以 `profileSystems`，没接到 HUD）；units 系统内部（移动/寻路/战斗）要等 P5 的数据重排才能拆开。

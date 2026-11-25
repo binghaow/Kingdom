@@ -137,7 +137,8 @@ class Roster extends Base{
    if(!this.research(b,k)){s.aiResearchAt[team]=s.time+lv.every;this.emit('aiResearch',{team,key:k});return}}
   s.aiResearchAt[team]=s.time+8}
  aiChooseUnit(team,choices,counts,reserve){return super.aiChooseUnit(team,choices.filter(k=>!this.trainHidden({team},k)),counts,reserve)}
- tick(dt){super.tick(dt);const s=this.s;if(s.ended)return;
+ /* P4 4b: this layer's per-step work runs as named systems of the simulation pipeline (engine.js addSimLayer), not a tick override. */
+ sysRoster(dt,c){const s=this.s;if(s.ended)return;
   // The church absorbs the seaside bath's healing (no passive gold).
   for(const b of s.buildings){if(!b.complete||b.hp<=0)continue;
    if(b.kind==='church')for(const u of s.units)if(u.team===b.team&&!u.embarkedOn&&u.hp>0&&u.hp<u.maxhp&&!u.combatTarget&&u.order?.type!=='attack'&&dist(b,u)<170)u.hp=Math.min(u.maxhp,u.hp+dt*2);
@@ -145,6 +146,7 @@ class Roster extends Base{
    if(D[b.kind]?.landmark&&b.team>=0){b.levyAt??=s.time+LANDMARK_EVERY;if(s.time>=b.levyAt){b.levyAt=s.time+LANDMARK_EVERY;const kind=N[this.nationId(b.team)]?.unique;
     if(kind&&D[kind]&&this.population(b.team)+(D[kind].pop||1)<=this.capacity(b.team)){const a=this.rand(0,Math.PI*2),u=this.add(kind,b.team,b.x+Math.cos(a)*(D[b.kind].r+60),b.y+Math.sin(a)*(D[b.kind].r+60));this.freeSpawn?.(u);this.rallySpawn?.(u,b);this.emit('trained',{team:b.team,kind,levy:true})}}}}}
 }
+K.addSimLayer(Roster,'roster',{pre:[],post:[['roster.church+levy',Roster.prototype.sysRoster]]});
 const api={rosterTechHome:TECH_HOME,rosterLineHome:LINE_HOME,...K,Sim:Roster,rosterRetired:{units:RETIRED_UNITS,buildings:RETIRED_BUILDINGS,merged:MERGED},rosterNational:NATIONAL,rosterLandmarkEvery:LANDMARK_EVERY,rosterAirHalf:AIR_HALF,rosterLines:LINES,rosterLineOf:lineOf};
 if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.KingdomSim=api;
 })(typeof window==='undefined'?globalThis:window);
