@@ -933,7 +933,9 @@
       this.attempt = 0;
       this.planned = false;
       this.openedAt = 0;
-      this.stats = { planned: 0, watchdog: 0, backoffMs: 0, maxBackoff: 0 };
+      this.stats = { planned: 0, watchdog: 0, stuck: 0, backoffMs: 0, maxBackoff: 0 };
+      this.stuckMs = opts.stuckMs || 6e3;
+      this.lastStuck = -Infinity;
     }
     start() {
       if (this.stopped || this.fatal) return this;
@@ -1038,6 +1040,15 @@
           end();
           return;
         }
+        const now = c.now();
+        if (c.waitingSince !== null && now - c.waitingSince > this.stuckMs && now - this.lastStuck > 15e3 && !c.waiting(0)?.offline) {
+          this.lastStuck = now;
+          this.stats.stuck++;
+          c.stats.stuckReconnects = this.stats.stuck;
+          this.planned = true;
+          end();
+          return;
+        }
         const hashes = c.hashQueue.splice(0, 16), ack = { type: "ack", x: c.nextTurn - 1 };
         if (hashes.length) ack.h = hashes;
         if (c.reclaim) ack.k = 1;
@@ -1130,7 +1141,7 @@
       const o = this.opts, WS = o.WebSocket || globalThis.WebSocket;
       if (o.mode === "ws" && WS && o.wsUrl) {
         this.mode = "ws";
-        this.active = new SocketTransport({ url: o.wsUrl, token: o.token, client: this.client, WebSocket: WS, onError: o.onError, onReceive: o.onReceive, onMessage: o.onMessage, stallMs: o.stallMs, onFail: (r) => this.fallback(r) }).start();
+        this.active = new SocketTransport({ url: o.wsUrl, token: o.token, client: this.client, WebSocket: WS, onError: o.onError, onReceive: o.onReceive, onMessage: o.onMessage, stallMs: o.stallMs, stuckMs: o.stuckMs, onFail: (r) => this.fallback(r) }).start();
       } else this.http();
       return this;
     }
