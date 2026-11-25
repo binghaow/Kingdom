@@ -1,0 +1,1540 @@
+{
+ "label": "4a: computer seats issue commands only (+ stranded-cargo rescue, no self-enclosing placements, F.port crash fix)",
+ "commit": "4a (this branch, before commit)",
+ "root": "p4a-tree",
+ "created": "2026-11-24T23:30:24.124Z",
+ "dt": 0.1,
+ "seeds": [
+  1,
+  2,
+  3,
+  4,
+  5,
+  6
+ ],
+ "wallSec": 1405,
+ "summary": {
+  "cliff_s hard-normal 900s": {
+   "games": 6,
+   "wins": {
+    "1": 0,
+    "2": 1
+   },
+   "leads": {
+    "0": 0,
+    "1": 5,
+    "2": 1
+   },
+   "seat": {
+    "1": {
+     "level": "hard",
+     "firstAttackMean": 420.2,
+     "noAttackGames": 1,
+     "mainAttacksMean": 2,
+     "mainAttacks": [
+      3,
+      0,
+      3,
+      2,
+      2,
+      2
+     ],
+     "armyEndMean": 74.2,
+     "peakArmyMean": 75.3,
+     "villagersMean": 22.8,
+     "buildingsMean": 29.7,
+     "ageMean": 2.8,
+     "landingsTotal": 0,
+     "islandClaimsTotal": 0,
+     "warshipsMean": 0,
+     "airMean": 0,
+     "defeated": 1
+    },
+    "2": {
+     "level": "normal",
+     "firstAttackMean": 551.8,
+     "noAttackGames": 1,
+     "mainAttacksMean": 1.8,
+     "mainAttacks": [
+      3,
+      2,
+      0,
+      3,
+      1,
+      2
+     ],
+     "armyEndMean": 38.8,
+     "peakArmyMean": 41.7,
+     "villagersMean": 19.7,
+     "buildingsMean": 21.8,
+     "ageMean": 3.2,
+     "landingsTotal": 0,
+     "islandClaimsTotal": 0,
+     "warshipsMean": 0,
+     "airMean": 0,
+     "defeated": 0
+    }
+   }
+  },
+  "lake_s expert-expert 1500s": {
+   "games": 6,
+   "wins": {
+    "1": 1,
+    "2": 0
+   },
+   "leads": {
+    "0": 0,
+    "1": 6,
+    "2": 0
+   },
+   "seat": {
+    "1": {
+     "level": "expert",
+     "firstAttackMean": 570.2,
+     "noAttackGames": 0,
+     "mainAttacksMean": 4.3,
+     "mainAttacks": [
+      4,
+      5,
+      3,
+      4,
+      5,
+      5
+     ],
+     "armyEndMean": 111.8,
+     "peakArmyMean": 117,
+     "villagersMean": 34.3,
+     "buildingsMean": 50.7,
+     "ageMean": 3.8,
+     "landingsTotal": 0,
+     "islandClaimsTotal": 0,
+     "warshipsMean": 8,
+     "airMean": 0.8,
+     "defeated": 0
+    },
+    "2": {
+     "level": "expert",
+     "firstAttackMean": 492.2,
+     "noAttackGames": 0,
+     "mainAttacksMean": 3.3,
+     "mainAttacks": [
+      3,
+      3,
+      4,
+      3,
+      4,
+      3
+     ],
+     "armyEndMean": 60.7,
+     "peakArmyMean": 84.7,
+     "villagersMean": 18.8,
+     "buildingsMean": 28.8,
+     "ageMean": 3.2,
+     "landingsTotal": 0,
+     "islandClaimsTotal": 0,
+     "warshipsMean": 10.2,
+     "airMean": 0.5,
+     "defeated": 1
+    }
+   }
+  },
+  "lake_s expert-normal 900s": {
+   "games": 6,
+   "wins": {
+    "1": 1,
+    "2": 0
+   },
+   "leads": {
+    "0": 0,
+    "1": 6,
+    "2": 0
+   },
+   "seat": {
+    "1": {
+     "level": "expert",
+     "firstAttackMean": 543.3,
+     "noAttackGames": 0,
+     "mainAttacksMean": 2,
+     "mainAttacks": [
+      1,
+      3,
+      2,
+      2,
+      3,
+      1
+     ],
+     "armyEndMean": 84.3,
+     "peakArmyMean": 85.2,
+     "villagersMean": 33.5,
+     "buildingsMean": 33,
+     "ageMean": 3.3,
+     "landingsTotal": 0,
+     "islandClaimsTotal": 0,
+     "warshipsMean": 4.5,
+     "airMean": 0,
+     "defeated": 0
+    },
+    "2": {
+     "level": "normal",
+     "firstAttackMean": 476.4,
+     "noAttackGames": 1,
+     "mainAttacksMean": 1.5,
+     "mainAttacks": [
+      2,
+      1,
+      2,
+      0,
+      2,
+      2
+     ],
+     "armyEndMean": 38.2,
+     "peakArmyMean": 42.7,
+     "villagersMean": 12.8,
+     "buildingsMean": 17.7,
+     "ageMean": 2.5,
+     "landingsTotal": 0,
+     "islandClaimsTotal": 0,
+     "warshipsMean": 4.5,
+     "airMean": 0,
+     "defeated": 1
+    }
+   }
+  },
+  "straits expert-expert 1200s": {
+   "games": 6,
+   "wins": {
+    "1": 0,
+    "2": 0
+   },
+   "leads": {
+    "0": 0,
+    "1": 4,
+    "2": 2
+   },
+   "seat": {
+    "1": {
+     "level": "expert",
+     "firstAttackMean": 616.8,
+     "noAttackGames": 0,
+     "mainAttacksMean": 2,
+     "mainAttacks": [
+      2,
+      2,
+      2,
+      2,
+      2,
+      2
+     ],
+     "armyEndMean": 93.5,
+     "peakArmyMean": 93.7,
+     "villagersMean": 34.8,
+     "buildingsMean": 41.3,
+     "ageMean": 3.7,
+     "landingsTotal": 8,
+     "islandClaimsTotal": 0,
+     "warshipsMean": 17.2,
+     "airMean": 2.5,
+     "defeated": 0
+    },
+    "2": {
+     "level": "expert",
+     "firstAttackMean": 577,
+     "noAttackGames": 0,
+     "mainAttacksMean": 1,
+     "mainAttacks": [
+      1,
+      1,
+      1,
+      1,
+      1,
+      1
+     ],
+     "armyEndMean": 70.5,
+     "peakArmyMean": 76,
+     "villagersMean": 33.8,
+     "buildingsMean": 32.7,
+     "ageMean": 3.3,
+     "landingsTotal": 16,
+     "islandClaimsTotal": 6,
+     "warshipsMean": 9.5,
+     "airMean": 1.5,
+     "defeated": 0
+    }
+   }
+  }
+ },
+ "games": [
+  {
+   "map": "cliff_s",
+   "levels": [
+    "hard",
+    "normal"
+   ],
+   "sec": 900,
+   "seed": 1,
+   "time": 900,
+   "winner": null,
+   "leader": 1,
+   "seats": [
+    {
+     "seat": 1,
+     "level": "hard",
+     "defeated": false,
+     "defeatedAt": null,
+     "firstAttack": 377,
+     "mainAttacks": 3,
+     "army": 69,
+     "peakArmy": 70,
+     "villagers": 18,
+     "buildings": 19,
+     "age": 2,
+     "landings": 0,
+     "landed": 0,
+     "islandClaims": 0,
+     "trained": 108,
+     "warships": 0,
+     "air": 0
+    },
+    {
+     "seat": 2,
+     "level": "normal",
+     "defeated": false,
+     "defeatedAt": null,
+     "firstAttack": 403,
+     "mainAttacks": 3,
+     "army": 59,
+     "peakArmy": 59,
+     "villagers": 19,
+     "buildings": 24,
+     "age": 3,
+     "landings": 0,
+     "landed": 0,
+     "islandClaims": 0,
+     "trained": 99,
+     "warships": 0,
+     "air": 0
+    }
+   ],
+   "wallMs": 32488
+  },
+  {
+   "map": "cliff_s",
+   "levels": [
+    "hard",
+    "normal"
+   ],
+   "sec": 900,
+   "seed": 2,
+   "time": 900,
+   "winner": 2,
+   "leader": 2,
+   "seats": [
+    {
+     "seat": 1,
+     "level": "hard",
+     "defeated": true,
+     "defeatedAt": 645,
+     "firstAttack": null,
+     "mainAttacks": 0,
+     "army": 0,
+     "peakArmy": 4,
+     "villagers": 0,
+     "buildings": 0,
+     "age": 2,
+     "landings": 0,
+     "landed": 0,
+     "islandClaims": 0,
+     "trained": 32,
+     "warships": 0,
+     "air": 0
+    },
+    {
+     "seat": 2,
+     "level": "normal",
+     "defeated": false,
+     "defeatedAt": null,
+     "firstAttack": 530,
+     "mainAttacks": 2,
+     "army": 56,
+     "peakArmy": 56,
+     "villagers": 26,
+     "buildings": 26,
+     "age": 4,
+     "landings": 0,
+     "landed": 0,
+     "islandClaims": 0,
+     "trained": 75,
+     "warships": 0,
+     "air": 0
+    }
+   ],
+   "wallMs": 23208
+  },
+  {
+   "map": "cliff_s",
+   "levels": [
+    "hard",
+    "normal"
+   ],
+   "sec": 900,
+   "seed": 3,
+   "time": 900,
+   "winner": null,
+   "leader": 1,
+   "seats": [
+    {
+     "seat": 1,
+     "level": "hard",
+     "defeated": false,
+     "defeatedAt": null,
+     "firstAttack": 377,
+     "mainAttacks": 3,
+     "army": 101,
+     "peakArmy": 101,
+     "villagers": 35,
+     "buildings": 46,
+     "age": 4,
+     "landings": 0,
+     "landed": 0,
+     "islandClaims": 0,
+     "trained": 136,
+     "warships": 0,
+     "air": 0
+    },
+    {
+     "seat": 2,
+     "level": "normal",
+     "defeated": false,
+     "defeatedAt": null,
+     "firstAttack": null,
+     "mainAttacks": 0,
+     "army": 7,
+     "peakArmy": 7,
+     "villagers": 24,
+     "buildings": 14,
+     "age": 2,
+     "landings": 0,
+     "landed": 0,
+     "islandClaims": 0,
+     "trained": 37,
+     "warships": 0,
+     "air": 0
+    }
+   ],
+   "wallMs": 35058
+  },
+  {
+   "map": "cliff_s",
+   "levels": [
+    "hard",
+    "normal"
+   ],
+   "sec": 900,
+   "seed": 4,
+   "time": 900,
+   "winner": null,
+   "leader": 1,
+   "seats": [
+    {
+     "seat": 1,
+     "level": "hard",
+     "defeated": false,
+     "defeatedAt": null,
+     "firstAttack": 469,
+     "mainAttacks": 2,
+     "army": 97,
+     "peakArmy": 97,
+     "villagers": 33,
+     "buildings": 35,
+     "age": 3,
+     "landings": 0,
+     "landed": 0,
+     "islandClaims": 0,
+     "trained": 139,
+     "warships": 0,
+     "air": 0
+    },
+    {
+     "seat": 2,
+     "level": "normal",
+     "defeated": false,
+     "defeatedAt": null,
+     "firstAttack": 459,
+     "mainAttacks": 3,
+     "army": 34,
+     "peakArmy": 34,
+     "villagers": 3,
+     "buildings": 20,
+     "age": 3,
+     "landings": 0,
+     "landed": 0,
+     "islandClaims": 0,
+     "trained": 81,
+     "warships": 0,
+     "air": 0
+    }
+   ],
+   "wallMs": 35663
+  },
+  {
+   "map": "cliff_s",
+   "levels": [
+    "hard",
+    "normal"
+   ],
+   "sec": 900,
+   "seed": 5,
+   "time": 900,
+   "winner": null,
+   "leader": 1,
+   "seats": [
+    {
+     "seat": 1,
+     "level": "hard",
+     "defeated": false,
+     "defeatedAt": null,
+     "firstAttack": 337,
+     "mainAttacks": 2,
+     "army": 96,
+     "peakArmy": 96,
+     "villagers": 22,
+     "buildings": 29,
+     "age": 3,
+     "landings": 0,
+     "landed": 0,
+     "islandClaims": 0,
+     "trained": 123,
+     "warships": 0,
+     "air": 0
+    },
+    {
+     "seat": 2,
+     "level": "normal",
+     "defeated": false,
+     "defeatedAt": null,
+     "firstAttack": 806,
+     "mainAttacks": 1,
+     "army": 39,
+     "peakArmy": 41,
+     "villagers": 22,
+     "buildings": 25,
+     "age": 3,
+     "landings": 0,
+     "landed": 0,
+     "islandClaims": 0,
+     "trained": 65,
+     "warships": 0,
+     "air": 0
+    }
+   ],
+   "wallMs": 36001
+  },
+  {
+   "map": "cliff_s",
+   "levels": [
+    "hard",
+    "normal"
+   ],
+   "sec": 900,
+   "seed": 6,
+   "time": 900,
+   "winner": null,
+   "leader": 1,
+   "seats": [
+    {
+     "seat": 1,
+     "level": "hard",
+     "defeated": false,
+     "defeatedAt": null,
+     "firstAttack": 541,
+     "mainAttacks": 2,
+     "army": 82,
+     "peakArmy": 84,
+     "villagers": 29,
+     "buildings": 49,
+     "age": 3,
+     "landings": 0,
+     "landed": 0,
+     "islandClaims": 0,
+     "trained": 146,
+     "warships": 0,
+     "air": 0
+    },
+    {
+     "seat": 2,
+     "level": "normal",
+     "defeated": false,
+     "defeatedAt": null,
+     "firstAttack": 561,
+     "mainAttacks": 2,
+     "army": 38,
+     "peakArmy": 53,
+     "villagers": 24,
+     "buildings": 22,
+     "age": 4,
+     "landings": 0,
+     "landed": 0,
+     "islandClaims": 0,
+     "trained": 86,
+     "warships": 0,
+     "air": 0
+    }
+   ],
+   "wallMs": 37506
+  },
+  {
+   "map": "lake_s",
+   "levels": [
+    "expert",
+    "expert"
+   ],
+   "sec": 1500,
+   "seed": 1,
+   "time": 1500,
+   "winner": null,
+   "leader": 1,
+   "seats": [
+    {
+     "seat": 1,
+     "level": "expert",
+     "defeated": false,
+     "defeatedAt": null,
+     "firstAttack": 571,
+     "mainAttacks": 4,
+     "army": 111,
+     "peakArmy": 118,
+     "villagers": 38,
+     "buildings": 51,
+     "age": 4,
+     "landings": 0,
+     "landed": 0,
+     "islandClaims": 0,
+     "trained": 234,
+     "warships": 5,
+     "air": 1
+    },
+    {
+     "seat": 2,
+     "level": "expert",
+     "defeated": false,
+     "defeatedAt": null,
+     "firstAttack": 551,
+     "mainAttacks": 3,
+     "army": 30,
+     "peakArmy": 67,
+     "villagers": 21,
+     "buildings": 26,
+     "age": 4,
+     "landings": 0,
+     "landed": 0,
+     "islandClaims": 0,
+     "trained": 208,
+     "warships": 8,
+     "air": 0
+    }
+   ],
+   "wallMs": 78834
+  },
+  {
+   "map": "lake_s",
+   "levels": [
+    "expert",
+    "expert"
+   ],
+   "sec": 1500,
+   "seed": 2,
+   "time": 1500,
+   "winner": null,
+   "leader": 1,
+   "seats": [
+    {
+     "seat": 1,
+     "level": "expert",
+     "defeated": false,
+     "defeatedAt": null,
+     "firstAttack": 632,
+     "mainAttacks": 5,
+     "army": 97,
+     "peakArmy": 120,
+     "villagers": 21,
+     "buildings": 39,
+     "age": 2,
+     "landings": 0,
+     "landed": 0,
+     "islandClaims": 0,
+     "trained": 239,
+     "warships": 4,
+     "air": 0
+    },
+    {
+     "seat": 2,
+     "level": "expert",
+     "defeated": false,
+     "defeatedAt": null,
+     "firstAttack": 689,
+     "mainAttacks": 3,
+     "army": 69,
+     "peakArmy": 83,
+     "villagers": 31,
+     "buildings": 46,
+     "age": 3,
+     "landings": 0,
+     "landed": 0,
+     "islandClaims": 0,
+     "trained": 185,
+     "warships": 13,
+     "air": 0
+    }
+   ],
+   "wallMs": 97353
+  },
+  {
+   "map": "lake_s",
+   "levels": [
+    "expert",
+    "expert"
+   ],
+   "sec": 1500,
+   "seed": 3,
+   "time": 1500,
+   "winner": null,
+   "leader": 1,
+   "seats": [
+    {
+     "seat": 1,
+     "level": "expert",
+     "defeated": false,
+     "defeatedAt": null,
+     "firstAttack": 581,
+     "mainAttacks": 3,
+     "army": 127,
+     "peakArmy": 127,
+     "villagers": 35,
+     "buildings": 53,
+     "age": 5,
+     "landings": 0,
+     "landed": 0,
+     "islandClaims": 0,
+     "trained": 211,
+     "warships": 10,
+     "air": 1
+    },
+    {
+     "seat": 2,
+     "level": "expert",
+     "defeated": false,
+     "defeatedAt": null,
+     "firstAttack": 321,
+     "mainAttacks": 4,
+     "army": 83,
+     "peakArmy": 114,
+     "villagers": 19,
+     "buildings": 20,
+     "age": 3,
+     "landings": 0,
+     "landed": 0,
+     "islandClaims": 0,
+     "trained": 247,
+     "warships": 9,
+     "air": 0
+    }
+   ],
+   "wallMs": 103195
+  },
+  {
+   "map": "lake_s",
+   "levels": [
+    "expert",
+    "expert"
+   ],
+   "sec": 1500,
+   "seed": 4,
+   "time": 1500,
+   "winner": null,
+   "leader": 1,
+   "seats": [
+    {
+     "seat": 1,
+     "level": "expert",
+     "defeated": false,
+     "defeatedAt": null,
+     "firstAttack": 602,
+     "mainAttacks": 4,
+     "army": 119,
+     "peakArmy": 119,
+     "villagers": 40,
+     "buildings": 68,
+     "age": 5,
+     "landings": 0,
+     "landed": 0,
+     "islandClaims": 0,
+     "trained": 218,
+     "warships": 7,
+     "air": 3
+    },
+    {
+     "seat": 2,
+     "level": "expert",
+     "defeated": false,
+     "defeatedAt": null,
+     "firstAttack": 745,
+     "mainAttacks": 3,
+     "army": 104,
+     "peakArmy": 105,
+     "villagers": 33,
+     "buildings": 51,
+     "age": 4,
+     "landings": 0,
+     "landed": 0,
+     "islandClaims": 0,
+     "trained": 209,
+     "warships": 19,
+     "air": 3
+    }
+   ],
+   "wallMs": 142775
+  },
+  {
+   "map": "lake_s",
+   "levels": [
+    "expert",
+    "expert"
+   ],
+   "sec": 1500,
+   "seed": 5,
+   "time": 1500,
+   "winner": null,
+   "leader": 1,
+   "seats": [
+    {
+     "seat": 1,
+     "level": "expert",
+     "defeated": false,
+     "defeatedAt": null,
+     "firstAttack": 525,
+     "mainAttacks": 5,
+     "army": 101,
+     "peakArmy": 102,
+     "villagers": 32,
+     "buildings": 44,
+     "age": 2,
+     "landings": 0,
+     "landed": 0,
+     "islandClaims": 0,
+     "trained": 228,
+     "warships": 14,
+     "air": 0
+    },
+    {
+     "seat": 2,
+     "level": "expert",
+     "defeated": false,
+     "defeatedAt": null,
+     "firstAttack": 372,
+     "mainAttacks": 4,
+     "army": 78,
+     "peakArmy": 101,
+     "villagers": 9,
+     "buildings": 30,
+     "age": 3,
+     "landings": 0,
+     "landed": 0,
+     "islandClaims": 0,
+     "trained": 210,
+     "warships": 5,
+     "air": 0
+    }
+   ],
+   "wallMs": 91404
+  },
+  {
+   "map": "lake_s",
+   "levels": [
+    "expert",
+    "expert"
+   ],
+   "sec": 1500,
+   "seed": 6,
+   "time": 1500,
+   "winner": 1,
+   "leader": 1,
+   "seats": [
+    {
+     "seat": 1,
+     "level": "expert",
+     "defeated": false,
+     "defeatedAt": null,
+     "firstAttack": 510,
+     "mainAttacks": 5,
+     "army": 116,
+     "peakArmy": 116,
+     "villagers": 40,
+     "buildings": 49,
+     "age": 5,
+     "landings": 0,
+     "landed": 0,
+     "islandClaims": 0,
+     "trained": 169,
+     "warships": 8,
+     "air": 0
+    },
+    {
+     "seat": 2,
+     "level": "expert",
+     "defeated": true,
+     "defeatedAt": 840,
+     "firstAttack": 275,
+     "mainAttacks": 3,
+     "army": 0,
+     "peakArmy": 38,
+     "villagers": 0,
+     "buildings": 0,
+     "age": 2,
+     "landings": 0,
+     "landed": 0,
+     "islandClaims": 0,
+     "trained": 125,
+     "warships": 7,
+     "air": 0
+    }
+   ],
+   "wallMs": 63753
+  },
+  {
+   "map": "lake_s",
+   "levels": [
+    "expert",
+    "normal"
+   ],
+   "sec": 900,
+   "seed": 1,
+   "time": 900,
+   "winner": null,
+   "leader": 1,
+   "seats": [
+    {
+     "seat": 1,
+     "level": "expert",
+     "defeated": false,
+     "defeatedAt": null,
+     "firstAttack": 551,
+     "mainAttacks": 1,
+     "army": 76,
+     "peakArmy": 77,
+     "villagers": 36,
+     "buildings": 40,
+     "age": 4,
+     "landings": 0,
+     "landed": 0,
+     "islandClaims": 0,
+     "trained": 126,
+     "warships": 6,
+     "air": 0
+    },
+    {
+     "seat": 2,
+     "level": "normal",
+     "defeated": false,
+     "defeatedAt": null,
+     "firstAttack": 536,
+     "mainAttacks": 2,
+     "army": 50,
+     "peakArmy": 50,
+     "villagers": 11,
+     "buildings": 22,
+     "age": 3,
+     "landings": 0,
+     "landed": 0,
+     "islandClaims": 0,
+     "trained": 110,
+     "warships": 7,
+     "air": 0
+    }
+   ],
+   "wallMs": 33658
+  },
+  {
+   "map": "lake_s",
+   "levels": [
+    "expert",
+    "normal"
+   ],
+   "sec": 900,
+   "seed": 2,
+   "time": 900,
+   "winner": null,
+   "leader": 1,
+   "seats": [
+    {
+     "seat": 1,
+     "level": "expert",
+     "defeated": false,
+     "defeatedAt": null,
+     "firstAttack": 332,
+     "mainAttacks": 3,
+     "army": 77,
+     "peakArmy": 77,
+     "villagers": 19,
+     "buildings": 19,
+     "age": 3,
+     "landings": 0,
+     "landed": 0,
+     "islandClaims": 0,
+     "trained": 108,
+     "warships": 1,
+     "air": 0
+    },
+    {
+     "seat": 2,
+     "level": "normal",
+     "defeated": false,
+     "defeatedAt": null,
+     "firstAttack": 658,
+     "mainAttacks": 1,
+     "army": 44,
+     "peakArmy": 44,
+     "villagers": 20,
+     "buildings": 26,
+     "age": 3,
+     "landings": 0,
+     "landed": 0,
+     "islandClaims": 0,
+     "trained": 73,
+     "warships": 4,
+     "air": 0
+    }
+   ],
+   "wallMs": 31297
+  },
+  {
+   "map": "lake_s",
+   "levels": [
+    "expert",
+    "normal"
+   ],
+   "sec": 900,
+   "seed": 3,
+   "time": 900,
+   "winner": null,
+   "leader": 1,
+   "seats": [
+    {
+     "seat": 1,
+     "level": "expert",
+     "defeated": false,
+     "defeatedAt": null,
+     "firstAttack": 602,
+     "mainAttacks": 2,
+     "army": 90,
+     "peakArmy": 90,
+     "villagers": 36,
+     "buildings": 31,
+     "age": 3,
+     "landings": 0,
+     "landed": 0,
+     "islandClaims": 0,
+     "trained": 124,
+     "warships": 7,
+     "air": 0
+    },
+    {
+     "seat": 2,
+     "level": "normal",
+     "defeated": false,
+     "defeatedAt": null,
+     "firstAttack": 413,
+     "mainAttacks": 2,
+     "army": 39,
+     "peakArmy": 47,
+     "villagers": 12,
+     "buildings": 12,
+     "age": 2,
+     "landings": 0,
+     "landed": 0,
+     "islandClaims": 0,
+     "trained": 94,
+     "warships": 3,
+     "air": 0
+    }
+   ],
+   "wallMs": 35152
+  },
+  {
+   "map": "lake_s",
+   "levels": [
+    "expert",
+    "normal"
+   ],
+   "sec": 900,
+   "seed": 4,
+   "time": 900,
+   "winner": 1,
+   "leader": 1,
+   "seats": [
+    {
+     "seat": 1,
+     "level": "expert",
+     "defeated": false,
+     "defeatedAt": null,
+     "firstAttack": 556,
+     "mainAttacks": 2,
+     "army": 80,
+     "peakArmy": 80,
+     "villagers": 37,
+     "buildings": 42,
+     "age": 4,
+     "landings": 0,
+     "landed": 0,
+     "islandClaims": 0,
+     "trained": 114,
+     "warships": 7,
+     "air": 0
+    },
+    {
+     "seat": 2,
+     "level": "normal",
+     "defeated": true,
+     "defeatedAt": 665,
+     "firstAttack": null,
+     "mainAttacks": 0,
+     "army": 0,
+     "peakArmy": 10,
+     "villagers": 0,
+     "buildings": 0,
+     "age": 2,
+     "landings": 0,
+     "landed": 0,
+     "islandClaims": 0,
+     "trained": 34,
+     "warships": 1,
+     "air": 0
+    }
+   ],
+   "wallMs": 30045
+  },
+  {
+   "map": "lake_s",
+   "levels": [
+    "expert",
+    "normal"
+   ],
+   "sec": 900,
+   "seed": 5,
+   "time": 900,
+   "winner": null,
+   "leader": 1,
+   "seats": [
+    {
+     "seat": 1,
+     "level": "expert",
+     "defeated": false,
+     "defeatedAt": null,
+     "firstAttack": 490,
+     "mainAttacks": 3,
+     "army": 100,
+     "peakArmy": 104,
+     "villagers": 32,
+     "buildings": 32,
+     "age": 3,
+     "landings": 0,
+     "landed": 0,
+     "islandClaims": 0,
+     "trained": 142,
+     "warships": 5,
+     "air": 0
+    },
+    {
+     "seat": 2,
+     "level": "normal",
+     "defeated": false,
+     "defeatedAt": null,
+     "firstAttack": 454,
+     "mainAttacks": 2,
+     "army": 48,
+     "peakArmy": 54,
+     "villagers": 20,
+     "buildings": 27,
+     "age": 3,
+     "landings": 0,
+     "landed": 0,
+     "islandClaims": 0,
+     "trained": 94,
+     "warships": 6,
+     "air": 0
+    }
+   ],
+   "wallMs": 35176
+  },
+  {
+   "map": "lake_s",
+   "levels": [
+    "expert",
+    "normal"
+   ],
+   "sec": 900,
+   "seed": 6,
+   "time": 900,
+   "winner": null,
+   "leader": 1,
+   "seats": [
+    {
+     "seat": 1,
+     "level": "expert",
+     "defeated": false,
+     "defeatedAt": null,
+     "firstAttack": 729,
+     "mainAttacks": 1,
+     "army": 83,
+     "peakArmy": 83,
+     "villagers": 41,
+     "buildings": 34,
+     "age": 3,
+     "landings": 0,
+     "landed": 0,
+     "islandClaims": 0,
+     "trained": 124,
+     "warships": 1,
+     "air": 0
+    },
+    {
+     "seat": 2,
+     "level": "normal",
+     "defeated": false,
+     "defeatedAt": null,
+     "firstAttack": 321,
+     "mainAttacks": 2,
+     "army": 48,
+     "peakArmy": 51,
+     "villagers": 14,
+     "buildings": 19,
+     "age": 2,
+     "landings": 0,
+     "landed": 0,
+     "islandClaims": 0,
+     "trained": 101,
+     "warships": 6,
+     "air": 0
+    }
+   ],
+   "wallMs": 35989
+  },
+  {
+   "map": "straits",
+   "levels": [
+    "expert",
+    "expert"
+   ],
+   "sec": 1200,
+   "seed": 1,
+   "time": 1200,
+   "winner": null,
+   "leader": 1,
+   "seats": [
+    {
+     "seat": 1,
+     "level": "expert",
+     "defeated": false,
+     "defeatedAt": null,
+     "firstAttack": 627,
+     "mainAttacks": 2,
+     "army": 108,
+     "peakArmy": 108,
+     "villagers": 33,
+     "buildings": 43,
+     "age": 4,
+     "landings": 1,
+     "landed": 6,
+     "islandClaims": 0,
+     "trained": 175,
+     "warships": 10,
+     "air": 0
+    },
+    {
+     "seat": 2,
+     "level": "expert",
+     "defeated": false,
+     "defeatedAt": null,
+     "firstAttack": 576,
+     "mainAttacks": 1,
+     "army": 88,
+     "peakArmy": 88,
+     "villagers": 34,
+     "buildings": 30,
+     "age": 3,
+     "landings": 2,
+     "landed": 7,
+     "islandClaims": 1,
+     "trained": 148,
+     "warships": 13,
+     "air": 3
+    }
+   ],
+   "wallMs": 76417
+  },
+  {
+   "map": "straits",
+   "levels": [
+    "expert",
+    "expert"
+   ],
+   "sec": 1200,
+   "seed": 2,
+   "time": 1200,
+   "winner": null,
+   "leader": 2,
+   "seats": [
+    {
+     "seat": 1,
+     "level": "expert",
+     "defeated": false,
+     "defeatedAt": null,
+     "firstAttack": 724,
+     "mainAttacks": 2,
+     "army": 79,
+     "peakArmy": 79,
+     "villagers": 31,
+     "buildings": 35,
+     "age": 3,
+     "landings": 1,
+     "landed": 6,
+     "islandClaims": 0,
+     "trained": 143,
+     "warships": 21,
+     "air": 4
+    },
+    {
+     "seat": 2,
+     "level": "expert",
+     "defeated": false,
+     "defeatedAt": null,
+     "firstAttack": 566,
+     "mainAttacks": 1,
+     "army": 101,
+     "peakArmy": 101,
+     "villagers": 19,
+     "buildings": 24,
+     "age": 3,
+     "landings": 0,
+     "landed": 0,
+     "islandClaims": 1,
+     "trained": 145,
+     "warships": 9,
+     "air": 0
+    }
+   ],
+   "wallMs": 64485
+  },
+  {
+   "map": "straits",
+   "levels": [
+    "expert",
+    "expert"
+   ],
+   "sec": 1200,
+   "seed": 3,
+   "time": 1200,
+   "winner": null,
+   "leader": 1,
+   "seats": [
+    {
+     "seat": 1,
+     "level": "expert",
+     "defeated": false,
+     "defeatedAt": null,
+     "firstAttack": 418,
+     "mainAttacks": 2,
+     "army": 101,
+     "peakArmy": 101,
+     "villagers": 34,
+     "buildings": 48,
+     "age": 4,
+     "landings": 3,
+     "landed": 16,
+     "islandClaims": 0,
+     "trained": 171,
+     "warships": 15,
+     "air": 2
+    },
+    {
+     "seat": 2,
+     "level": "expert",
+     "defeated": false,
+     "defeatedAt": null,
+     "firstAttack": 704,
+     "mainAttacks": 1,
+     "army": 46,
+     "peakArmy": 54,
+     "villagers": 36,
+     "buildings": 28,
+     "age": 3,
+     "landings": 3,
+     "landed": 15,
+     "islandClaims": 1,
+     "trained": 135,
+     "warships": 8,
+     "air": 3
+    }
+   ],
+   "wallMs": 68427
+  },
+  {
+   "map": "straits",
+   "levels": [
+    "expert",
+    "expert"
+   ],
+   "sec": 1200,
+   "seed": 4,
+   "time": 1200,
+   "winner": null,
+   "leader": 1,
+   "seats": [
+    {
+     "seat": 1,
+     "level": "expert",
+     "defeated": false,
+     "defeatedAt": null,
+     "firstAttack": 632,
+     "mainAttacks": 2,
+     "army": 102,
+     "peakArmy": 103,
+     "villagers": 36,
+     "buildings": 46,
+     "age": 4,
+     "landings": 1,
+     "landed": 6,
+     "islandClaims": 0,
+     "trained": 206,
+     "warships": 19,
+     "air": 3
+    },
+    {
+     "seat": 2,
+     "level": "expert",
+     "defeated": false,
+     "defeatedAt": null,
+     "firstAttack": 571,
+     "mainAttacks": 1,
+     "army": 64,
+     "peakArmy": 76,
+     "villagers": 38,
+     "buildings": 35,
+     "age": 4,
+     "landings": 4,
+     "landed": 15,
+     "islandClaims": 1,
+     "trained": 125,
+     "warships": 9,
+     "air": 3
+    }
+   ],
+   "wallMs": 78731
+  },
+  {
+   "map": "straits",
+   "levels": [
+    "expert",
+    "expert"
+   ],
+   "sec": 1200,
+   "seed": 5,
+   "time": 1200,
+   "winner": null,
+   "leader": 2,
+   "seats": [
+    {
+     "seat": 1,
+     "level": "expert",
+     "defeated": false,
+     "defeatedAt": null,
+     "firstAttack": 632,
+     "mainAttacks": 2,
+     "army": 78,
+     "peakArmy": 78,
+     "villagers": 37,
+     "buildings": 30,
+     "age": 3,
+     "landings": 1,
+     "landed": 6,
+     "islandClaims": 0,
+     "trained": 204,
+     "warships": 18,
+     "air": 3
+    },
+    {
+     "seat": 2,
+     "level": "expert",
+     "defeated": false,
+     "defeatedAt": null,
+     "firstAttack": 520,
+     "mainAttacks": 1,
+     "army": 69,
+     "peakArmy": 69,
+     "villagers": 39,
+     "buildings": 45,
+     "age": 3,
+     "landings": 4,
+     "landed": 17,
+     "islandClaims": 1,
+     "trained": 125,
+     "warships": 8,
+     "air": 0
+    }
+   ],
+   "wallMs": 65605
+  },
+  {
+   "map": "straits",
+   "levels": [
+    "expert",
+    "expert"
+   ],
+   "sec": 1200,
+   "seed": 6,
+   "time": 1200,
+   "winner": null,
+   "leader": 1,
+   "seats": [
+    {
+     "seat": 1,
+     "level": "expert",
+     "defeated": false,
+     "defeatedAt": null,
+     "firstAttack": 668,
+     "mainAttacks": 2,
+     "army": 93,
+     "peakArmy": 93,
+     "villagers": 38,
+     "buildings": 46,
+     "age": 4,
+     "landings": 1,
+     "landed": 6,
+     "islandClaims": 0,
+     "trained": 196,
+     "warships": 20,
+     "air": 3
+    },
+    {
+     "seat": 2,
+     "level": "expert",
+     "defeated": false,
+     "defeatedAt": null,
+     "firstAttack": 525,
+     "mainAttacks": 1,
+     "army": 55,
+     "peakArmy": 68,
+     "villagers": 37,
+     "buildings": 34,
+     "age": 4,
+     "landings": 3,
+     "landed": 15,
+     "islandClaims": 1,
+     "trained": 116,
+     "warships": 10,
+     "air": 0
+    }
+   ],
+   "wallMs": 65757
+  }
+ ]
+}

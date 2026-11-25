@@ -13,7 +13,7 @@ const ROOT=__dirname,PUB=path.join(ROOT,'public'),DIR=path.join(PUB,'consistency
 const scripts=html=>[...html.matchAll(/<script[^>]*src="([^"]+)"/g)].map(m=>m[1]);
 (async()=>{
   const index=scripts(fs.readFileSync(path.join(PUB,'index.html'),'utf8')),page=scripts(fs.readFileSync(path.join(PUB,'consistency.html'),'utf8'));
-  const simChain=index.slice(index.indexOf('engine.js'),index.indexOf('network-model.js')+1);
+  const simChain=index.slice(index.indexOf('kingdom-commands.js'),index.indexOf('network-model.js')+1);// P4 4a: kingdom-commands.js (the command interface) precedes engine.js
   assert(simChain.length>5,'could not find the simulation chain in index.html');
   assert.deepEqual(page.slice(0,simChain.length),simChain,'consistency.html must load the same simulation scripts as index.html, in the same order');
   assert.deepEqual(page.slice(simChain.length),['art-profiles.js','kingdom-core.js','consistency.js'],'consistency.html must load art-profiles.js (read by siege.js), kingdom-core.js, consistency.js after the simulation');assert(index.includes('art-profiles.js'),'index.html loads art-profiles.js');

@@ -248,7 +248,7 @@ function create(K){
   const cap=k=>D[k]?.cargoCapacity||D[k]?.cargo||6,cargoOf=ship=>s.units.filter(c=>c.embarkedOn===ship.id),popOf=list=>list.reduce((n,c)=>n+(D[c.kind].pop||1),0);
   const claimed=new Set();for(const x of F.ships){const ship=live(sim,x.id);for(const id of ship?.loadRequests||[])claimed.add(id)}
   for(const x of F.ships){const ship=live(sim,x.id),cargo=cargoOf(ship),load=popOf(cargo);
-   if(x.stage==='port'){if(dist(ship,F.port)>200){if(!ship.order||ship.order.type!=='move'||Math.hypot(ship.order.x-F.port.x,ship.order.y-F.port.y)>60)sim.order([ship],{type:'move',x:F.port.x,y:F.port.y});continue}
+   if(x.stage==='port'){if(!F.port)continue;if(dist(ship,F.port)>200){if(!ship.order||ship.order.type!=='move'||Math.hypot(ship.order.x-F.port.x,ship.order.y-F.port.y)>60)sim.order([ship],{type:'move',x:F.port.x,y:F.port.y});continue}
     /* board the troops that have reached the quay; a full load when enough are there (or everybody left is there) */
     const quay=F.quay||live(sim,F.dock)||ship,all=waiting.filter(u=>!claimed.has(u.id)),pick=all.filter(u=>dist(u,quay)<420).sort((a,b)=>dist(a,ship)-dist(b,ship));const chosen=[];let p=0;for(const u of pick){const k=D[u.kind].pop||1;if(p+k>cap(ship.kind))continue;chosen.push(u);p+=k}
     if(all.length>pick.length&&s.time-(x.call||0)>20){x.call=s.time;const far=all.filter(u=>dist(u,quay)>=420&&(!u.order||u.order.type!=='move'));if(far.length&&sim.aiAct(team))sim.order(far,{type:'move',x:quay.x+sim.rand(-60,60),y:quay.y+sim.rand(-60,60)})}
@@ -261,10 +261,10 @@ function create(K){
     if(load!==x.load){x.load=load;x.progress=s.time}
     for(const {q,u}of pass){if(dist(u,ship)<160)sim.order([u],{type:'embark',id:ship.id});else if(!u.order||u.order.type!=='move')sim.order([u],{type:'move',x:q.x,y:q.y})}
     const coming=pass.some(o=>dist(o.u,ship)<700);
-    if(full||late&&load>0&&(!coming||!L.full||s.time-x.since>L.loadWait*2)){const beach=chooseBeach(sim,team,G,F.region,F.sea,F.target,view);if(!beach){x.stage='flee';sim.order([ship],{type:'move',x:F.port.x,y:F.port.y});continue}F.beach={x:beach.x,y:beach.y,lx:beach.lx,ly:beach.ly};x.beach={...F.beach};ship.loadRequests=[];x.pass=[];
+    if(full||late&&load>0&&(!coming||!L.full||s.time-x.since>L.loadWait*2)){const beach=chooseBeach(sim,team,G,F.region,F.sea,F.target,view);if(!beach){x.stage='flee';sim.order([ship],{type:'move',x:F.port.x,y:F.port.y});continue}F.beach={x:beach.x,y:beach.y,lx:beach.lx,ly:beach.ly};x.beach={...F.beach};sim.order([ship],{type:'stop'});x.pass=[];
      sim.order([ship],{type:'move',x:beach.x,y:beach.y});x.stage='sail';x.since=s.time;x.hp0=ship.hp;N.stats.loads++;if(full)N.stats.fullLoads++;F.trips++;sim.emit('aiSail',{team,size:cargo.length,pop:load,full})}
-    else if(late&&!load&&s.time-x.since>L.loadWait*2){ship.loadRequests=[];x.pass=[];x.stage='port';x.since=s.time}
-    else if(pass.length&&s.time-x.progress>35){/* nobody boarded for a while: this stretch of shore does not work, try another quay */(F.bad??=[]).push({...(F.quay||ship)});F.port=null;F.quay=null;ship.loadRequests=[];x.pass=[];x.stage='port';x.since=s.time}
+    else if(late&&!load&&s.time-x.since>L.loadWait*2){sim.order([ship],{type:'stop'});x.pass=[];x.stage='port';x.since=s.time}
+    else if(pass.length&&s.time-x.progress>35){/* nobody boarded for a while: this stretch of shore does not work, try another quay */(F.bad??=[]).push({...(F.quay||ship)});F.port=null;F.quay=null;sim.order([ship],{type:'stop'});x.pass=[];x.stage='port';x.since=s.time}
     continue}
    if(x.stage==='sail'){const b=x.beach||F.beach;
     /* under fire: turn back (escort too weak or the hull is going) */
@@ -274,14 +274,14 @@ function create(K){
     const arrived=dist(ship,b)<170||dist(ship,{x:b.lx,y:b.ly})<200;
     const stopped=s.time-x.since>30&&!ship.path?.length&&!ship.order?.x;
     if((arrived||stopped)&&G.landNear(ship.x,ship.y)!==F.region&&s.time-x.since<150){const t={x:b.x+(b.lx-b.x)*.45,y:b.y+(b.ly-b.y)*.45};if(!ship.order||Math.hypot((ship.order.x??0)-t.x,(ship.order.y??0)-t.y)>30)sim.order([ship],{type:'move',x:t.x,y:t.y});continue}
-    if(arrived||stopped||s.time-x.since>150){const before=cargo.slice();sim.unload(ship);const out=before.filter(u=>!u.embarkedOn&&u.hp>0);
+    if(arrived||stopped||s.time-x.since>150){/* P4 4a: unload is a command that runs next step - queue it, look at who came ashore on the next run of this job */if(!x.unloading){x.unloading=cargo.map(u=>u.id);sim.unload(ship);continue}const before=x.unloading.map(id=>sim.byId(id)).filter(Boolean);delete x.unloading;const out=before.filter(u=>!u.embarkedOn&&u.hp>0);
      if(out.length){const there=out.filter(u=>G.landNear(u.x,u.y,96)===F.region);for(const u of out)if(fw)fw.ids=fw.ids.filter(id=>id!==u.id);
       if(!lw||lw.stage==='done'){lw=newWave(sim,team,{kind:'main',target:{...F.target},stage:'beach',landing:1,beach:{x:b.lx,y:b.ly},x:b.lx,y:b.ly,checked:s.time});F.landed=lw.id;F.landedAt=s.time}
       lw.ids.push(...out.map(u=>u.id));if(lw.stage==='beach'){const hold={x:b.lx+(F.target.x-b.lx)*.08,y:b.ly+(F.target.y-b.ly)*.08};sim.order(out,{type:'advance',x:hold.x,y:hold.y})}else sim.order(out,{type:'advance',x:lw.target.x,y:lw.target.y});
       N.stats.landings++;N.stats.landed+=out.length;sim.emit('aiLanding',{team,target:F.target.team,size:out.length,x:Math.round(b.lx),y:Math.round(b.ly),region:there.length*2>=out.length?'enemy':'other'});x.stage='return';x.since=s.time;sim.order([ship],{type:'move',x:F.port.x,y:F.port.y})}
      else if(s.time-x.since>160){x.stage='flee';sim.order([ship],{type:'move',x:F.port.x,y:F.port.y})}
      else{const t={x:b.x+(b.lx-b.x)*.5,y:b.y+(b.ly-b.y)*.5};sim.order([ship],{type:'move',x:t.x,y:t.y})}}continue}
-   if(x.stage==='return'||x.stage==='flee'){if(dist(ship,F.port)<230||s.time-x.since>150){if(cargo.length){sim.unload(ship);const back=cargo.filter(u=>!u.embarkedOn);if(back.length)sim.order(back,{type:'move',x:town.x,y:town.y})}if(x.stage==='flee')F.retryAt=s.time+30;x.stage='port';x.since=s.time;N.stats.returns++}
+   if(x.stage==='return'||x.stage==='flee'){/* F.port can be dropped (a quay that did not work) while a ship is out: treat as home */if(!F.port||dist(ship,F.port)<230||s.time-x.since>150){if(cargo.length){sim.unload(ship);sim.order(cargo,{type:'move',x:town.x,y:town.y})}if(x.stage==='flee')F.retryAt=s.time+30;x.stage='port';x.since=s.time;N.stats.returns++}
     else if(!ship.order||ship.order.type!=='move')sim.order([ship],{type:'move',x:F.port.x,y:F.port.y});continue}}
   /* the landed force: regroup at the beach, then assault; pushed back → regroup at the beach (home is over the water) */
   if(lw){const units=lw.ids.map(id=>live(sim,id)).filter(u=>u&&!u.embarkedOn);lw.ids=units.map(u=>u.id);

@@ -152,13 +152,12 @@
     encodeArg: () => encodeArg,
     firstDifference: () => firstDifference,
     prewarm: () => prewarm,
+    resultOf: () => resultOf,
     runReplay: () => runReplay
   });
-  var FORMAT = "kingdom-replay";
-  var VERSION = 1;
-  var STEP = 0.05;
-  var DEFAULT_EVERY = 20;
-  var CAPTURED = [
+
+  // src/commands/index.js
+  var TYPES = [
     "order",
     "construct",
     "constructLine",
@@ -187,7 +186,7 @@
     if (v === null || typeof v === "string" || typeof v === "boolean") return v;
     if (typeof v === "number") return Number.isFinite(v) ? v : { $n: String(v) };
     if (typeof v === "function") return { $u: 1 };
-    if (depth > 6) throw Error("replay: argument nested too deeply");
+    if (depth > 6) throw Error("command: argument nested too deeply");
     if (Array.isArray(v)) return v.map((x) => encodeArg(sim, x, depth + 1));
     if (typeof v === "object") {
       if (isEntity(sim, v)) return { $e: v.id };
@@ -209,7 +208,6 @@
     for (const k of Object.keys(v)) out[k] = decodeArg(sim, v[k]);
     return out;
   }
-  var clone = (x) => x === void 0 ? void 0 : JSON.parse(JSON.stringify(x));
   var resultOf = (r) => {
     if (r === void 0 || r === null || typeof r === "string" || typeof r === "boolean" || typeof r === "number") return r ?? null;
     if (typeof r.id === "number") return { $e: r.id };
@@ -217,6 +215,62 @@
     if (r.building && typeof r.building.id === "number") return { building: r.building.id };
     return "[object]";
   };
+  var alive = (e) => e && !e.missing && e.hp > 0;
+  var ACTOR = {
+    order: (a) => ({ units: a[0] }),
+    construct: (a) => ({ units: a[3], team: a[4] ?? 0 }),
+    constructLine: (a) => ({ units: a[3], team: a[4] ?? 0 }),
+    train: (a) => ({ entity: a[0] }),
+    research: (a) => ({ entity: a[0] }),
+    setRally: (a) => ({ entity: a[0] }),
+    board: (a) => ({ entity: a[0] }),
+    unload: (a) => ({ entity: a[0] }),
+    assignFish: (a) => ({ entity: a[0] }),
+    skill: (a) => ({ entity: a[0] }),
+    castSpell: (a) => ({ entity: a[0] }),
+    route: (a) => ({ entity: a[0] }),
+    claimReward: (a) => ({ team: a[0] })
+  };
+  function check(sim, type, team, args) {
+    if (!TYPES.includes(type)) return "unknown command " + type;
+    if (team === null || team === void 0) return "";
+    const f = ACTOR[type];
+    if (!f) return "";
+    const x = f(args);
+    if (x.team !== void 0 && x.team !== team) return "wrong seat";
+    if (x.entity !== void 0 && (!alive(x.entity) || x.entity.team !== team)) return "actor gone or not owned";
+    if (x.units !== void 0) {
+      if (!Array.isArray(x.units)) return "no units";
+      const own = x.units.filter((u) => alive(u) && u.team === team);
+      if (!own.length) return "units gone or not owned";
+    }
+    return "";
+  }
+  function owned(type, team, args) {
+    if (team === null || team === void 0) return args;
+    const i = type === "order" ? 0 : type === "construct" || type === "constructLine" ? 3 : -1;
+    if (i < 0 || !Array.isArray(args[i])) return args;
+    const out = args.slice();
+    out[i] = args[i].filter((u) => alive(u) && u.team === team);
+    return out;
+  }
+  function applyCommand(sim, cmd, call = (name, args) => sim[name](...args)) {
+    const type = cmd.type ?? cmd.m, team = cmd.team ?? null;
+    if (!TYPES.includes(type)) return { error: "unknown command " + type };
+    let args = (cmd.args ?? cmd.a ?? []).map((a) => decodeArg(sim, a));
+    const err = check(sim, type, team, args);
+    if (err) return { error: err };
+    args = owned(type, team, args);
+    return call(type, args);
+  }
+
+  // src/replay/replay.js
+  var FORMAT = "kingdom-replay";
+  var VERSION = 1;
+  var STEP = 0.05;
+  var DEFAULT_EVERY = 20;
+  var CAPTURED = TYPES;
+  var clone = (x) => x === void 0 ? void 0 : JSON.parse(JSON.stringify(x));
   function prewarm(sim) {
     if (typeof sim.getGrid !== "function") return;
     const s = sim.s, land = s.units.find((u) => !sim.sea?.(u) && !sim.air?.(u)), ship = s.units.find((u) => sim.sea?.(u));
@@ -335,12 +389,11 @@
               dtNext = c.dt;
               continue;
             }
-            const fn = sim[c.m];
-            if (typeof fn !== "function") {
+            if (typeof sim[c.m] !== "function") {
               mismatch.push({ step, m: c.m, why: "method missing" });
               continue;
             }
-            const r = resultOf(fn.apply(sim, c.a.map((a) => decodeArg(sim, a))));
+            const r = resultOf(applyCommand(sim, c));
             if (c.r !== void 0 && JSON.stringify(r) !== JSON.stringify(c.r)) mismatch.push({ step, m: c.m, expected: c.r, got: r });
           }
           sim.tick(dtNext ?? STEP);

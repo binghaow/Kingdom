@@ -95,6 +95,231 @@
     }
   });
 
+  // public/kingdom-commands.js
+  var require_kingdom_commands = __commonJS({
+    "public/kingdom-commands.js"(exports, module) {
+      var KingdomCommands = (() => {
+        var __defProp2 = Object.defineProperty;
+        var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
+        var __getOwnPropNames2 = Object.getOwnPropertyNames;
+        var __hasOwnProp2 = Object.prototype.hasOwnProperty;
+        var __export = (target, all) => {
+          for (var name in all)
+            __defProp2(target, name, { get: all[name], enumerable: true });
+        };
+        var __copyProps2 = (to, from, except, desc) => {
+          if (from && typeof from === "object" || typeof from === "function") {
+            for (let key of __getOwnPropNames2(from))
+              if (!__hasOwnProp2.call(to, key) && key !== except)
+                __defProp2(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc2(from, key)) || desc.enumerable });
+          }
+          return to;
+        };
+        var __toCommonJS = (mod) => __copyProps2(__defProp2({}, "__esModule", { value: true }), mod);
+        var index_exports = {};
+        __export(index_exports, {
+          AI_TYPES: () => AI_TYPES,
+          FORMAT: () => FORMAT2,
+          TYPES: () => TYPES2,
+          VERSION: () => VERSION2,
+          applyCommand: () => applyCommand2,
+          check: () => check2,
+          decodeArg: () => decodeArg2,
+          drainCommands: () => drainCommands,
+          dryRun: () => dryRun,
+          encodeArg: () => encodeArg2,
+          make: () => make,
+          resultOf: () => resultOf3,
+          teamOf: () => teamOf
+        });
+        var FORMAT2 = "kingdom-command";
+        var VERSION2 = 1;
+        var TYPES2 = [
+          "order",
+          "construct",
+          "constructLine",
+          "train",
+          "research",
+          "setRally",
+          "board",
+          "unload",
+          "assignFish",
+          "skill",
+          "castSpell",
+          "route",
+          "claimReward",
+          "setDifficulty",
+          "sendChat",
+          "pact",
+          "add",
+          "offerAlliance",
+          "acceptAlliance",
+          "rejectAlliance",
+          "declareWar"
+        ];
+        var AI_TYPES = [
+          "order",
+          "construct",
+          "constructLine",
+          "train",
+          "research",
+          "setRally",
+          "board",
+          "unload",
+          "assignFish",
+          "skill",
+          "castSpell",
+          "route",
+          "claimReward"
+        ];
+        var isEntity2 = (sim, v) => typeof v.id === "number" && typeof sim.byId === "function" && sim.byId(v.id) === v;
+        function encodeArg2(sim, v, depth = 0) {
+          if (v === void 0) return { $u: 1 };
+          if (v === null || typeof v === "string" || typeof v === "boolean") return v;
+          if (typeof v === "number") return Number.isFinite(v) ? v : { $n: String(v) };
+          if (typeof v === "function") return { $u: 1 };
+          if (depth > 6) throw Error("command: argument nested too deeply");
+          if (Array.isArray(v)) return v.map((x) => encodeArg2(sim, x, depth + 1));
+          if (typeof v === "object") {
+            if (isEntity2(sim, v)) return { $e: v.id };
+            const out = {};
+            for (const k of Object.keys(v)) {
+              if (typeof v[k] !== "function") out[k] = encodeArg2(sim, v[k], depth + 1);
+            }
+            return out;
+          }
+          return null;
+        }
+        function decodeArg2(sim, v) {
+          if (v === null || typeof v !== "object") return v;
+          if (Array.isArray(v)) return v.map((x) => decodeArg2(sim, x));
+          if ("$u" in v) return void 0;
+          if ("$n" in v) return Number(v.$n);
+          if ("$e" in v) return sim.byId(v.$e) ?? { id: v.$e, missing: true };
+          const out = {};
+          for (const k of Object.keys(v)) out[k] = decodeArg2(sim, v[k]);
+          return out;
+        }
+        var resultOf3 = (r) => {
+          if (r === void 0 || r === null || typeof r === "string" || typeof r === "boolean" || typeof r === "number") return r ?? null;
+          if (typeof r.id === "number") return { $e: r.id };
+          if (typeof r.error === "string") return { error: r.error };
+          if (r.building && typeof r.building.id === "number") return { building: r.building.id };
+          return "[object]";
+        };
+        var alive2 = (e) => e && !e.missing && e.hp > 0;
+        var ACTOR2 = {
+          order: (a) => ({ units: a[0] }),
+          construct: (a) => ({ units: a[3], team: a[4] ?? 0 }),
+          constructLine: (a) => ({ units: a[3], team: a[4] ?? 0 }),
+          train: (a) => ({ entity: a[0] }),
+          research: (a) => ({ entity: a[0] }),
+          setRally: (a) => ({ entity: a[0] }),
+          board: (a) => ({ entity: a[0] }),
+          unload: (a) => ({ entity: a[0] }),
+          assignFish: (a) => ({ entity: a[0] }),
+          skill: (a) => ({ entity: a[0] }),
+          castSpell: (a) => ({ entity: a[0] }),
+          route: (a) => ({ entity: a[0] }),
+          claimReward: (a) => ({ team: a[0] })
+        };
+        function teamOf(type, args) {
+          const f = ACTOR2[type];
+          if (!f) return null;
+          const x = f(args);
+          if (x.team !== void 0) return x.team;
+          if (x.entity) return x.entity.team;
+          if (Array.isArray(x.units)) {
+            const u = x.units.find((u2) => u2 && typeof u2 === "object");
+            return u ? u.team : null;
+          }
+          return null;
+        }
+        function check2(sim, type, team, args) {
+          if (!TYPES2.includes(type)) return "unknown command " + type;
+          if (team === null || team === void 0) return "";
+          const f = ACTOR2[type];
+          if (!f) return "";
+          const x = f(args);
+          if (x.team !== void 0 && x.team !== team) return "wrong seat";
+          if (x.entity !== void 0 && (!alive2(x.entity) || x.entity.team !== team)) return "actor gone or not owned";
+          if (x.units !== void 0) {
+            if (!Array.isArray(x.units)) return "no units";
+            const own = x.units.filter((u) => alive2(u) && u.team === team);
+            if (!own.length) return "units gone or not owned";
+          }
+          return "";
+        }
+        function owned2(type, team, args) {
+          if (team === null || team === void 0) return args;
+          const i = type === "order" ? 0 : type === "construct" || type === "constructLine" ? 3 : -1;
+          if (i < 0 || !Array.isArray(args[i])) return args;
+          const out = args.slice();
+          out[i] = args[i].filter((u) => alive2(u) && u.team === team);
+          return out;
+        }
+        function dryRun(sim, type, team, args) {
+          const err = check2(sim, type, team, args);
+          let e = err;
+          switch (type) {
+            case "construct": {
+              if (!e) {
+                const [kind, x, y, workers] = args;
+                if (!workers.some((u) => (sim.builder ? sim.builder(u) : u.kind === "villager") && u.team === team)) e = "先选择村民";
+                else e = sim.placementError(kind, x, y, team);
+              }
+              return e ? { ok: false, result: { error: e } } : { ok: true, result: { queued: true } };
+            }
+            case "constructLine":
+              return e ? { ok: false, result: { count: 0, error: e, planned: 0 } } : { ok: true, result: { count: 0, error: "", planned: 0, queued: true } };
+            case "train":
+              e = e || (sim.unitError ? sim.unitError(args[0], args[1]) : "") || "";
+              return { ok: !e, result: e };
+            case "research":
+              e = e || (sim.researchError ? sim.researchError(args[0], args[1]) : "") || "";
+              return { ok: !e, result: e };
+            case "skill":
+              e = e || (sim.skillError ? sim.skillError(args[0]) : "") || "";
+              return { ok: !e, result: e };
+            case "order":
+            case "assignFish":
+              return { ok: !e, result: void 0 };
+            default:
+              return { ok: !e, result: e };
+          }
+        }
+        function make(sim, type, team, args) {
+          return { type, team, args: args.map((a) => encodeArg2(sim, a)) };
+        }
+        function applyCommand2(sim, cmd, call = (name, args) => sim[name](...args)) {
+          const type = cmd.type ?? cmd.m, team = cmd.team ?? null;
+          if (!TYPES2.includes(type)) return { error: "unknown command " + type };
+          let args = (cmd.args ?? cmd.a ?? []).map((a) => decodeArg2(sim, a));
+          const err = check2(sim, type, team, args);
+          if (err) return { error: err };
+          args = owned2(type, team, args);
+          return call(type, args);
+        }
+        function drainCommands(sim, call) {
+          const s = sim.s, q = s.commandQueue;
+          if (!q || !q.length) return 0;
+          s.commandQueue = [];
+          for (const c of q) {
+            const r = applyCommand2(sim, c, call);
+            if (sim.commandStats) {
+              sim.commandStats.applied++;
+              if (r && typeof r === "object" && r.error) sim.commandStats.rejected++;
+            }
+          }
+          return q.length;
+        }
+        return __toCommonJS(index_exports);
+      })();
+      if (typeof module !== "undefined" && module.exports) module.exports = KingdomCommands;
+      else (typeof window !== "undefined" ? window : globalThis).KingdomCommands = KingdomCommands;
+    }
+  });
+
   // public/engine.js
   var require_engine = __commonJS({
     "public/engine.js"(exports, module) {
@@ -213,6 +438,9 @@
         }
         class Sim {
           constructor(difficulty = "easy", saved = null) {
+            this._aiPhase = 0;
+            this.commandStats = { queued: 0, applied: 0, rejected: 0 };
+            gateCommands(new.target || Sim);
             this.grid = null;
             this.events = [];
             this.pathFailures = /* @__PURE__ */ new Map();
@@ -706,7 +934,7 @@
               if (this.building(u) || u.hp <= 0) continue;
               failures.delete(u.id);
               goals.delete(u.id);
-              u.order = { ...cmd, ...target ? { lastX: target.x, lastY: target.y } : {} };
+              u.order = cmd.type === "stop" ? null : { ...cmd, ...target ? { lastX: target.x, lastY: target.y } : {} };
               u.engagementBlocked = false;
               u.path = [];
               u.repath = 0;
@@ -1097,18 +1325,21 @@
             s.nodes = s.nodes.filter((n) => n.amount > 0);
             for (const fx of s.effects) fx.life -= dt;
             s.effects = s.effects.filter((f) => f.life > 0);
-            this.aiTurns(dt);
-            if (s.raidTimer > (s.difficulty === "easy" ? 210 : 115)) {
-              s.raidTimer = 0;
-              if (this.raids) this.raids();
-              else {
-                const army = s.units.filter((u) => u.team === 1 && u.kind !== "villager" && D[u.kind].damage > 0 && D[u.kind].domain !== "sea" && !u.embarkedOn && u.order?.type !== "attack").slice(0, s.difficulty === "easy" ? 8 : 14), town = this.townOf(0);
-                if (town && army.length >= 4) {
-                  this.order(army, { type: "advance", x: town.x, y: town.y });
-                  this.emit("raid");
+            this.aiScope(() => {
+              if (this._ticks % 600 === 0) this.aiPruneUnits();
+              this.aiTurns(dt);
+              if (s.raidTimer > (s.difficulty === "easy" ? 210 : 115)) {
+                s.raidTimer = 0;
+                if (this.raids) this.raids();
+                else {
+                  const army = s.units.filter((u) => u.team === 1 && u.kind !== "villager" && D[u.kind].damage > 0 && D[u.kind].domain !== "sea" && !u.embarkedOn && u.order?.type !== "attack").slice(0, s.difficulty === "easy" ? 8 : 14), town = this.townOf(0);
+                  if (town && army.length >= 4) {
+                    this.order(army, { type: "advance", x: town.x, y: town.y });
+                    this.emit("raid");
+                  }
                 }
               }
-            }
+            });
           }
           /* Computer turns: every 7 s. Dynasties (all real games) overrides this to give every computer seat its own phase. */
           aiTurns() {
@@ -1147,6 +1378,74 @@
             return JSON.stringify({ ...this.s, effects: [] });
           }
         }
+        const Commands = typeof module !== "undefined" && module.exports ? require_kingdom_commands() : root.KingdomCommands;
+        const GATED = typeof Symbol === "function" ? /* @__PURE__ */ Symbol("commandGate") : "__commandGate";
+        function gateCommands(Ctor) {
+          const P = Ctor && Ctor.prototype;
+          if (!P || Object.prototype.hasOwnProperty.call(P, GATED)) return;
+          if (!Commands) throw Error("kingdom-commands.js must be loaded before engine.js");
+          Object.defineProperty(P, GATED, { value: true });
+          for (const name of Commands.TYPES) {
+            const inner = P[name];
+            if (typeof inner !== "function") continue;
+            Object.defineProperty(P, name, { configurable: true, writable: true, value: function(...args) {
+              return this._aiPhase > 0 ? this.aiCommand(name, args) : inner.apply(this, args);
+            } });
+          }
+          const tick = P.tick;
+          Object.defineProperty(P, "tick", { configurable: true, writable: true, value: function(dt) {
+            if (this.s.commandQueue?.length && !this.s.ended && !this._aiPhase) this.drainCommands();
+            return tick.call(this, dt);
+          } });
+        }
+        Sim.prototype.aiScope = function(fn) {
+          this._aiPhase++;
+          try {
+            return fn.call(this);
+          } finally {
+            this._aiPhase--;
+          }
+        };
+        Sim.prototype.aiCommand = function(name, args) {
+          var _a;
+          if (!Commands.AI_TYPES.includes(name)) throw Error("AI phase: " + name + " is not a computer command");
+          if (name === "train" && this.aiTrainKind && args[0]) args = [args[0], this.aiTrainKind(args[0], args[1])];
+          if (name === "order" && this.aiPrepareOrder && Array.isArray(args[0])) {
+            args = [this.aiPrepareOrder(args[0], args[1] || {}), ...args.slice(1)];
+            if (!args[0].length) return void 0;
+          }
+          const team = Commands.teamOf(name, args), r = Commands.dryRun(this, name, team, args);
+          if (r.ok && name === "construct" && this.aiPlacementSplits?.(args[0], args[1], args[2], team)) return { error: "会堵住通道" };
+          if (r.ok) {
+            ((_a = this.s).commandQueue ?? (_a.commandQueue = [])).push(Commands.make(this, name, team, args));
+            this.commandStats.queued++;
+          }
+          return r.result;
+        };
+        Sim.prototype.aiUnit = function(u) {
+          var _a, _b;
+          const m = (_a = this.s).aiUnits ?? (_a.aiUnits = {});
+          return m[_b = u.id] ?? (m[_b] = {});
+        };
+        Sim.prototype.aiUnitOf = function(u) {
+          return this.s.aiUnits?.[u.id];
+        };
+        Sim.prototype.aiPrepareOrder = function(units) {
+          return units;
+        };
+        Sim.prototype.aiPruneUnits = function() {
+          const m = this.s.aiUnits;
+          if (!m) return;
+          for (const id of Object.keys(m)) if (!this.byId(+id)) delete m[id];
+        };
+        Sim.prototype.drainCommands = function() {
+          this._applyingAI = true;
+          try {
+            return Commands.drainCommands(this);
+          } finally {
+            this._applyingAI = false;
+          }
+        };
         const api = { Sim, defs: D, tech: TECH, map: MAP, ageNames, river, riverCenter: center, distance, townRules: TOWN_RULES };
         if (typeof module !== "undefined" && module.exports) module.exports = api;
         else root.KingdomSim = api;
@@ -1595,13 +1894,13 @@
               const current = u.order?.type === "gather" ? u.order.resource : null, target = current ? this.byId(u.order.id) : null, active = target?.amount > 0 && this.canGather(u, target);
               if (active) {
                 const surplus = count[current] - desired[current];
-                if (surplus <= 1 || s.time < (u.aiRetaskAt || 0)) continue;
+                if (surplus <= 1 || s.time < (this.aiUnitOf(u)?.retaskAt || 0)) continue;
                 const resource2 = choose();
                 if (!resource2 || resource2 === current) continue;
                 const node2 = this.nearest(u, byResource[resource2].filter((n) => n.amount > 0 && this.canGather(u, n)));
                 if (!node2) continue;
                 this.order([u], { type: "gather", id: node2.id, resource: resource2 });
-                u.aiRetaskAt = s.time + 45;
+                this.aiUnit(u).retaskAt = s.time + 45;
                 count[current]--;
                 count[resource2]++;
                 continue;
@@ -2464,7 +2763,7 @@
             if (s.ended) return;
             if ((s.raidPulse = (s.raidPulse || 0) + dt) > 5) {
               s.raidPulse = 0;
-              this.raids();
+              this.aiScope(() => this.raids());
             }
             for (const u of s.units) {
               if (u.embarkedOn) continue;
@@ -2479,7 +2778,7 @@
                 }
               }
               if (s.tech[u.team].fieldmedicine && !this.sea(u) && s.time - (u.lastHurtAt ?? -10) > 5 && !u.combatTarget && (u.disengageUntil || 0) < s.time && u.order?.type !== "attack") u.hp = Math.min(u.maxhp, u.hp + dt * this.fieldRegen(u.team));
-              if (D[u.kind].hero && u.team > 0 && !s.humanTeams?.includes(u.team) && pAllowsHero(this.profile(u.team)) && !this.skillError(u)) this.skill(u);
+              if (D[u.kind].hero && u.team > 0 && !s.humanTeams?.includes(u.team) && pAllowsHero(this.profile(u.team)) && !this.skillError(u)) this.aiScope(() => this.skill(u));
             }
             for (let t = 0; t < s.nations.length; t++) {
               const prior = this._tradeTotals?.[t] || 0, earned = Math.max(0, (s.tradeGold[t] || 0) - prior);
@@ -3060,7 +3359,7 @@
             const f = this.fog, s = this.s;
             for (let t = 1; t < s.nations.length; t++) {
               if (s.humanTeams?.includes(t)) continue;
-              const u = s.units.find((u2) => u2.team === t && ["hussar", "infantry", "cavalry"].includes(u2.kind) && !u2.embarkedOn && (!u2.order || u2.scout));
+              const u = s.units.find((u2) => u2.team === t && ["hussar", "infantry", "cavalry"].includes(u2.kind) && !u2.embarkedOn && (!u2.order || this.aiUnitOf(u2)?.scout));
               if (!u) continue;
               const candidates = [];
               for (let y = 2; y < f.rows - 2; y++) for (let x = 2; x < f.cols - 2; x++) {
@@ -3072,7 +3371,7 @@
               if (candidates.length) {
                 const p = candidates[Math.floor(this.rand(0, candidates.length))];
                 this.order([u], { type: "move", ...p });
-                u.scout = true;
+                this.aiUnit(u).scout = true;
               }
             }
           }
@@ -3232,7 +3531,7 @@
             this._scoutTimer = (this._scoutTimer || 0) + dt;
             if (this._scoutTimer > 30) {
               this._scoutTimer = 0;
-              this.scout();
+              this.aiScope(() => this.scout());
             }
           }
           serialize() {
@@ -3501,15 +3800,71 @@
                 bounds.m.set(b.kind, bb);
               }
               if (Math.abs(x - b.x) > bb || Math.abs(y - b.y) > bb) return false;
-              const d = D[b.kind];
-              if (d.gate && u && this.allied(u.team, b.team)) return false;
-              if (d.wall) {
-                const rx2 = d.vertical ? 20 : 48, ry2 = d.vertical ? 48 : 20;
-                return Math.abs(x - b.x) < rx2 + 9 && Math.abs(y - b.y) < ry2 + 9;
-              }
-              const P = artProfiles(), w = P?.sizes[b.kind]?.[0] || d.r * 2, pad = this.sea(u) ? 12 : Math.min(18, Math.max(9, (D[u?.kind]?.r || 12) * 0.6)), rx = Math.max(d.r + pad, w * 0.4 + pad), ry = d.r + pad;
-              return ((x - b.x) / rx) ** 2 + ((y - b.y) / ry) ** 2 < 1;
+              return this.blocksPoint(b, x, y, u);
             });
+          }
+          /* the footprint test of one building (used by blockedBuildings; P4 4a also uses it to test a computer's placement before it builds) */
+          blocksPoint(b, x, y, u) {
+            const d = D[b.kind];
+            if (d.gate && u && this.allied(u.team, b.team)) return false;
+            if (d.wall) {
+              const rx2 = d.vertical ? 20 : 48, ry2 = d.vertical ? 48 : 20;
+              return Math.abs(x - b.x) < rx2 + 9 && Math.abs(y - b.y) < ry2 + 9;
+            }
+            const P = artProfiles(), w = P?.sizes[b.kind]?.[0] || d.r * 2, pad = this.sea(u) ? 12 : Math.min(18, Math.max(9, (D[u?.kind]?.r || 12) * 0.6)), rx = Math.max(d.r + pad, w * 0.4 + pad), ry = d.r + pad;
+            return ((x - b.x) / rx) ** 2 + ((y - b.y) / ry) ** 2 < 1;
+          }
+          /* P4 4a (found by scripts/perf/ai-stats.cjs): would a computer's new building close a passage? The open cells around its footprint
+             must stay connected to each other (4-way flood fill in a 45x45-cell box on the land grid). A tower placed in the last gap between
+             the town centre and its houses had walled the whole base in: villagers could not deliver, soldiers could not leave. */
+          aiPlacementSplits(kind, x, y, team) {
+            const d = D[kind];
+            if (!d?.building || d.wall || d.domain === "sea" || kind === "dock") return false;
+            const u = this.s.units.find((v) => v.team === team && v.kind === "villager" && !v.embarkedOn) || null, g = this.getGrid(u), cols = M.width / 48, rows = M.height / 48;
+            const P = artProfiles(), kw = P?.sizes[kind]?.[0] || d.r * 2, reach = Math.ceil((Math.max(57, d.r + 18, kw * 0.4 + 18) + 1) / 48) + 1, fake = { kind, x, y, hp: 1, team }, bx = Math.floor(x / 48), by = Math.floor(y / 48), R = 22, x0 = Math.max(0, bx - R), x1 = Math.min(cols - 1, bx + R), y0 = Math.max(0, by - R), y1 = Math.min(rows - 1, by + R), W = x1 - x0 + 1, H = y1 - y0 + 1;
+            const foot = new Uint8Array(W * H);
+            let any = false;
+            for (let cy = Math.max(y0, by - reach); cy <= Math.min(y1, by + reach); cy++) for (let cx = Math.max(x0, bx - reach); cx <= Math.min(x1, bx + reach); cx++) if (!g[cy * cols + cx] && this.blocksPoint(fake, cx * 48 + 24, cy * 48 + 24, u)) {
+              foot[(cy - y0) * W + (cx - x0)] = 1;
+              any = true;
+            }
+            if (!any) return false;
+            const open = (i, withFoot) => {
+              const cx = i % W + x0, cy = (i / W | 0) + y0;
+              return !g[cy * cols + cx] && !(withFoot && foot[i]);
+            }, ring = [];
+            for (let i = 0; i < W * H; i++) {
+              if (!foot[i]) continue;
+              const cx = i % W, cy = i / W | 0;
+              for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+                const nx = cx + dx, ny = cy + dy;
+                if (nx < 0 || ny < 0 || nx >= W || ny >= H) continue;
+                const j = ny * W + nx;
+                if (!foot[j] && open(j, true) && !ring.includes(j)) ring.push(j);
+              }
+            }
+            if (ring.length < 2) return false;
+            const fill = (withFoot) => {
+              const seen = new Uint8Array(W * H), q = [ring[0]];
+              seen[ring[0]] = 1;
+              for (let h = 0; h < q.length; h++) {
+                const i = q[h], cx = i % W, cy = i / W | 0;
+                for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+                  const nx = cx + dx, ny = cy + dy;
+                  if (nx < 0 || ny < 0 || nx >= W || ny >= H) continue;
+                  const j = ny * W + nx;
+                  if (!seen[j] && open(j, withFoot)) {
+                    seen[j] = 1;
+                    q.push(j);
+                  }
+                }
+              }
+              return seen;
+            };
+            const after = fill(true);
+            if (ring.every((i) => after[i])) return false;
+            const before = fill(false);
+            return ring.some((i) => before[i] && !after[i]);
           }
           /* v44: while a navigation grid is built nothing moves, so blocked() may look only at buildings whose reach bound touches the 192 px cell of the point. */
           getGrid(u = null) {
@@ -4585,14 +4940,12 @@
             this._coordinating = true;
             try {
               for (const u of army) {
-                u.coopUntil = job.until;
-                u.scout = false;
+                const m = this.aiUnit(u);
+                m.coopUntil = job.until;
+                m.scout = false;
                 if (!only && u.combatTarget && dist(u, job) < 700 && job.type !== "retreat") continue;
                 if (dist(u, job) < 120 && job.type !== "retreat") {
-                  if (["move", "advance"].includes(u.order?.type)) {
-                    u.order = null;
-                    u.path = [];
-                  }
+                  if (["move", "advance"].includes(u.order?.type)) this.order([u], { type: "stop" });
                   continue;
                 }
                 this.order([u], { type: job.type === "retreat" ? "move" : "advance", x: job.x, y: job.y, retreat: job.type === "retreat" });
@@ -4656,9 +5009,10 @@
             }
             return this.s.chatLog.at(-1);
           }
-          order(units, cmd) {
-            if (!this._coordinating) units = units.filter((u) => !(u.team > 0 && (u.coopUntil || 0) > this.s.time));
-            return super.order(units, cmd);
+          /* units sent on a cooperation job ignore other computer orders until it ends (checked when the AI issues the order, P4 4a) */
+          aiPrepareOrder(units, cmd) {
+            if (!this._coordinating) units = units.filter((u) => !(u.team > 0 && (this.aiUnitOf(u)?.coopUntil || 0) > this.s.time));
+            return super.aiPrepareOrder(units, cmd);
           }
           rallySpawn(u, b) {
             const job = this.s.cooperation?.[u.team];
@@ -4724,7 +5078,7 @@
               }
               if (this.s.time > job.next) {
                 job.next = this.s.time + 5;
-                this.issueCooperation(team, job);
+                this.aiScope(() => this.issueCooperation(team, job));
               }
             }
           }
@@ -4946,6 +5300,9 @@
             return super.unload(ship);
           }
           order(units, cmd) {
+            if (cmd?.type === "stop") {
+              for (const u of units) if (u.loadRequests?.length) u.loadRequests = [];
+            }
             for (const ship of units.filter((u) => u.kind === "carrier")) {
               if (["attack", "advance"].includes(cmd.type)) {
                 const wings = this.s.units.filter((u) => u.carrierId === ship.id && u.hp > 0), stored = wings.filter((u) => u.embarkedOn === ship.id);
@@ -5857,7 +6214,8 @@
             let key = air >= 2 || cav >= 4 ? "pikes" : walls >= 3 ? "siege" : this.s.ages[team] >= 5 && team % 2 ? "air" : this.world.style === "coast" && this.s.ages[team] >= 3 ? "naval" : ["balanced", "cavalry", "siege"][Math.floor(this.s.time / 240 + team) % 3];
             return this.s.aiPlans[team] = { key, name: plans[key].name, at: this.s.time };
           }
-          train(b, kind) {
+          /* P4 4a: the computer's unit choice for a training building (army plan + counters), made when the AI issues the train command. */
+          aiTrainKind(b, kind) {
             if (b?.team > 0 && !this.s.humanTeams?.includes(b.team) && D[kind]?.damage > 0 && !D[kind].hero) {
               const p = this.s.aiPlans[b.team] || this.choosePlan(b.team), candidates = (D[b.kind].trains || []).filter((k) => !this.unitError(b, k));
               const own = {};
@@ -5867,7 +6225,7 @@
               for (const [k] of scored) candidates.push(k);
               if (candidates.length) kind = candidates[0];
             }
-            return super.train(b, kind);
+            return kind;
           }
           aiTacticalRetreat(team, town) {
             const s = this.s;
@@ -5876,7 +6234,7 @@
             if (s.time < next) return 0;
             s.aiTacticalAt ?? (s.aiTacticalAt = []);
             s.aiTacticalAt[team] = s.time + Math.max(5, this.profile?.(team)?.think || 7);
-            const raiders = s.units.filter((u) => u.team === team && u.aiTactic === "harass" && u.raidHome && u.hp > 0 && !u.embarkedOn);
+            const raiders = s.units.filter((u) => u.team === team && this.aiUnitOf(u)?.tactic === "harass" && this.aiUnitOf(u).raidHome && u.hp > 0 && !u.embarkedOn);
             if (!raiders.length) return 0;
             const view = this.view ? this.view(team) : { units: s.units }, enemies = view.units.filter((e) => e.hp > 0 && e.team >= 0 && this.hostile(team, e.team) && D[e.kind]?.damage > 0), retreat = [];
             for (const u of raiders) {
@@ -5890,23 +6248,40 @@
             const out = new Set(retreat.map((u) => u.id));
             for (const v of s.aiWar?.[team]?.waves || []) v.ids = v.ids.filter((id) => !out.has(id));
             for (const u of retreat) {
-              this.order([u], { type: "move", ...u.raidHome, retreat: true });
-              u.aiTactic = "";
-              delete u.raidHome;
+              const m = this.aiUnit(u), home = m.raidHome;
+              this.order([u], { type: "move", ...home, retreat: true });
+              m.tactic = "";
+              delete m.raidHome;
             }
             return retreat.length;
           }
+          /* P4 4a: a new computer order ends a unit's harass tactic (tags live in AI memory s.aiUnits, checked when the AI issues the order). */
           order(units, cmd) {
-            for (const u of units) if (u.aiTactic) {
-              u.aiTactic = "";
-              delete u.raidHome;
+            if (!this._applyingAI) for (const u of units) {
+              const m = this.aiUnitOf(u);
+              if (m?.tactic) {
+                m.tactic = "";
+                delete m.raidHome;
+              }
             }
             return super.order(units, cmd);
           }
+          /* any other order (player, unit behaviour) ends it at once */
+          aiPrepareOrder(units, cmd) {
+            for (const u of units) {
+              const m = this.aiUnitOf(u);
+              if (m?.tactic) {
+                m.tactic = "";
+                delete m.raidHome;
+              }
+            }
+            return super.aiPrepareOrder(units, cmd);
+          }
           aiTagHarass(units, home) {
             for (const u of units) {
-              u.aiTactic = "harass";
-              u.raidHome = { x: home.x, y: home.y };
+              const m = this.aiUnit(u);
+              m.tactic = "harass";
+              m.raidHome = { x: home.x, y: home.y };
             }
           }
           aiPlayer(team) {
@@ -6120,10 +6495,10 @@
             }
           }
           aiRetreat(team, v, town, why) {
-            const alive = v.ids.map((id) => this.byId(id)).filter((u) => u?.hp > 0);
+            const alive2 = v.ids.map((id) => this.byId(id)).filter((u) => u?.hp > 0);
             v.stage = "retreat";
             v.at = this.s.time;
-            if (alive.length) this.order(alive, { type: "move", x: town.x + this.rand(-60, 60), y: town.y + this.rand(-60, 60), retreat: true });
+            if (alive2.length) this.order(alive2, { type: "move", x: town.x + this.rand(-60, 60), y: town.y + this.rand(-60, 60), retreat: true });
             this.emit("aiRetreat", { team, target: v.target?.team, x: v.x, y: v.y, why });
             const w = this.s.aiWar[team];
             w.retreats = (w.retreats || 0) + 1;
@@ -6168,7 +6543,7 @@
                 this.order([u2], { type: "move", x: town.x + this.rand(-80, 80), y: town.y + this.rand(-80, 80) });
               }
               if (sc.back && (dist(u2, town) < 320 || s.time > sc.until + 70)) {
-                if (u2.kind === "villager" || u2.order?.type === "move") u2.order = null;
+                if (u2.kind === "villager" || u2.order?.type === "move") this.order([u2], { type: "stop" });
                 w.scout = null;
                 w.next.scout = s.time + (150 + this.rand(0, 90)) * this.aiPace(team);
               }
@@ -6389,10 +6764,16 @@
                 u.visualDirection = u.viewDirection;
               }
             }
-            for (const u of this.s.units) if (u.raidHome && u.hp / u.maxhp < 0.35) {
-              this.order([u], { type: "move", ...u.raidHome, retreat: true });
-              delete u.raidHome;
-            }
+            this.aiScope(() => {
+              for (const u of this.s.units) {
+                const m = this.aiUnitOf(u);
+                if (m?.raidHome && u.hp / u.maxhp < 0.35) {
+                  const home = m.raidHome;
+                  this.order([u], { type: "move", ...home, retreat: true });
+                  delete m.raidHome;
+                }
+              }
+            });
           }
         }
         const api = { ...K2, Sim: Commander, aiCompositions: plans, aiDoctrines: doctrines };
@@ -7174,7 +7555,7 @@
             F.claims = F.claims.filter((c) => {
               if (c.dead) return false;
               if (c.stage === "go") return true;
-              const camp = c.campId && this.byId(c.campId);
+              const camp = this.aiCampOf(team, c);
               if (c.campId && (!camp || camp.hp <= 0)) return false;
               if (c.stage === "build" && s.time - c.at > 150 && !camp) return false;
               return this.aiSiteNodes(c).some((n) => n.resource !== "wood" || c.wood);
@@ -7239,13 +7620,20 @@
               const a = ang + (i % 2 ? 1 : -1) * Math.floor(i % 10 / 2) * 0.5, r = 170 + Math.floor(i / 10) * 70, x = c.x + Math.cos(a) * r, y = c.y + Math.sin(a) * r;
               if (this.placementError(c.kind, x, y, team)) continue;
               if (this.construct(c.kind, x, y, [worker], team)?.error) continue;
-              const camp = this.s.buildings.filter((b) => b.team === team && b.kind === c.kind && Math.hypot(b.x - x, b.y - y) < 2).pop();
-              if (camp) {
-                c.campId = camp.id;
-                return true;
-              }
+              c.campAt = { x, y };
+              this.aiCampOf(team, c);
+              return true;
             }
             return false;
+          }
+          /* P4 4a: the camp is a queued command; its id is picked up once it stands (built where the claim asked for it). */
+          aiCampOf(team, c) {
+            if (!c) return null;
+            if (!c.campId && c.campAt) {
+              const b = this.s.buildings.find((b2) => b2.team === team && b2.kind === c.kind && Math.hypot(b2.x - c.campAt.x, b2.y - c.campAt.y) < 2);
+              if (b) c.campId = b.id;
+            }
+            return c.campId ? this.byId(c.campId) : null;
           }
           aiClaimTick(team, town, c, L, F) {
             const s = this.s;
@@ -7274,7 +7662,7 @@
               }
               return;
             }
-            const camp = c.campId && this.byId(c.campId);
+            const camp = this.aiCampOf(team, c);
             if (!camp) return;
             if (!camp.complete) {
               if (!s.units.some((u) => u.team === team && u.order?.type === "build" && u.order.id === camp.id)) {
@@ -7286,7 +7674,7 @@
             c.stage = "run";
             const want = Math.min(6, 2 + (L.sites > 2 ? 2 : 1) + (L.defend > 1 ? 1 : 0)), nodes = this.aiSiteNodes(c).filter((n) => n.resource !== "wood" || c.wood), here = this.aiWorkers(team).filter((u) => u.order?.type === "gather" && dist(u, c) < 520);
             if (here.length < want && nodes.length) {
-              const pool = this.aiWorkers(team).filter((u) => !u.island && u.order?.type === "gather" && dist(u, c) >= 520 && dist(u, town) < 900 && !["build", "repair"].includes(u.order?.type)).sort((a, b) => dist(a, c) - dist(b, c)).slice(0, want - here.length);
+              const pool = this.aiWorkers(team).filter((u) => !this.aiUnitOf(u)?.island && u.order?.type === "gather" && dist(u, c) >= 520 && dist(u, town) < 900 && !["build", "repair"].includes(u.order?.type)).sort((a, b) => dist(a, c) - dist(b, c)).slice(0, want - here.length);
               for (const u of pool) {
                 const n = nodes.sort((a, b) => dist(a, u) - dist(b, u))[0];
                 this.order([u], { type: "gather", id: n.id, resource: n.resource });
@@ -7310,7 +7698,7 @@
               if (c.defended === 1 && s.ages[team] >= 2) {
                 const kind = Math.abs(Math.cos(ang)) > Math.abs(Math.sin(ang)) ? "wallvertical" : "wall", mx = c.x + Math.cos(ang) * 290, my = c.y + Math.sin(ang) * 290, a = { x: mx - (kind === "wall" ? 96 : 0), y: my - (kind === "wall" ? 0 : 96) }, b = { x: mx + (kind === "wall" ? 96 : 0), y: my + (kind === "wall" ? 0 : 96) };
                 const r = this.constructLine?.(kind, a, b, [builder], team);
-                if (r && !r.error && r.count) F.stats.walls += r.count;
+                if (r && !r.error && (r.count || r.queued)) F.stats.walls += r.count || 1;
                 c.defended = 2;
               }
             }
@@ -7390,7 +7778,7 @@
                 }
               }
               if (I.stage === "idle") {
-                const v = this.aiWorkers(team).filter((u) => !["build", "repair"].includes(u.order?.type) && !u.island).sort((a, b) => dist(a, dock) - dist(b, dock)).slice(0, 3), guard = (this.armyFor?.(team) || []).filter((u) => !this.sea(u) && !u.embarkedOn && !D[u.kind].hero).sort((a, b) => dist(a, dock) - dist(b, dock)).slice(0, L.defend > 1 ? 2 : 1);
+                const v = this.aiWorkers(team).filter((u) => !["build", "repair"].includes(u.order?.type) && !this.aiUnitOf(u)?.island).sort((a, b) => dist(a, dock) - dist(b, dock)).slice(0, 3), guard = (this.armyFor?.(team) || []).filter((u) => !this.sea(u) && !u.embarkedOn && !D[u.kind].hero).sort((a, b) => dist(a, dock) - dist(b, dock)).slice(0, L.defend > 1 ? 2 : 1);
                 if (v.length < 3) {
                   retry(30);
                   return;
@@ -7429,7 +7817,7 @@
                 const r = this.unload(ship);
                 const landed = s.units.filter((u) => u.team === team && !u.embarkedOn && u.hp > 0 && dist(u, isl) < 700 && this.aiOnIsland(u, isl));
                 if (landed.length) {
-                  for (const u of landed) u.island = true;
+                  for (const u of landed) this.aiUnit(u).island = true;
                   I.stage = "build";
                   I.since = s.time;
                   if (F.stats.islandAt === null) F.stats.islandAt = Math.round(s.time);
@@ -7439,8 +7827,7 @@
                     for (let i = 0; i < 12; i++) {
                       const a = i * 0.52, x = isl.x + Math.cos(a) * (110 + i * 6), y = isl.y + Math.sin(a) * (110 + i * 6);
                       if (!this.placementError("miningcamp", x, y, team) && !this.construct("miningcamp", x, y, [v], team)?.error) {
-                        const camp = s.buildings.filter((b) => b.team === team && b.kind === "miningcamp").pop();
-                        F.claims.push({ key: "island", x: isl.x, y: isl.y, campId: camp?.id, kind: "miningcamp", own: true, island: true, stage: "build", at: s.time, defended: 0 });
+                        F.claims.push({ key: "island", x: isl.x, y: isl.y, campId: null, campAt: { x, y }, kind: "miningcamp", own: true, island: true, stage: "build", at: s.time, defended: 0 });
                         F.stats.claims++;
                         break;
                       }
@@ -7456,9 +7843,9 @@
             }
             if (I.stage === "build") {
               const c = F.claims.find((c2) => c2.island);
-              const camp = c?.campId && this.byId(c.campId);
+              const camp = this.aiCampOf(team, c);
               if (camp?.complete) {
-                for (const u of s.units.filter((u2) => u2.team === team && u2.island && u2.kind === "villager" && u2.order?.type !== "gather")) {
+                for (const u of s.units.filter((u2) => u2.team === team && this.aiUnitOf(u2)?.island && u2.kind === "villager" && u2.order?.type !== "gather")) {
                   const n = this.aiSiteNodes(isl, 320).filter((n2) => n2.resource !== "wood").sort((a, b) => dist(a, u) - dist(b, u))[0];
                   if (n) this.order([u], { type: "gather", id: n.id, resource: n.resource });
                 }
@@ -8358,6 +8745,7 @@
             for (const x of F.ships) {
               const ship = live(sim, x.id), cargo = cargoOf(ship), load = popOf(cargo);
               if (x.stage === "port") {
+                if (!F.port) continue;
                 if (dist(ship, F.port) > 200) {
                   if (!ship.order || ship.order.type !== "move" || Math.hypot(ship.order.x - F.port.x, ship.order.y - F.port.y) > 60) sim.order([ship], { type: "move", x: F.port.x, y: F.port.y });
                   continue;
@@ -8413,7 +8801,7 @@
                   }
                   F.beach = { x: beach.x, y: beach.y, lx: beach.lx, ly: beach.ly };
                   x.beach = { ...F.beach };
-                  ship.loadRequests = [];
+                  sim.order([ship], { type: "stop" });
                   x.pass = [];
                   sim.order([ship], { type: "move", x: beach.x, y: beach.y });
                   x.stage = "sail";
@@ -8424,7 +8812,7 @@
                   F.trips++;
                   sim.emit("aiSail", { team, size: cargo.length, pop: load, full });
                 } else if (late && !load && s.time - x.since > L.loadWait * 2) {
-                  ship.loadRequests = [];
+                  sim.order([ship], { type: "stop" });
                   x.pass = [];
                   x.stage = "port";
                   x.since = s.time;
@@ -8432,7 +8820,7 @@
                   (F.bad ?? (F.bad = [])).push({ ...F.quay || ship });
                   F.port = null;
                   F.quay = null;
-                  ship.loadRequests = [];
+                  sim.order([ship], { type: "stop" });
                   x.pass = [];
                   x.stage = "port";
                   x.since = s.time;
@@ -8460,8 +8848,13 @@
                   continue;
                 }
                 if (arrived || stopped || s.time - x.since > 150) {
-                  const before = cargo.slice();
-                  sim.unload(ship);
+                  if (!x.unloading) {
+                    x.unloading = cargo.map((u) => u.id);
+                    sim.unload(ship);
+                    continue;
+                  }
+                  const before = x.unloading.map((id) => sim.byId(id)).filter(Boolean);
+                  delete x.unloading;
                   const out = before.filter((u) => !u.embarkedOn && u.hp > 0);
                   if (out.length) {
                     const there = out.filter((u) => G.landNear(u.x, u.y, 96) === F.region);
@@ -8493,11 +8886,10 @@
                 continue;
               }
               if (x.stage === "return" || x.stage === "flee") {
-                if (dist(ship, F.port) < 230 || s.time - x.since > 150) {
+                if (!F.port || dist(ship, F.port) < 230 || s.time - x.since > 150) {
                   if (cargo.length) {
                     sim.unload(ship);
-                    const back = cargo.filter((u) => !u.embarkedOn);
-                    if (back.length) sim.order(back, { type: "move", x: town.x, y: town.y });
+                    sim.order(cargo, { type: "move", x: town.x, y: town.y });
                   }
                   if (x.stage === "flee") F.retryAt = s.time + 30;
                   x.stage = "port";
@@ -8752,6 +9144,47 @@
         }
         const NavalAir = typeof module !== "undefined" && module.exports ? require_ai_naval_air() : root.KingdomAINavalAir;
         if (NavalAir) registerAIBehavior(NavalAir.create(K2));
+        registerAIBehavior({
+          id: "stranded-cargo",
+          jobs: ["rescue"],
+          active: () => true,
+          run(sim, team) {
+            const s = sim.s, list = [];
+            for (const u of s.units) {
+              if (u.team !== team || u.kind !== "villager" || u.hp <= 0 || u.embarkedOn) continue;
+              const m = sim.aiUnitOf(u);
+              if (!(u.cargo?.amount > 0 && u.cargoPhase === "return")) {
+                if (m?.rp) delete m.rp;
+                continue;
+              }
+              const w = sim.aiUnit(u);
+              if (w.rp && Math.hypot(u.x - w.rp.x, u.y - w.rp.y) < 6) {
+                if (++w.rn >= 2) list.push(u);
+              } else {
+                w.rp = { x: u.x, y: u.y };
+                w.rn = 0;
+              }
+            }
+            if (list.length < 2) return 12;
+            const R = {};
+            for (const u of list) R[u.cargo.resource] = (R[u.cargo.resource] || 0) + 1;
+            const res = Object.keys(R).sort((a, b) => R[b] - R[a])[0];
+            const kind = res === "wood" ? "lumbercamp" : res === "food" ? "mill" : "miningcamp", group = list.filter((u) => u.cargo.resource === res);
+            if (group.length < 2) return 12;
+            const c = { x: group.reduce((n, u) => n + u.x, 0) / group.length, y: group.reduce((n, u) => n + u.y, 0) / group.length }, v = group.slice().sort((a, b) => Math.hypot(a.x - c.x, a.y - c.y) - Math.hypot(b.x - c.x, b.y - c.y))[0];
+            if (s.buildings.some((b) => b.team === team && b.kind === kind && !b.complete && Math.hypot(b.x - c.x, b.y - c.y) < 260)) return 15;
+            for (const r of [60, 100, 140, 190]) for (let i = 0; i < 12; i++) {
+              const a = i * Math.PI / 6 + r / 53, x = c.x + Math.cos(a) * r, y = c.y + Math.sin(a) * r;
+              if (sim.placementError(kind, x, y, team)) continue;
+              if (!sim.construct(kind, x, y, [v], team)?.error) {
+                (s.aiRescue ?? (s.aiRescue = {}))[team] = (s.aiRescue[team] || 0) + 1;
+                sim.emit("aiRescueCamp", { team, kind, stranded: group.length });
+                return 30;
+              }
+            }
+            return 15;
+          }
+        });
         class HumanlikeAI extends Base {
           /* prewarm pure terrain caches of registered behaviours (instance/module caches only, never simulation state) */
           constructor(difficulty, saved, options = {}) {
@@ -9295,7 +9728,7 @@
               const node = f.n && this.byId(f.n);
               if (!this.aiAct(team)) break;
               if (node && node.amount > 0) this.order([u], { type: "gather", id: node.id, resource: f.r || node.resource });
-              else u.order = null;
+              else this.order([u], { type: "stop" });
               delete h.flee[id];
               h.stats.returns++;
             }
@@ -9414,6 +9847,10 @@
           }
           tick(dt) {
             super.tick(dt);
+            this.aiScope(() => this.aiHumanTurn());
+          }
+          /* P4 4a: computer players (behaviour registry + v42 defend/micro) run in the AI phase: they only queue commands. */
+          aiHumanTurn() {
             const s = this.s;
             if (!s.ended && AI_JOB_KEYS.length) this.aiBehaviorStep();
             if (s.ended || !s.aiHuman) return;
@@ -10266,12 +10703,8 @@
     return { hash: hex(h), parts: { units: hex(u), buildings: hex(b), nodes: hex(n), economy: hex(e) }, rng: s.rng | 0, time: Math.round((s.time || 0) * 1e3) / 1e3, units: (s.units || []).length };
   }
 
-  // src/replay/replay.js
-  var FORMAT = "kingdom-replay";
-  var VERSION = 1;
-  var STEP = 0.05;
-  var DEFAULT_EVERY = 20;
-  var CAPTURED = [
+  // src/commands/index.js
+  var TYPES = [
     "order",
     "construct",
     "constructLine",
@@ -10300,7 +10733,7 @@
     if (v === null || typeof v === "string" || typeof v === "boolean") return v;
     if (typeof v === "number") return Number.isFinite(v) ? v : { $n: String(v) };
     if (typeof v === "function") return { $u: 1 };
-    if (depth > 6) throw Error("replay: argument nested too deeply");
+    if (depth > 6) throw Error("command: argument nested too deeply");
     if (Array.isArray(v)) return v.map((x) => encodeArg(sim, x, depth + 1));
     if (typeof v === "object") {
       if (isEntity(sim, v)) return { $e: v.id };
@@ -10322,7 +10755,6 @@
     for (const k of Object.keys(v)) out[k] = decodeArg(sim, v[k]);
     return out;
   }
-  var clone = (x) => x === void 0 ? void 0 : JSON.parse(JSON.stringify(x));
   var resultOf = (r) => {
     if (r === void 0 || r === null || typeof r === "string" || typeof r === "boolean" || typeof r === "number") return r ?? null;
     if (typeof r.id === "number") return { $e: r.id };
@@ -10330,6 +10762,62 @@
     if (r.building && typeof r.building.id === "number") return { building: r.building.id };
     return "[object]";
   };
+  var alive = (e) => e && !e.missing && e.hp > 0;
+  var ACTOR = {
+    order: (a) => ({ units: a[0] }),
+    construct: (a) => ({ units: a[3], team: a[4] ?? 0 }),
+    constructLine: (a) => ({ units: a[3], team: a[4] ?? 0 }),
+    train: (a) => ({ entity: a[0] }),
+    research: (a) => ({ entity: a[0] }),
+    setRally: (a) => ({ entity: a[0] }),
+    board: (a) => ({ entity: a[0] }),
+    unload: (a) => ({ entity: a[0] }),
+    assignFish: (a) => ({ entity: a[0] }),
+    skill: (a) => ({ entity: a[0] }),
+    castSpell: (a) => ({ entity: a[0] }),
+    route: (a) => ({ entity: a[0] }),
+    claimReward: (a) => ({ team: a[0] })
+  };
+  function check(sim, type, team, args) {
+    if (!TYPES.includes(type)) return "unknown command " + type;
+    if (team === null || team === void 0) return "";
+    const f = ACTOR[type];
+    if (!f) return "";
+    const x = f(args);
+    if (x.team !== void 0 && x.team !== team) return "wrong seat";
+    if (x.entity !== void 0 && (!alive(x.entity) || x.entity.team !== team)) return "actor gone or not owned";
+    if (x.units !== void 0) {
+      if (!Array.isArray(x.units)) return "no units";
+      const own = x.units.filter((u) => alive(u) && u.team === team);
+      if (!own.length) return "units gone or not owned";
+    }
+    return "";
+  }
+  function owned(type, team, args) {
+    if (team === null || team === void 0) return args;
+    const i = type === "order" ? 0 : type === "construct" || type === "constructLine" ? 3 : -1;
+    if (i < 0 || !Array.isArray(args[i])) return args;
+    const out = args.slice();
+    out[i] = args[i].filter((u) => alive(u) && u.team === team);
+    return out;
+  }
+  function applyCommand(sim, cmd, call = (name, args) => sim[name](...args)) {
+    const type = cmd.type ?? cmd.m, team = cmd.team ?? null;
+    if (!TYPES.includes(type)) return { error: "unknown command " + type };
+    let args = (cmd.args ?? cmd.a ?? []).map((a) => decodeArg(sim, a));
+    const err = check(sim, type, team, args);
+    if (err) return { error: err };
+    args = owned(type, team, args);
+    return call(type, args);
+  }
+
+  // src/replay/replay.js
+  var FORMAT = "kingdom-replay";
+  var VERSION = 1;
+  var STEP = 0.05;
+  var DEFAULT_EVERY = 20;
+  var CAPTURED = TYPES;
+  var clone = (x) => x === void 0 ? void 0 : JSON.parse(JSON.stringify(x));
   function prewarm(sim) {
     if (typeof sim.getGrid !== "function") return;
     const s = sim.s, land = s.units.find((u) => !sim.sea?.(u) && !sim.air?.(u)), ship = s.units.find((u) => sim.sea?.(u));
@@ -10537,9 +11025,8 @@
       for (const c of cmds || []) {
         let r;
         try {
-          const fn = sim[c.m];
-          if (typeof fn !== "function") throw Error("unknown command " + c.m);
-          r = resultOf2(fn.apply(sim, (c.a || []).map((a) => decodeArg(sim, a))));
+          if (typeof sim[c.m] !== "function") throw Error("unknown command " + c.m);
+          r = resultOf2(applyCommand(sim, c));
         } catch (e) {
           r = { error: "worker: " + String(e && e.message || e) };
         }

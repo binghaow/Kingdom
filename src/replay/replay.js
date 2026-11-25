@@ -14,48 +14,13 @@
    Node (K = require('public/network-model.js')) and in the browser (K = window.KingdomSim). */
 
 import { checksum } from '../core/hash.js';
+import { TYPES, encodeArg, decodeArg, resultOf, applyCommand } from '../commands/index.js';
 
 export const FORMAT = 'kingdom-replay', VERSION = 1, STEP = 0.05, DEFAULT_EVERY = 20;
-export const CAPTURED = ['order', 'construct', 'constructLine', 'train', 'research', 'setRally', 'board', 'unload', 'assignFish',
-  'skill', 'castSpell', 'route', 'claimReward', 'setDifficulty', 'sendChat', 'pact', 'add',
-  'offerAlliance', 'acceptAlliance', 'rejectAlliance', 'declareWar'];
-
-const isEntity = (sim, v) => typeof v.id === 'number' && typeof sim.byId === 'function' && sim.byId(v.id) === v;
-
-export function encodeArg(sim, v, depth = 0) {
-  if (v === undefined) return { $u: 1 };
-  if (v === null || typeof v === 'string' || typeof v === 'boolean') return v;
-  if (typeof v === 'number') return Number.isFinite(v) ? v : { $n: String(v) };
-  if (typeof v === 'function') return { $u: 1 };
-  if (depth > 6) throw Error('replay: argument nested too deeply');
-  if (Array.isArray(v)) return v.map((x) => encodeArg(sim, x, depth + 1));
-  if (typeof v === 'object') {
-    if (isEntity(sim, v)) return { $e: v.id };
-    const out = {};
-    for (const k of Object.keys(v)) { if (typeof v[k] !== 'function') out[k] = encodeArg(sim, v[k], depth + 1); }
-    return out;
-  }
-  return null;
-}
-export function decodeArg(sim, v) {
-  if (v === null || typeof v !== 'object') return v;
-  if (Array.isArray(v)) return v.map((x) => decodeArg(sim, x));
-  if ('$u' in v) return undefined;
-  if ('$n' in v) return Number(v.$n);
-  if ('$e' in v) return sim.byId(v.$e) ?? { id: v.$e, missing: true };
-  const out = {};
-  for (const k of Object.keys(v)) out[k] = decodeArg(sim, v[k]);
-  return out;
-}
+/* P4 4a: the captured entry points, argument encoding and result format are the command interface (src/commands/index.js). */
+export const CAPTURED = TYPES;
+export { encodeArg, decodeArg, resultOf };
 const clone = (x) => (x === undefined ? undefined : JSON.parse(JSON.stringify(x)));
-/* What a command returned (toast text, the new building, an {error}) - stored so a replay can verify every call behaved the same. */
-const resultOf = (r) => {
-  if (r === undefined || r === null || typeof r === 'string' || typeof r === 'boolean' || typeof r === 'number') return r ?? null;
-  if (typeof r.id === 'number') return { $e: r.id };
-  if (typeof r.error === 'string') return { error: r.error };
-  if (r.building && typeof r.building.id === 'number') return { building: r.building.id };
-  return '[object]';
-};
 
 /* Same calls as expansion.js warmNavigation(): grids are caches of static terrain, but prewarming keeps the replay on
    exactly the game's call sequence. */
@@ -139,9 +104,8 @@ export function createReplayRunner(K, replay, { steps, every, onStep, onCheckpoi
       for (let i = 0; i < n && step < total; i++, step++) {
         for (const c of byStep.get(step) || []) {
           if (c.dt !== undefined) { dtNext = c.dt; continue; }
-          const fn = sim[c.m];
-          if (typeof fn !== 'function') { mismatch.push({ step, m: c.m, why: 'method missing' }); continue; }
-          const r = resultOf(fn.apply(sim, c.a.map((a) => decodeArg(sim, a))));
+          if (typeof sim[c.m] !== 'function') { mismatch.push({ step, m: c.m, why: 'method missing' }); continue; }
+          const r = resultOf(applyCommand(sim, c));
           if (c.r !== undefined && JSON.stringify(r) !== JSON.stringify(c.r)) mismatch.push({ step, m: c.m, expected: c.r, got: r });
         }
         sim.tick(dtNext ?? STEP); dtNext = null;

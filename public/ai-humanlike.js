@@ -38,6 +38,18 @@ const AI_BEHAVIORS=[],AI_JOB_KEYS=[];
 function registerAIBehavior(b){if(!b?.id||!Array.isArray(b.jobs)||AI_BEHAVIORS.some(x=>x.id===b.id))return false;AI_BEHAVIORS.push(b);for(const job of b.jobs)AI_JOB_KEYS.push({b,job,key:b.id+':'+job});return true}
 const NavalAir=typeof module!=='undefined'&&module.exports?require('./ai-naval-air.js'):root.KingdomAINavalAir;
 if(NavalAir)registerAIBehavior(NavalAir.create(K));
+/* P4 4a (found by scripts/perf/ai-stats.cjs): villagers that carry a load but cannot reach a drop site (a resource pocket closed
+   off by the computer's own buildings) stood still for the rest of the game, and the resource planner kept sending more workers there
+   because that resource never arrived. The computer now builds the matching camp next to them (the stranded villagers can reach it). */
+registerAIBehavior({id:'stranded-cargo',jobs:['rescue'],active:()=>true,
+ run(sim,team){const s=sim.s,list=[];for(const u of s.units){if(u.team!==team||u.kind!=='villager'||u.hp<=0||u.embarkedOn)continue;const m=sim.aiUnitOf(u);if(!(u.cargo?.amount>0&&u.cargoPhase==='return')){if(m?.rp)delete m.rp;continue}const w=sim.aiUnit(u);/* not moved since the last look (about 12 s): stranded */if(w.rp&&Math.hypot(u.x-w.rp.x,u.y-w.rp.y)<6){if(++w.rn>=2)list.push(u)}else{w.rp={x:u.x,y:u.y};w.rn=0}}
+  if(list.length<2)return 12;const R={};for(const u of list)R[u.cargo.resource]=(R[u.cargo.resource]||0)+1;const res=Object.keys(R).sort((a,b)=>R[b]-R[a])[0];
+  const kind=res==='wood'?'lumbercamp':res==='food'?'mill':'miningcamp',group=list.filter(u=>u.cargo.resource===res);if(group.length<2)return 12;
+  const c={x:group.reduce((n,u)=>n+u.x,0)/group.length,y:group.reduce((n,u)=>n+u.y,0)/group.length},v=group.slice().sort((a,b)=>Math.hypot(a.x-c.x,a.y-c.y)-Math.hypot(b.x-c.x,b.y-c.y))[0];
+  if(s.buildings.some(b=>b.team===team&&b.kind===kind&&!b.complete&&Math.hypot(b.x-c.x,b.y-c.y)<260))return 15;
+  for(const r of [60,100,140,190])for(let i=0;i<12;i++){const a=i*Math.PI/6+r/53,x=c.x+Math.cos(a)*r,y=c.y+Math.sin(a)*r;if(sim.placementError(kind,x,y,team))continue;
+   if(!sim.construct(kind,x,y,[v],team)?.error){(s.aiRescue??={})[team]=(s.aiRescue[team]||0)+1;sim.emit('aiRescueCamp',{team,kind,stranded:group.length});return 30}}
+  return 15}});
 
 class HumanlikeAI extends Base{
  /* prewarm pure terrain caches of registered behaviours (instance/module caches only, never simulation state) */
@@ -151,7 +163,7 @@ class HumanlikeAI extends Base{
    /* nearby free troops answer an outlying alarm (the town itself is covered by aiHomeDefense) */
    if(dist(spot,town)>350&&enemy>0){const free=this.aiFree(team).filter(u=>!(u.order?.type==='advance'&&Math.hypot((u.order.x||0)-spot.x,(u.order.y||0)-spot.y)<120)).sort((a,b)=>dist(a,spot)-dist(b,spot));const send=[];let p=0;for(const u of free){if(p>=enemy*1.4||dist(u,spot)>1500)break;send.push(u);p+=this.aiPower(u)}if(send.length&&p>=enemy*.8&&this.aiAct(team)){this.order(send,{type:'advance',x:spot.x,y:spot.y});h.stats.answers++}}}
   /* fled villagers go back to work once their spot is quiet */
-  for(const [id,f]of Object.entries(h.flee)){const u=this.byId(+id);if(!u||u.hp<=0||u.team!==team){delete h.flee[id];continue}if(s.time-f.at<15)continue;if((foes.some(e=>dist(e,f)<600)||foes.some(e=>dist(e,u)<300))&&s.time-f.at<120)continue;if(u.order&&u.order.type!=='move'){delete h.flee[id];h.stats.returns++;continue}const node=f.n&&this.byId(f.n);if(!this.aiAct(team))break;if(node&&node.amount>0)this.order([u],{type:'gather',id:node.id,resource:f.r||node.resource});else u.order=null;delete h.flee[id];h.stats.returns++}
+  for(const [id,f]of Object.entries(h.flee)){const u=this.byId(+id);if(!u||u.hp<=0||u.team!==team){delete h.flee[id];continue}if(s.time-f.at<15)continue;if((foes.some(e=>dist(e,f)<600)||foes.some(e=>dist(e,u)<300))&&s.time-f.at<120)continue;if(u.order&&u.order.type!=='move'){delete h.flee[id];h.stats.returns++;continue}const node=f.n&&this.byId(f.n);if(!this.aiAct(team))break;if(node&&node.amount>0)this.order([u],{type:'gather',id:node.id,resource:f.r||node.resource});else this.order([u],{type:'stop'});delete h.flee[id];h.stats.returns++}
   /* rebuild destroyed economy buildings */
   if(!k.rebuild)return;const live=new Set();for(const b of eco){live.add(String(b.id));if(b.complete&&!h.eco[b.id])h.eco[b.id]={k:b.kind,x:Math.round(b.x),y:Math.round(b.y)}}
   for(const id of Object.keys(h.eco))if(!live.has(id)){const e=h.eco[id];delete h.eco[id];if(this.rand(0,1)<k.rebuild&&h.rebuild.length<4)h.rebuild.push({...e,at:s.time,tries:0})}
@@ -180,7 +192,9 @@ class HumanlikeAI extends Base{
    const res=this.construct('town',x,y,pool.slice(0,3),team);if(!res?.error){E.built++;E.site=null;this.emit('aiTown',{team,x:Math.round(x),y:Math.round(y)});return}}
   if(dist(v,best)>220){this.order([v],{type:'move',x:best.x,y:best.y});E.next=s.time+Math.min(P.every,15)}}
  aiPlayer(team){super.aiPlayer(team);this.aiExpandTowns(team);if(!this.aiHumanOn(team)||this.s.ended)return;const town=this.townOf(team);if(!town)return;this.aiH(team);if(this.s.cooperation?.[team]?.until>this.s.time)return;this.aiCounterHall(team,town)}
- tick(dt){super.tick(dt);const s=this.s;if(!s.ended&&AI_JOB_KEYS.length)this.aiBehaviorStep();if(s.ended||!s.aiHuman)return;for(const key of Object.keys(s.aiHuman)){const team=+key;if(!this.aiHumanOn(team))continue;const h=s.aiHuman[key];const k=this.aiSkill(team);
+ tick(dt){super.tick(dt);this.aiScope(()=>this.aiHumanTurn());}
+ /* P4 4a: computer players (behaviour registry + v42 defend/micro) run in the AI phase: they only queue commands. */
+ aiHumanTurn(){const s=this.s;if(!s.ended&&AI_JOB_KEYS.length)this.aiBehaviorStep();if(s.ended||!s.aiHuman)return;for(const key of Object.keys(s.aiHuman)){const team=+key;if(!this.aiHumanOn(team))continue;const h=s.aiHuman[key];const k=this.aiSkill(team);
   /* alarms are checked on the reaction cadence of the difficulty (not the 7 s think), the battle micro on its own cadence */
   if(s.time>=(h.defendAt||0)){h.defendAt=s.time+Math.max(1.5,k.react);const town=this.townOf(team);if(town)this.aiDefend(team,town)}
   if(s.time<(h.microAt||0))continue;h.microAt=s.time+k.micro;this.aiMicro(team)}}

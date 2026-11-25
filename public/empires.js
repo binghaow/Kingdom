@@ -106,7 +106,7 @@ class Empires extends Base{
   const total=resources.reduce((n,k)=>n+need[k],0)||1,desired={};for(const key of resources)desired[key]=workers.length*need[key]/total;
   const choose=()=>{let best=null,score=-Infinity;for(const key of resources){if(!byResource[key].length)continue;const value=(desired[key]-count[key])+.15*need[key];if(value>score){score=value;best=key}}return best};
   for(const u of workers){const current=u.order?.type==='gather'?u.order.resource:null,target=current?this.byId(u.order.id):null,active=target?.amount>0&&this.canGather(u,target);
-   if(active){const surplus=count[current]-desired[current];if(surplus<=1||s.time<(u.aiRetaskAt||0))continue;const resource=choose();if(!resource||resource===current)continue;const node=this.nearest(u,byResource[resource].filter(n=>n.amount>0&&this.canGather(u,n)));if(!node)continue;this.order([u],{type:'gather',id:node.id,resource});u.aiRetaskAt=s.time+45;count[current]--;count[resource]++;continue}
+   if(active){const surplus=count[current]-desired[current];if(surplus<=1||s.time<(this.aiUnitOf(u)?.retaskAt||0))continue;const resource=choose();if(!resource||resource===current)continue;const node=this.nearest(u,byResource[resource].filter(n=>n.amount>0&&this.canGather(u,n)));if(!node)continue;this.order([u],{type:'gather',id:node.id,resource});this.aiUnit(u).retaskAt=s.time+45;count[current]--;count[resource]++;continue}
    if(u.order&&u.order.type!=='gather')continue;const resource=choose();if(!resource)continue;const node=this.nearest(u,byResource[resource].filter(n=>n.amount>0&&this.canGather(u,n)));if(node){this.order([u],{type:'gather',id:node.id,resource});count[resource]++}
   }
  }

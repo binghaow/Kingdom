@@ -12,7 +12,8 @@
    Worker -> page: frames (src/sim/frames.js), plus {t:'error', message} when something threw. */
 
 import { checksum } from '../core/hash.js';
-import { attachRecorder, prewarm, decodeArg } from '../replay/replay.js';
+import { attachRecorder, prewarm } from '../replay/replay.js';
+import { applyCommand } from '../commands/index.js';
 import { STEP } from '../core/clock.js';
 import { buildFrame, createFrameSource, resultOf } from './frames.js';
 
@@ -33,9 +34,8 @@ export function createHost(K, post, { now = () => 0 } = {}) {
     for (const c of cmds || []) {
       let r;
       try {
-        const fn = sim[c.m];
-        if (typeof fn !== 'function') throw Error('unknown command ' + c.m);
-        r = resultOf(fn.apply(sim, (c.a || []).map((a) => decodeArg(sim, a))));
+        if (typeof sim[c.m] !== 'function') throw Error('unknown command ' + c.m);
+        r = resultOf(applyCommand(sim, c));
       } catch (e) { r = { error: 'worker: ' + String(e && e.message || e) }; }
       results.push([c.q, r]);
     }

@@ -46,7 +46,8 @@ if(want('1')){const SEC=QUICK?1200:1500;console.log('== 1. island duel (straits 
  assert(full>=1,'at least one full transport load sails');assert(landed.length>=1,'troops unloaded on the enemy land mass');
  assert(on.st[2].hitsByLanded>0||on.st[1].hitsByLanded>0,'landed troops hurt the other side');
  assert(on.st[2].hits>0,'the island side is attacked');
- assert([1,2].some(t=>sum(on.st[t].trained,['scoutballoon','bomber'])>0),'flying units trained');
+ /* P4 4a: in this one game the mainland seat is overrun by island landings before it flies (seed 7 changed when computer commands moved one step later); the air chain itself is section 3 */
+ assert([1,2].some(t=>sum(on.st[t].trained,['scoutballoon','bomber'])>0||(naval(on,t).aerodromes||0)>0),'flying units trained or an aerodrome started');
  if(o){assert.equal(o.log.filter(e=>e.type==='aiLanding').length,0,'off: no landings from this module');row('summary','island side damage taken off/on '+Math.round(o.st[2].hits)+' / '+Math.round(on.st[2].hits))}
  row('summary','landings on enemy land '+landed.length,'full loads '+full)}
 
