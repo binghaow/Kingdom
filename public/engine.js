@@ -92,18 +92,18 @@ class Sim{
  blocked(x,y){return x<20||y<20||x>MAP.width-20||y>MAP.height-20||river(x,y)||this.s.buildings.some(b=>b.hp>0&&distance(b,{x,y})<D[b.kind].r+9)}
  /* P5: same pairs, same order, same pushes as the v44 bucket pass (128 px buckets of the positions at the start of the pass; for unit i
     every later unit j whose start bucket lies within +-reach buckets of i's current bucket, in ascending j; push when closer than
-    0.8 (ra + rb)), but on typed columns: positions mirrored in Float64Arrays (kept in sync with every push), radii per step, the buckets
-    in a counting-sort PointGrid (src/core/spatial.js), a squared-distance pre-test before Math.hypot. Returns the pairs tested. */
- separateCrowd(){const units=this.s.units,n=units.length,CELL=128;let c=this._crowd;if(!c||c.cap<n){const cap=n+256;c=this._crowd={cap,xs:new Float64Array(cap),ys:new Float64Array(cap),rad:new Float64Array(cap),qx:new Float64Array(cap),qy:new Float64Array(cap),live:new Uint8Array(cap),grid:c?.grid||null,gw:c?.gw,gh:c?.gh}}
-  const W=Math.max(CELL,MAP.width||0),H=Math.max(CELL,MAP.height||0);if(!c.grid||c.gw!==W||c.gh!==H){c.grid=new Spatial.PointGrid(W,H,CELL);c.gw=W;c.gh=H}
-  const xs=c.xs,ys=c.ys,rad=c.rad,qx=c.qx,qy=c.qy,live=c.live,grid=c.grid;let maxRadius=0;
-  for(let i=0;i<n;i++){const u=units[i];if(u.hp<=0||u.embarkedOn){live[i]=0;continue}live[i]=1;const d=D[u.kind],r=d?.r||0;if(r>maxRadius)maxRadius=r;rad[i]=d?d.r:NaN;xs[i]=u.x;ys[i]=u.y;qx[i]=Math.floor(u.x/CELL);qy[i]=Math.floor(u.y/CELL)}
+    0.8 (ra + rb)), on the typed unit columns (src/core/spatial.js UnitColumns, synced at the start of the pass and written with every
+    push), buckets in a counting-sort PointGrid, a squared-distance pre-test before Math.hypot. Returns the pairs tested. */
+ separateCrowd(){const units=this.s.units,n=units.length,CELL=128;let c=this._crowd;if(!c){c=this._crowd={cols:new Spatial.UnitColumns(n+256),qx:new Float64Array(n+256),qy:new Float64Array(n+256),grid:null,gw:0,gh:0}}
+  const W=Math.max(CELL,MAP.width||0),H=Math.max(CELL,MAP.height||0);if(!c.grid||c.gw!==W||c.gh!==H){c.grid=new Spatial.PointGrid(W,H,CELL);c.gw=W;c.gh=H}if(c.qx.length<n){c.qx=new Float64Array(n+256);c.qy=new Float64Array(n+256)}
+  const C=c.cols.sync(units,D),xs=C.x,ys=C.y,rad=C.r,live=C.live,qx=c.qx,qy=c.qy,grid=c.grid;let maxRadius=0;
+  for(let i=0;i<n;i++){if(!live[i])continue;const r=rad[i]||0;if(r>maxRadius)maxRadius=r;qx[i]=Math.floor(xs[i]/CELL);qy[i]=Math.floor(ys[i]/CELL)}
   grid.build(n,xs,ys,i=>live[i]===1);
   const reach=Math.ceil(maxRadius*1.6/CELL);let tested=0;
   for(let i=0;i<n;i++){if(!live[i])continue;const a=units[i],cx=Math.floor(xs[i]/CELL),cy=Math.floor(ys[i]/CELL),m=grid.queryCells(cx-reach,cy-reach,cx+reach,cy+reach,i),out=grid.out;
    for(let k=0;k<m;k++){const j=out[k];if(Math.abs(qx[j]-cx)>reach||Math.abs(qy[j]-cy)>reach)continue;tested++;
     const dx=xs[j]-xs[i],dy=ys[j]-ys[i],min=(rad[i]+rad[j])*.8;if(!(dx*dx+dy*dy<=min*min*1.000001+1e-9))continue;const d=Math.hypot(dx,dy);
-    if(d<min&&d>.01){const b=units[j],p=(min-d)*.2,ax=xs[i]-dx/d*p,ay=ys[i]-dy/d*p,bx=xs[j]+dx/d*p,by=ys[j]+dy/d*p;if(!this.blocked(ax,ay,a)){a.x=ax;a.y=ay;xs[i]=ax;ys[i]=ay}if(!this.blocked(bx,by,b)){b.x=bx;b.y=by;xs[j]=bx;ys[j]=by}}}}
+    if(d<min&&d>.01){const b=units[j],p=(min-d)*.2,ax=xs[i]-dx/d*p,ay=ys[i]-dy/d*p,bx=xs[j]+dx/d*p,by=ys[j]+dy/d*p;if(!this.blocked(ax,ay,a))C.setPos(i,a,ax,ay);if(!this.blocked(bx,by,b))C.setPos(j,b,bx,by)}}}
   return tested}
  getGrid(){if(this.grid)return this.grid;const cols=MAP.width/MAP.cell,rows=MAP.height/MAP.cell;this.grid=new Uint8Array(cols*rows);for(let y=0;y<rows;y++)for(let x=0;x<cols;x++)this.grid[y*cols+x]=this.blocked(x*MAP.cell+24,y*MAP.cell+24)?1:0;return this.grid}
  freeSpawn(u){if(!this.blocked(u.x,u.y))return;const g=this.getGrid(),cols=MAP.width/MAP.cell;let best=null,bd=Infinity;for(let i=0;i<g.length;i++)if(!g[i]){const p={x:(i%cols)*48+24,y:Math.floor(i/cols)*48+24},d=distance(u,p);if(d<bd){bd=d;best=p}}if(best){u.x=best.x;u.y=best.y;u.path=[]}}
@@ -158,8 +158,8 @@ class Sim{
  autoTargetNear(u,radius){const s=this.s,R=this.autoTargetRoster;let B=this._targetBuckets;if(!B||B.time!==s.time||B.gen!==this._rosterGen||B.n!==R.length){const n=R.length,W=Math.max(256,MAP.width||0),H=Math.max(256,MAP.height||0);
    /* P5: the same 256 px buckets (positions at the first query of the step) as a counting-sort PointGrid with typed columns; a query keeps
       exactly the entries whose bucket lies in the window (the grid clamps off-map positions to its border, the bucket test removes them) */
-   if(!B||B.cap<n||B.W!==W||B.H!==H){const cap=Math.max(n+256,B?.cap||0);B={cap,W,H,xs:new Float64Array(cap),ys:new Float64Array(cap),qx:new Float64Array(cap),qy:new Float64Array(cap),grid:B&&B.W===W&&B.H===H?B.grid:new Spatial.PointGrid(W,H,256),list:[]}}
-   for(let i=0;i<n;i++){const c=R[i];B.xs[i]=c.x;B.ys[i]=c.y;B.qx[i]=Math.floor(c.x/256);B.qy[i]=Math.floor(c.y/256)}B.grid.build(n,B.xs,B.ys,null);B.time=s.time;B.gen=this._rosterGen;B.n=n;this._targetBuckets=B}
+   if(!B||B.cap<n||B.W!==W||B.H!==H){const cap=Math.max(n+256,B?.cap||0);B={cap,W,H,cols:new Spatial.UnitColumns(cap),qx:new Float64Array(cap),qy:new Float64Array(cap),grid:B&&B.W===W&&B.H===H?B.grid:new Spatial.PointGrid(W,H,256),list:[]}}
+   const C=B.cols.sync(R,D);for(let i=0;i<n;i++){B.qx[i]=Math.floor(C.x[i]/256);B.qy[i]=Math.floor(C.y[i]/256)}B.grid.build(n,C.x,C.y,null);B.time=s.time;B.gen=this._rosterGen;B.n=n;this._targetBuckets=B}
   const r=radius+AUTO_SCAN_SLACK,x0=Math.floor((u.x-r)/256),x1=Math.floor((u.x+r)/256),y0=Math.floor((u.y-r)/256),y1=Math.floor((u.y+r)/256),m=B.grid.queryCells(x0,y0,x1,y1),idx=B.grid.out,out=B.list,qx=B.qx,qy=B.qy;out.length=0;
   for(let k=0;k<m;k++){const i=idx[k];if(qx[i]>=x0&&qx[i]<=x1&&qy[i]>=y0&&qy[i]<=y1)out.push(R[i])}return out}
  acquireAutoTarget(u){const s=this.s;/* P0: the (pure) radius is only computed when a target is held or a scan is due */let radius,radius2;const need=()=>{if(radius===undefined){radius=this.autoAcquireRadius(u);radius2=radius*radius}};let state=this.autoTargets.get(u);if(!state){state={targetId:null,scanAt:0,anchor:null,ignoredId:null,ignoredAnchor:null};this.autoTargets.set(u,state)}
@@ -213,16 +213,16 @@ class Sim{
  sysBuildings(dt,c){const s=this.s;for(const b of s.buildings){if(b.hp<=0)continue;b.cool=Math.max(0,b.cool-dt);b.flash=Math.max(0,b.flash-dt);b.attackPulse=Math.max(0,b.attackPulse-dt);if(!b.complete)continue;if(b.kind==='farm')b.amount=Math.min(9000,b.amount+dt*2);if(b.kind==='market'&&!D.market.noPassiveGold)s.resources[b.team].gold+=dt;
  if(b.queue.length){const q=b.queue[0];q.left-=dt;if(q.left<=0){b.queue.shift();if(q.type==='research')this.applyResearch(b.team,q.kind);else{const angle=this.rand(0,Math.PI*2),u=this.add(q.kind,b.team,b.x+Math.cos(angle)*(D[b.kind].r+64),b.y+Math.sin(angle)*(D[b.kind].r+64));this.freeSpawn(u);this.emit('trained',{team:b.team,kind:q.kind});if(this.rallySpawn)this.rallySpawn(u,b);else if(b.team&&u.kind!=='villager')this.order([u],{type:'move',x:2810+this.rand(-100,100),y:850+this.rand(-90,90)})}}}
  if(D[b.kind].damage&&!b.cool){/* v44: only units already inside range can pass the range test below, so the nearest valid one inside range is the same pick */const range=this.stat(b,'range'),enemy=this.nearestUnitInRange(b,range);if(enemy&&distance(b,enemy)<range)this.strike(b,enemy)}}}
- /* P5: units around a point from the shared spatial service. unitGrid() is a PointGrid of s.units at their positions when it was
-    built; it is rebuilt whenever the units array is replaced or grows, the step changes, or a caller that moved units calls
+ /* P5: units around a point from the shared spatial service. unitGrid() is a PointGrid over the typed unit columns (UnitColumns with
+    the id -> row table) of s.units at their positions when it was built; it is rebuilt whenever the units array is replaced or grows, the step changes, or a caller that moved units calls
     unitGridDirty(). Callers that need exact answers test live positions and keep units-array order (the grid only narrows). */
  unitGrid(){const U=this.s.units,n=U.length,t=this.s.time;let g=this._unitGrid;if(g&&g.U===U&&g.n===n&&g.t===t&&!g.dirty)return g;const W=Math.max(128,MAP.width||0),H=Math.max(128,MAP.height||0);
-  if(!g||g.cap<n||g.W!==W||g.H!==H){const cap=Math.max(n+256,g?.cap||0);g={cap,W,H,xs:new Float64Array(cap),ys:new Float64Array(cap),grid:g&&g.W===W&&g.H===H?g.grid:new Spatial.PointGrid(W,H,128),list:[]}}
-  for(let i=0;i<n;i++){g.xs[i]=U[i].x;g.ys[i]=U[i].y}g.grid.build(n,g.xs,g.ys,null);g.U=U;g.n=n;g.t=t;g.dirty=false;return this._unitGrid=g}
+  if(!g||g.cap<n||g.W!==W||g.H!==H){const cap=Math.max(n+256,g?.cap||0);g={cap,W,H,cols:new Spatial.UnitColumns(cap),grid:g&&g.W===W&&g.H===H?g.grid:new Spatial.PointGrid(W,H,128),list:[]}}
+  g.cols.sync(U,D,true);g.grid.build(n,g.cols.x,g.cols.y,null);g.U=U;g.n=n;g.t=t;g.dirty=false;return this._unitGrid=g}
  unitGridDirty(){if(this._unitGrid)this._unitGrid.dirty=true}
  /* the v44 tower pick: nearest hostile-to-b live unit strictly inside range that b can target, first in units order on ties */
  nearestUnitInRange(b,range){const U=this.s.units,g=this.unitGrid(),m=g.grid.query(b.x-range,b.y-range,b.x+range,b.y+range),idx=g.grid.out;let best=null,bd=Infinity;
-  for(let k=0;k<m;k++){const u=U[idx[k]];if(u.team===b.team||u.hp<=0||u.embarkedOn)continue;const d=distance(b,u);if(!(d<range)||(this.canTarget&&!this.canTarget(b,u)))continue;if(!best||d<bd){best=u;bd=d}}return best}
+  const team=g.cols.team;for(let k=0;k<m;k++){if(team[idx[k]]===b.team)continue;const u=U[idx[k]];if(u.team===b.team||u.hp<=0||u.embarkedOn)continue;const d=distance(b,u);if(!(d<range)||(this.canTarget&&!this.canTarget(b,u)))continue;if(!best||d<bd){best=u;bd=d}}return best}
  sysUnits(dt,c){const s=this.s;for(const u of s.units){if(u.hp<=0||u.embarkedOn)continue;const d=D[u.kind];u.cool=Math.max(0,u.cool-dt);u.flash=Math.max(0,u.flash-dt);u.attackPulse=Math.max(0,u.attackPulse-dt);u.combatTarget=null;u.working=false;let o=u.order,target=o?.id?this.byId(o.id):null;
  // Workers retain gathering/build orders. v40: a move (or retreat) order is the player's highest-priority command: it
  // breaks off combat at once and walks to the destination without auto-targeting; automatic retaliation resumes only on

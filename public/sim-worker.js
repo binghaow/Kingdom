@@ -346,6 +346,7 @@
           BoxIndex: () => BoxIndex,
           PointGrid: () => PointGrid,
           TERRAIN_CELL: () => TERRAIN_CELL,
+          UnitColumns: () => UnitColumns,
           clearAt: () => clearAt,
           landClear: () => landClear
         });
@@ -579,6 +580,56 @@
             }
             if (r1 > r0 || q1 > q0) this.out.subarray(0, m).sort();
             return m;
+          }
+        };
+        var UnitColumns = class {
+          constructor(cap = 256) {
+            this.n = 0;
+            this.cap = 0;
+            this.rowOf = /* @__PURE__ */ new Map();
+            this.grow(cap);
+          }
+          grow(cap) {
+            const old = this;
+            this.cap = cap;
+            const f = (A, a) => {
+              const b = new A(cap);
+              if (a) b.set(a.subarray(0, Math.min(a.length, cap)));
+              return b;
+            };
+            this.id = f(Float64Array, old.id);
+            this.x = f(Float64Array, old.x);
+            this.y = f(Float64Array, old.y);
+            this.r = f(Float64Array, old.r);
+            this.team = f(Float64Array, old.team);
+            this.live = f(Uint8Array, old.live);
+          }
+          /* list: entities with x, y, kind, team, hp, embarkedOn; defs: kind -> {r}. live = hp > 0 and not embarked; r = defs[kind].r (NaN
+             when the kind has no definition, so a distance test against it is always false, as with the objects). */
+          sync(list, defs, withIds = false) {
+            const n = list.length;
+            if (n > this.cap) this.grow(n + 256);
+            const x = this.x, y = this.y, r = this.r, team = this.team, live = this.live, id = this.id;
+            if (withIds) this.rowOf.clear();
+            for (let i = 0; i < n; i++) {
+              const e = list[i], d = defs[e.kind];
+              x[i] = e.x;
+              y[i] = e.y;
+              r[i] = d ? d.r : NaN;
+              team[i] = typeof e.team === "number" ? e.team : NaN;
+              live[i] = e.hp > 0 && !e.embarkedOn ? 1 : 0;
+              id[i] = e.id;
+              if (withIds && !this.rowOf.has(e.id)) this.rowOf.set(e.id, i);
+            }
+            this.n = n;
+            this.list = list;
+            return this;
+          }
+          setPos(i, e, x, y) {
+            e.x = x;
+            e.y = y;
+            this.x[i] = x;
+            this.y[i] = y;
           }
         };
         return __toCommonJS(spatial_exports);
@@ -977,14 +1028,13 @@
           }
           /* P5: same pairs, same order, same pushes as the v44 bucket pass (128 px buckets of the positions at the start of the pass; for unit i
              every later unit j whose start bucket lies within +-reach buckets of i's current bucket, in ascending j; push when closer than
-             0.8 (ra + rb)), but on typed columns: positions mirrored in Float64Arrays (kept in sync with every push), radii per step, the buckets
-             in a counting-sort PointGrid (src/core/spatial.js), a squared-distance pre-test before Math.hypot. Returns the pairs tested. */
+             0.8 (ra + rb)), on the typed unit columns (src/core/spatial.js UnitColumns, synced at the start of the pass and written with every
+             push), buckets in a counting-sort PointGrid, a squared-distance pre-test before Math.hypot. Returns the pairs tested. */
           separateCrowd() {
             const units = this.s.units, n = units.length, CELL = 128;
             let c = this._crowd;
-            if (!c || c.cap < n) {
-              const cap = n + 256;
-              c = this._crowd = { cap, xs: new Float64Array(cap), ys: new Float64Array(cap), rad: new Float64Array(cap), qx: new Float64Array(cap), qy: new Float64Array(cap), live: new Uint8Array(cap), grid: c?.grid || null, gw: c?.gw, gh: c?.gh };
+            if (!c) {
+              c = this._crowd = { cols: new Spatial.UnitColumns(n + 256), qx: new Float64Array(n + 256), qy: new Float64Array(n + 256), grid: null, gw: 0, gh: 0 };
             }
             const W = Math.max(CELL, MAP.width || 0), H = Math.max(CELL, MAP.height || 0);
             if (!c.grid || c.gw !== W || c.gh !== H) {
@@ -992,22 +1042,18 @@
               c.gw = W;
               c.gh = H;
             }
-            const xs = c.xs, ys = c.ys, rad = c.rad, qx = c.qx, qy = c.qy, live = c.live, grid = c.grid;
+            if (c.qx.length < n) {
+              c.qx = new Float64Array(n + 256);
+              c.qy = new Float64Array(n + 256);
+            }
+            const C = c.cols.sync(units, D), xs = C.x, ys = C.y, rad = C.r, live = C.live, qx = c.qx, qy = c.qy, grid = c.grid;
             let maxRadius = 0;
             for (let i = 0; i < n; i++) {
-              const u = units[i];
-              if (u.hp <= 0 || u.embarkedOn) {
-                live[i] = 0;
-                continue;
-              }
-              live[i] = 1;
-              const d = D[u.kind], r = d?.r || 0;
+              if (!live[i]) continue;
+              const r = rad[i] || 0;
               if (r > maxRadius) maxRadius = r;
-              rad[i] = d ? d.r : NaN;
-              xs[i] = u.x;
-              ys[i] = u.y;
-              qx[i] = Math.floor(u.x / CELL);
-              qy[i] = Math.floor(u.y / CELL);
+              qx[i] = Math.floor(xs[i] / CELL);
+              qy[i] = Math.floor(ys[i] / CELL);
             }
             grid.build(n, xs, ys, (i) => live[i] === 1);
             const reach = Math.ceil(maxRadius * 1.6 / CELL);
@@ -1024,18 +1070,8 @@
                 const d = Math.hypot(dx, dy);
                 if (d < min && d > 0.01) {
                   const b = units[j], p = (min - d) * 0.2, ax = xs[i] - dx / d * p, ay = ys[i] - dy / d * p, bx = xs[j] + dx / d * p, by = ys[j] + dy / d * p;
-                  if (!this.blocked(ax, ay, a)) {
-                    a.x = ax;
-                    a.y = ay;
-                    xs[i] = ax;
-                    ys[i] = ay;
-                  }
-                  if (!this.blocked(bx, by, b)) {
-                    b.x = bx;
-                    b.y = by;
-                    xs[j] = bx;
-                    ys[j] = by;
-                  }
+                  if (!this.blocked(ax, ay, a)) C.setPos(i, a, ax, ay);
+                  if (!this.blocked(bx, by, b)) C.setPos(j, b, bx, by);
                 }
               }
             }
@@ -1389,16 +1425,14 @@
               const n = R.length, W = Math.max(256, MAP.width || 0), H = Math.max(256, MAP.height || 0);
               if (!B || B.cap < n || B.W !== W || B.H !== H) {
                 const cap = Math.max(n + 256, B?.cap || 0);
-                B = { cap, W, H, xs: new Float64Array(cap), ys: new Float64Array(cap), qx: new Float64Array(cap), qy: new Float64Array(cap), grid: B && B.W === W && B.H === H ? B.grid : new Spatial.PointGrid(W, H, 256), list: [] };
+                B = { cap, W, H, cols: new Spatial.UnitColumns(cap), qx: new Float64Array(cap), qy: new Float64Array(cap), grid: B && B.W === W && B.H === H ? B.grid : new Spatial.PointGrid(W, H, 256), list: [] };
               }
+              const C = B.cols.sync(R, D);
               for (let i = 0; i < n; i++) {
-                const c = R[i];
-                B.xs[i] = c.x;
-                B.ys[i] = c.y;
-                B.qx[i] = Math.floor(c.x / 256);
-                B.qy[i] = Math.floor(c.y / 256);
+                B.qx[i] = Math.floor(C.x[i] / 256);
+                B.qy[i] = Math.floor(C.y[i] / 256);
               }
-              B.grid.build(n, B.xs, B.ys, null);
+              B.grid.build(n, C.x, C.y, null);
               B.time = s.time;
               B.gen = this._rosterGen;
               B.n = n;
@@ -1615,8 +1649,8 @@
               }
             }
           }
-          /* P5: units around a point from the shared spatial service. unitGrid() is a PointGrid of s.units at their positions when it was
-             built; it is rebuilt whenever the units array is replaced or grows, the step changes, or a caller that moved units calls
+          /* P5: units around a point from the shared spatial service. unitGrid() is a PointGrid over the typed unit columns (UnitColumns with
+             the id -> row table) of s.units at their positions when it was built; it is rebuilt whenever the units array is replaced or grows, the step changes, or a caller that moved units calls
              unitGridDirty(). Callers that need exact answers test live positions and keep units-array order (the grid only narrows). */
           unitGrid() {
             const U = this.s.units, n = U.length, t = this.s.time;
@@ -1625,13 +1659,10 @@
             const W = Math.max(128, MAP.width || 0), H = Math.max(128, MAP.height || 0);
             if (!g || g.cap < n || g.W !== W || g.H !== H) {
               const cap = Math.max(n + 256, g?.cap || 0);
-              g = { cap, W, H, xs: new Float64Array(cap), ys: new Float64Array(cap), grid: g && g.W === W && g.H === H ? g.grid : new Spatial.PointGrid(W, H, 128), list: [] };
+              g = { cap, W, H, cols: new Spatial.UnitColumns(cap), grid: g && g.W === W && g.H === H ? g.grid : new Spatial.PointGrid(W, H, 128), list: [] };
             }
-            for (let i = 0; i < n; i++) {
-              g.xs[i] = U[i].x;
-              g.ys[i] = U[i].y;
-            }
-            g.grid.build(n, g.xs, g.ys, null);
+            g.cols.sync(U, D, true);
+            g.grid.build(n, g.cols.x, g.cols.y, null);
             g.U = U;
             g.n = n;
             g.t = t;
@@ -1645,7 +1676,9 @@
           nearestUnitInRange(b, range) {
             const U = this.s.units, g = this.unitGrid(), m = g.grid.query(b.x - range, b.y - range, b.x + range, b.y + range), idx = g.grid.out;
             let best = null, bd = Infinity;
+            const team = g.cols.team;
             for (let k = 0; k < m; k++) {
+              if (team[idx[k]] === b.team) continue;
               const u = U[idx[k]];
               if (u.team === b.team || u.hp <= 0 || u.embarkedOn) continue;
               const d = distance(b, u);

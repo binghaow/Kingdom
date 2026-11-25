@@ -24,6 +24,7 @@ var KingdomSpatial = (() => {
     BoxIndex: () => BoxIndex,
     PointGrid: () => PointGrid,
     TERRAIN_CELL: () => TERRAIN_CELL,
+    UnitColumns: () => UnitColumns,
     clearAt: () => clearAt,
     landClear: () => landClear
   });
@@ -257,6 +258,56 @@ var KingdomSpatial = (() => {
       }
       if (r1 > r0 || q1 > q0) this.out.subarray(0, m).sort();
       return m;
+    }
+  };
+  var UnitColumns = class {
+    constructor(cap = 256) {
+      this.n = 0;
+      this.cap = 0;
+      this.rowOf = /* @__PURE__ */ new Map();
+      this.grow(cap);
+    }
+    grow(cap) {
+      const old = this;
+      this.cap = cap;
+      const f = (A, a) => {
+        const b = new A(cap);
+        if (a) b.set(a.subarray(0, Math.min(a.length, cap)));
+        return b;
+      };
+      this.id = f(Float64Array, old.id);
+      this.x = f(Float64Array, old.x);
+      this.y = f(Float64Array, old.y);
+      this.r = f(Float64Array, old.r);
+      this.team = f(Float64Array, old.team);
+      this.live = f(Uint8Array, old.live);
+    }
+    /* list: entities with x, y, kind, team, hp, embarkedOn; defs: kind -> {r}. live = hp > 0 and not embarked; r = defs[kind].r (NaN
+       when the kind has no definition, so a distance test against it is always false, as with the objects). */
+    sync(list, defs, withIds = false) {
+      const n = list.length;
+      if (n > this.cap) this.grow(n + 256);
+      const x = this.x, y = this.y, r = this.r, team = this.team, live = this.live, id = this.id;
+      if (withIds) this.rowOf.clear();
+      for (let i = 0; i < n; i++) {
+        const e = list[i], d = defs[e.kind];
+        x[i] = e.x;
+        y[i] = e.y;
+        r[i] = d ? d.r : NaN;
+        team[i] = typeof e.team === "number" ? e.team : NaN;
+        live[i] = e.hp > 0 && !e.embarkedOn ? 1 : 0;
+        id[i] = e.id;
+        if (withIds && !this.rowOf.has(e.id)) this.rowOf.set(e.id, i);
+      }
+      this.n = n;
+      this.list = list;
+      return this;
+    }
+    setPos(i, e, x, y) {
+      e.x = x;
+      e.y = y;
+      this.x[i] = x;
+      this.y[i] = y;
     }
   };
   return __toCommonJS(spatial_exports);
