@@ -296,7 +296,7 @@ const GATED=typeof Symbol==='function'?Symbol('commandGate'):'__commandGate';
 function gateCommands(Ctor){const P=Ctor&&Ctor.prototype;if(!P||Object.prototype.hasOwnProperty.call(P,GATED))return;if(!Commands)throw Error('kingdom-commands.js must be loaded before engine.js');Object.defineProperty(P,GATED,{value:true});
  for(const name of Commands.TYPES){const inner=P[name];if(typeof inner!=='function')continue;Object.defineProperty(P,name,{configurable:true,writable:true,value:function(...args){return this._aiPhase>0?this.aiCommand(name,args):inner.apply(this,args)}})}
 }
-Sim.prototype.aiScope=function(fn){this._aiPhase++;try{return fn.call(this)}finally{this._aiPhase--}};
+Sim.prototype.aiScope=function(fn){if(!this._aiPhase)this._viewMemo=null;this._aiPhase++;try{return fn.call(this)}finally{this._aiPhase--;if(!this._aiPhase)this._viewMemo=null}};
 Sim.prototype.aiCommand=function(name,args){if(!Commands.AI_TYPES.includes(name))throw Error('AI phase: '+name+' is not a computer command');if(name==='train'&&this.aiTrainKind&&args[0])args=[args[0],this.aiTrainKind(args[0],args[1])];
  if(name==='order'&&this.aiPrepareOrder&&Array.isArray(args[0])){args=[this.aiPrepareOrder(args[0],args[1]||{}),...args.slice(1)];if(!args[0].length)return undefined}
  const team=Commands.teamOf(name,args),r=Commands.dryRun(this,name,team,args);if(r.ok&&name==='construct'&&this.aiPlacementSplits?.(args[0],args[1],args[2],team))return {error:'会堵住通道'};if(r.ok){(this.s.commandQueue??=[]).push(Commands.make(this,name,team,args));this.commandStats.queued++}return r.result};

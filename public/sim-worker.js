@@ -1988,11 +1988,13 @@
           }
         }
         Sim.prototype.aiScope = function(fn) {
+          if (!this._aiPhase) this._viewMemo = null;
           this._aiPhase++;
           try {
             return fn.call(this);
           } finally {
             this._aiPhase--;
+            if (!this._aiPhase) this._viewMemo = null;
           }
         };
         Sim.prototype.aiCommand = function(name, args) {
@@ -3921,8 +3923,22 @@
             if (!this.s.fogEnabled || !this.fog) return true;
             return !!this.fog.explored[team]?.[Math.floor(p.y / 96) * this.fog.cols + Math.floor(p.x / 96)];
           }
+          /* P5: a computer's think (the AI phase, sim.aiScope) cannot change the state it reads (check-ai-commands.cjs), so its view of a team
+             is computed once per AI phase and handed out as fresh arrays (callers may sort or filter them). */
           view(team = 0) {
             if (!this.s.fogEnabled) return { units: this.s.units, buildings: this.s.buildings, nodes: this.s.nodes };
+            if (this._aiPhase > 0) {
+              const memo = this._viewMemo ?? (this._viewMemo = /* @__PURE__ */ new Map());
+              let v = memo.get(team);
+              if (!v) {
+                v = this.viewOf(team);
+                memo.set(team, v);
+              }
+              return { units: v.units.slice(), buildings: v.buildings.slice(), nodes: v.nodes.slice() };
+            }
+            return this.viewOf(team);
+          }
+          viewOf(team) {
             const memory = Object.values(this.fog.memory[team]), known = memory.filter((e) => !this.canSee(team, e));
             return { units: this.s.units.filter((e) => this.canSee(team, e)), buildings: [...this.s.buildings.filter((e) => this.canSee(team, e)), ...known.filter((e) => D[e.kind]?.building)], nodes: [...this.s.nodes.filter((e) => this.canSee(team, e)), ...known.filter((e) => !D[e.kind]?.building)] };
           }
