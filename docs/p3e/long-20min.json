@@ -1,0 +1,70 @@
+{
+ "ok": true,
+ "failures": [],
+ "wallSeconds": 526,
+ "turns": 12300,
+ "consistency": {
+  "clients": 2,
+  "checksumsPerClient": 1230,
+  "pairsCompared": 1230,
+  "relayHashRows": 1230,
+  "relayMismatches": 0,
+  "final": "3b912438",
+  "replayFinal": "3b912438",
+  "recordedCommands": 3792
+ },
+ "platform": {
+  "calls": 30985,
+  "refused": 0,
+  "sockets": 0
+ },
+ "clients": [
+  {
+   "seat": 0,
+   "turns": 12300,
+   "reconnects": 6,
+   "planned": 6,
+   "watchdog": 0,
+   "stuck": 0,
+   "stallMs": 177247,
+   "snapshots": {
+    "uploads": 4,
+    "uploadBytes": 520792,
+    "uploadMs": 1911,
+    "loads": 0,
+    "loadMs": 0,
+    "failures": 0
+   },
+   "wedge": null,
+   "simMsPerTurn": 16.8,
+   "units": 195
+  },
+  {
+   "seat": 1,
+   "turns": 12300,
+   "reconnects": 7,
+   "planned": 6,
+   "watchdog": 0,
+   "stuck": 1,
+   "stallMs": 178239,
+   "snapshots": {
+    "uploads": 0,
+    "uploadBytes": 0,
+    "uploadMs": 0,
+    "loads": 0,
+    "loadMs": 0,
+    "failures": 0
+   },
+   "wedge": {
+    "atTurn": 12000,
+    "done": true,
+    "from": 12000,
+    "at": 1795611520366,
+    "recovered": 6728,
+    "stuckReconnects": 1
+   },
+   "simMsPerTurn": 16.6,
+   "units": 195
+  }
+ ]
+}

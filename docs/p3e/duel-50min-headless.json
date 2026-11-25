@@ -1,0 +1,111 @@
+{
+ "seconds": 1500,
+ "delayMs": 0,
+ "room": "256",
+ "join": {
+  "mode": "list",
+  "code": "256",
+  "roomId": "UQLYZNRG",
+  "defaults": {
+   "legacyBox": true,
+   "legacyChecked": false,
+   "betaBox": false
+  },
+  "lockstepRoom": true,
+  "listMs": 34
+ },
+ "transport": {
+  "A": {
+   "mode": "ws",
+   "fallbackReason": null
+  },
+  "B": {
+   "mode": "ws",
+   "fallbackReason": null
+  }
+ },
+ "statuses": {
+  "rooms 200": 28,
+  "rooms 201": 1,
+  "lockstep 200": 17
+ },
+ "nonOk": [],
+ "pageErrors": [],
+ "consistency": {
+  "comparedChecksums": 3017,
+  "mismatch": null,
+  "desyncA": null,
+  "desyncB": null,
+  "lastStep": 60346,
+  "lastHash": [
+   60340,
+   "e7583955"
+  ]
+ },
+ "clickToExecute": {
+  "n": 818,
+  "of": 818,
+  "p50": 200,
+  "p90": 306,
+  "max": 4505
+ },
+ "issueToExecute": {
+  "n": 852,
+  "p50": 179,
+  "p90": 275,
+  "max": 661
+ },
+ "tabs": [
+  {
+   "tab": "A",
+   "turn": 30173,
+   "gameTime": 3017.3,
+   "units": 63,
+   "rtt": 30,
+   "delay": 2,
+   "lagTurns": 1.45,
+   "stalls": 644,
+   "stallMs": 67705,
+   "catchup": 3422,
+   "requests": 57432,
+   "failures": 0,
+   "upBps": 124,
+   "downBps": 599,
+   "rejected": 0,
+   "commands": 427,
+   "viewMsAvg": 2.95,
+   "viewMsMax": 81.3
+  },
+  {
+   "tab": "B",
+   "turn": 30177,
+   "gameTime": 3017.7,
+   "units": 63,
+   "rtt": 22,
+   "delay": 2,
+   "lagTurns": 1.42,
+   "stalls": 607,
+   "stallMs": 67336,
+   "catchup": 4389,
+   "requests": 57523,
+   "failures": 0,
+   "upBps": 136,
+   "downBps": 600,
+   "rejected": 0,
+   "commands": 426,
+   "viewMsAvg": 3.08,
+   "viewMsMax": 105.1
+  }
+ ],
+ "frameIntervalMs": {
+  "A": {
+   "p50": 17,
+   "p90": 33
+  },
+  "B": {
+   "p50": 17,
+   "p90": 17
+  }
+ },
+ "pass": true
+}

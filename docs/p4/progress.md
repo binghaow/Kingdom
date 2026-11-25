@@ -133,3 +133,32 @@
 - check-all 69/69（含新增 check-ai-commands、check-pipeline），resilience 单独 PASS；build、check-artifact 通过；release-check 113 PASS / 1 WARN（千兵 >40 ms 步，只记录）/ 0 FAIL（`docs/release-reports/2026-11-25-a6a7aab.md`）；联机冒烟 2 人 + 1 电脑座位 240 校验值一致。
 - 未验证：Safari/iPad/iPhone 真机；浏览器里 `?perf=1` 的系统分项只在主线程模拟时显示（Worker 模式未接）；电脑对电脑统计是 Node、每步 0.1 s，不是真实对局的 0.05 s。
 - 合规影响：未引入新的发布合规依赖（新增的 `kingdom-commands.js` 是同源脚本，无新权限/网络请求/第三方代码）。
+
+---
+
+# 修复分支 `fix/lobby-buildings-net`（基于 main 038d21c，2026-11-25）：玩家反馈 A/B/C
+
+## A. 新联机约 20 分钟卡死
+- 详见 `docs/p3e/stall-20min.md`。本机未能复现（Node 双客户端 21 分钟、headless 浏览器双标签 50 游戏分钟 `docs/p3e/duel-50min-headless.json`、快照归一化/加载/视图路径都一致）。修了两条“socket 活着却永远等”的路径：客户端进度看门狗（等待 > 6 s 且对方未离线 → 静默重连）；中继对“还在发消息但 8 s 不推进”的座位不再等待（`lockstep_seats.moved`）。
+- 新增 `check-lockstep-long.cjs`（不进 check-all，约 9 分钟）：20.5 游戏分钟、4 倍时钟、生产 socket 预算、4 次快照，第 12 000 轮连接卡住 6.7 s 自恢复，1230 对校验值一致（`docs/p3e/long-20min.json`）。
+
+## B. 小 bug
+- 大厅插图按所选国家显示该国城镇中心（ten-capitals 图集，CSS 背景，保持位图比例）。截图 `docs/art/lobby-buildings/`。
+- 磨坊/矿物收集场/伐木营地画得太大：图宽 / 占地直径 2.8–3.2 → 约 2.2（与其它建筑一致），占地 r 与碰撞不变；`functional-buildings-v2.png` 离线抠图（黑底、假透明亮边、杂点、内圈灰带外修 6 px，按建筑重新排版，消除邻格碎片）。**残留**：磨坊左缘仍有少量灰色斑点，彻底干净需要重新出图（docs/art/asset-audit-v2.md 第 14 项）。视觉复核：Claude（本次，生产脚本顺序截图，草地背景）。
+- 放置校验：建筑占地边缘离金/石矿中心 ≥ 50 px、离浆果 ≥ 34 px（原 20）。
+- 村民在矿边来回走不采：路径终点是 48 px 导航格中心，矿所在格被紧贴的建筑占住时，最近终点在 49–72 px，超出 38 px 采集距离 → 每 1.8 s 重新寻路，永远不采。只在“路径走完且矿格被占”时采集距离放宽到 74 px。`check-gather-reach.cjs`（进 check-all）：收集场 56 px 紧贴、6 个村民同采金矿/石矿，45 s 内每人都有采集量（改前 6 人里 5 人为 0、2 人时全为 0）。
+- 录像夹具与 consistency 录像因电脑放置/采集变化（第 160 步起）重录。
+
+## C. iPhone 后期发热（快速部分）
+- 省电模式（手机/平板默认开，暂停菜单可切换）：最多 30 帧、暂停/菜单 8 帧、触屏画布倍数上限 1.25。headless 手机上下文：空地后期画出帧 59 → 30，主线程 JS 490–520 → 322–324 ms/s；暂停 297 → 43 ms/s。四军交战时本机 CPU 已满（15–20 帧），上限不起作用。详见 `docs/performance-audit.md`。
+
+## 交付检查
+- check-all 70/70 ALL PASS（c3fd8b3；含新增 check-gather-reach）；check-lockstep-resilience 单独跑 PASS（含新增 4b：卡住连接 6.5 s 静默重连、连着不推进的座位 20 s 时对方只等 15.2 s，无接管）；check-lockstep-long PASS。
+- `npm run build`、`node check-artifact.cjs` PASS；`npm run release-check`：112 PASS / 2 WARN / 0 FAIL（`docs/release-reports/2026-11-25-c3fd8b3.md`）。WARN：后期 HUD update p50（只重跑后期节 0 WARN，噪声）、千兵 >40 ms 步（P5 前预期）。渲染节单独重跑 0 WARN；release-check 的 phone 视口是触屏，省电模式生效后帧间隔 p50 16.8 → 33.3 ms 属预期（30 帧上限），desktop 默认关、通过。
+- 新联机冒烟（`preview.cjs` 8765，两个浏览器标签）：65 秒 72 个校验值一致、ws 无回退、点击到执行 p50 290 ms（`docs/p3e/duel-fix-lobby-buildings-net.json`）。
+- 合规影响：无新的发布合规依赖（新图由已有素材离线抠图，无新权限、网络请求或第三方代码）。
+
+## 需要真机验证
+- iPhone 新联机 25 分钟以上不再卡死、不需手动重连；如出现“等待…”> 10 s，截图重连诊断。
+- 省电模式下后期发热、帧率是否稳在 30、1.25 倍画布清晰度；改了画布分辨率，按 AGENTS.md 须在 iPhone/iPad Safari 玩到后期（≥ 8 分钟、≥ 100 人口）确认战场和小地图不空白。
+- 大厅国家插图、新磨坊/矿场图在 Safari 上的显示。
