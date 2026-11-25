@@ -3728,8 +3728,24 @@
             }
             if (perf) perf.fog(performance.now() - fogStart);
           }
+          /* P5: sight lines are asked for many cells around the same looker (fog). A cliff can only block a->b when the segment comes within
+             its ellipse box, so for a looker the cliffs whose box reaches the square looker +- 800 px are kept (memo per looker position) and
+             a target inside that square is tested against them only. Same answers as testing every cliff. */
           sightBlocked(a, b) {
-            return this.world.cliffs.some((c) => {
+            const cl = this.world.cliffs;
+            if (!cl.length) return false;
+            let list = cl;
+            if (Math.abs(b.x - a.x) <= 800 && Math.abs(b.y - a.y) <= 800) {
+              let m = this._sightMemo;
+              if (!m || m.a !== a || m.x !== a.x || m.y !== a.y || m.cl !== cl || m.n !== cl.length) {
+                const near = [];
+                for (const c of cl) if (Math.abs(c.x - a.x) <= 800 + Math.abs(c.rx) && Math.abs(c.y - a.y) <= 800 + Math.abs(c.ry)) near.push(c);
+                m = this._sightMemo = { a, x: a.x, y: a.y, cl, n: cl.length, near };
+              }
+              list = m.near;
+              if (!list.length) return false;
+            }
+            return list.some((c) => {
               if (inside(a, c) || inside(b, c)) return false;
               const x = (a.x - c.x) / c.rx, y = (a.y - c.y) / c.ry, dx = (b.x - a.x) / c.rx, dy = (b.y - a.y) / c.ry, t = Math.max(0, Math.min(1, -(x * dx + y * dy) / (dx * dx + dy * dy || 1)));
               return (x + t * dx) ** 2 + (y + t * dy) ** 2 < 0.9;
@@ -4262,7 +4278,8 @@
                 }
               }
             }
-            const list = gi?.cells && gi.b === this.s.buildings && gi.n === gi.b.length ? gi.cells.get(Math.floor(y / 192) * 4096 + Math.floor(x / 192)) || [] : this.buildingCell(x, y);
+            if (!(gi?.cells && gi.b === this.s.buildings && gi.n === gi.b.length)) return this.buildingAt(x, y, u);
+            const list = gi.cells.get(Math.floor(y / 192) * 4096 + Math.floor(x / 192)) || [];
             return list.some((b) => {
               if (b.hp <= 0) return false;
               let bb = bounds.m.get(b.kind);
@@ -4275,33 +4292,47 @@
               return this.blocksPoint(b, x, y, u);
             });
           }
-          /* P5: the standing-building lookup outside grid builds. A BoxIndex (src/core/spatial.js, 192 px) over the current buildings array, each
-             building registered with the same per-kind reach bound blockedBuildings tests first, so a cell lists every building that could
-             answer true there (rebuilt when the array is replaced or grows; buildings never move). Returns the buildings of the cell. */
-          buildingCell(x, y) {
+          /* P5: the standing-building test outside grid builds (same answer as testing every building with the v44 reach bound first). A BoxIndex
+             (src/core/spatial.js, 192 px) over the current buildings array, each building registered with its per-kind reach box, kept in typed
+             columns; rebuilt when the array is replaced or grows (buildings never move). */
+          buildingIndex() {
             const B = this.s.buildings, P0 = artProfiles();
             let c = this._bIndex;
-            if (!c || c.B !== B || c.n !== B.length || c.P !== P0) {
-              const W = this.world?.width || M.width, H = this.world?.height || M.height;
-              const idx2 = c?.idx && c.W === W && c.H === H ? c.idx : new SP.BoxIndex(W, H, 192), bounds = this._blockBounds;
-              idx2.build(B.length, (i, o) => {
-                const b = B[i];
-                let bb = bounds?.P === P0 ? bounds.m.get(b.kind) : void 0;
-                if (bb === void 0) {
-                  const k2 = D[b.kind], kw = P0?.sizes[b.kind]?.[0] || k2.r * 2;
-                  bb = Math.max(57, k2.r + 18, kw * 0.4 + 18) + 1;
-                }
-                o[0] = b.x - bb;
-                o[1] = b.y - bb;
-                o[2] = b.x + bb;
-                o[3] = b.y + bb;
-              });
-              c = this._bIndex = { B, n: B.length, P: P0, W, H, idx: idx2, out: [] };
+            if (c && c.B === B && c.n === B.length && c.P === P0) return c;
+            const W = this.world?.width || M.width, H = this.world?.height || M.height, n = B.length;
+            const idx = c?.idx && c.W === W && c.H === H ? c.idx : new SP.BoxIndex(W, H, 192), box = c && c.box.length >= n * 4 ? c.box : new Float64Array(n * 4 + 256), reach = /* @__PURE__ */ new Map();
+            for (let i = 0; i < n; i++) {
+              const b = B[i];
+              let bb = reach.get(b.kind);
+              if (bb === void 0) {
+                const k = D[b.kind], kw = P0?.sizes[b.kind]?.[0] || k.r * 2;
+                bb = Math.max(57, k.r + 18, kw * 0.4 + 18) + 1;
+                reach.set(b.kind, bb);
+              }
+              box[i * 4] = b.x;
+              box[i * 4 + 1] = b.y;
+              box[i * 4 + 2] = bb;
             }
-            const idx = c.idx, k = idx.cellOf(x, y), out = c.out;
-            out.length = 0;
-            for (let j = idx.start[k], e = idx.start[k + 1]; j < e; j++) out.push(B[idx.items[j]]);
-            return out;
+            idx.build(n, (i, o) => {
+              const r = box[i * 4 + 2] + 1;
+              o[0] = box[i * 4] - r;
+              o[1] = box[i * 4 + 1] - r;
+              o[2] = box[i * 4] + r;
+              o[3] = box[i * 4 + 1] + r;
+            });
+            return this._bIndex = { B, n, P: P0, W, H, idx, box };
+          }
+          buildingAt(x, y, u) {
+            const c = this.buildingIndex(), idx = c.idx, B = c.B, box = c.box, k = idx.cellOf(x, y);
+            for (let j = idx.start[k], e = idx.start[k + 1]; j < e; j++) {
+              const i = idx.items[j];
+              const bb = box[i * 4 + 2];
+              if (Math.abs(x - box[i * 4]) > bb || Math.abs(y - box[i * 4 + 1]) > bb) continue;
+              const b = B[i];
+              if (b.hp <= 0) continue;
+              if (this.blocksPoint(b, x, y, u)) return true;
+            }
+            return false;
           }
           /* the footprint test of one building (used by blockedBuildings; P4 4a also uses it to test a computer's placement before it builds) */
           blocksPoint(b, x, y, u) {
