@@ -704,6 +704,69 @@
           PATH_REGIONS.set(g, lab);
           return lab;
         }
+        const FLOW_MIN = 6, FLOW_WINDOW = 4, FLOW_STEP_BUDGET = 6e3, FLOW_MAX = 8, FLOW_IDLE = 12;
+        class FlowField {
+          constructor(g, cols, rows, end) {
+            this.g = g;
+            this.cols = cols;
+            this.rows = rows;
+            this.end = end;
+            this.dist = new Float64Array(g.length).fill(Infinity);
+            this.done = new Uint8Array(g.length);
+            this.heap = new Heap();
+            this.dist[end] = 0;
+            this.heap.push(end, 0);
+            this.settled = 0;
+            this.used = 0;
+          }
+          grow(want, budget) {
+            const g = this.g, cols = this.cols, rows = this.rows, dist = this.dist, done = this.done, heap = this.heap;
+            let popped = 0;
+            while (!done[want] && heap.size && popped < budget) {
+              const n = heap.pop();
+              if (done[n]) continue;
+              popped++;
+              done[n] = 1;
+              this.settled++;
+              const x = n % cols, y = (n - x) / cols, base = dist[n];
+              for (let i = 0; i < 8; i++) {
+                const dx = PATH_DX[i], dy = PATH_DY[i], nx = x + dx, ny = y + dy;
+                if (nx < 0 || ny < 0 || nx >= cols || ny >= rows) continue;
+                const nn = ny * cols + nx;
+                if (g[nn] || done[nn] || dx && dy && (g[y * cols + nx] || g[ny * cols + x])) continue;
+                const ns = base + (dx && dy ? PATH_DIAGONAL : 1);
+                if (ns < dist[nn]) {
+                  dist[nn] = ns;
+                  heap.push(nn, ns);
+                }
+              }
+            }
+            return popped;
+          }
+          route(start, cell) {
+            const g = this.g, cols = this.cols, rows = this.rows, dist = this.dist, done = this.done, out = [];
+            let c = start;
+            while (c !== this.end) {
+              const x = c % cols, y = (c - x) / cols;
+              let best = -1, bv = Infinity;
+              for (let i = 0; i < 8; i++) {
+                const dx = PATH_DX[i], dy = PATH_DY[i], nx = x + dx, ny = y + dy;
+                if (nx < 0 || ny < 0 || nx >= cols || ny >= rows) continue;
+                const nn = ny * cols + nx;
+                if (g[nn] || !done[nn] || dx && dy && (g[y * cols + nx] || g[ny * cols + x])) continue;
+                const v = dist[nn] + (dx && dy ? PATH_DIAGONAL : 1);
+                if (v < bv) {
+                  bv = v;
+                  best = nn;
+                }
+              }
+              if (best < 0) return null;
+              c = best;
+              out.push({ x: c % cols * cell + 24, y: Math.floor(c / cols) * cell + 24 });
+            }
+            return out;
+          }
+        }
         class Sim {
           constructor(difficulty = "easy", saved = null) {
             this._aiPhase = 0;
@@ -1017,9 +1080,72 @@
               if (perf) this._perfPathExpanded = 0;
               return hit.map((p) => ({ x: p.x, y: p.y }));
             }
-            const path = (this.findPathAStar || Sim.prototype.findPathAStar).call(this, u, tx, ty);
+            const path = this.flowPath(u, tx, ty, g) || (this.findPathAStar || Sim.prototype.findPathAStar).call(this, u, tx, ty);
             memo.map.set(key, path.map((p) => ({ x: p.x, y: p.y })));
             return path;
+          }
+          /* P5: route from a shared flow field, or null (the caller runs A*). Start/goal cells as findPathAStar computes them (a blocked goal
+             cell moves to the nearest free cell within 5 cells of the exact goal point). Blocked start cells, one-cell routes and goals in
+             another region keep the A* answer. */
+          flowPath(u, tx, ty, g) {
+            if (!this.s || !g || g.gates) return null;
+            const cell = MAP.cell, cols = MAP.width / cell, rows = MAP.height / cell;
+            if (g.length !== cols * rows) return null;
+            const sx = clamp(Math.floor(u.x / cell), 0, cols - 1), sy = clamp(Math.floor(u.y / cell), 0, rows - 1), start = sy * cols + sx;
+            if (g[start]) return null;
+            let ex = clamp(Math.floor(tx / cell), 0, cols - 1), ey = clamp(Math.floor(ty / cell), 0, rows - 1), end = ey * cols + ex;
+            if (g[end]) {
+              let best = -1, bd = Infinity;
+              for (let y = Math.max(0, ey - 5); y <= Math.min(rows - 1, ey + 5); y++) for (let x = Math.max(0, ex - 5); x <= Math.min(cols - 1, ex + 5); x++) {
+                const d = Math.hypot(x * cell + 24 - tx, y * cell + 24 - ty);
+                if (!g[y * cols + x] && d < bd) {
+                  bd = d;
+                  best = y * cols + x;
+                }
+              }
+              if (best < 0) return null;
+              end = best;
+            }
+            if (start === end) return null;
+            const regions = pathRegions(g, cols, rows);
+            if (regions[start] !== regions[end]) return null;
+            const now = this.s.time;
+            let F = this._flow;
+            if (!F || F.g !== g) {
+              F = this._flow = { g, fields: /* @__PURE__ */ new Map(), req: /* @__PURE__ */ new Map(), budgetAt: -1, left: 0 };
+            }
+            let f = F.fields.get(end);
+            if (!f) {
+              let r = F.req.get(end);
+              if (!r || now - r.since > FLOW_WINDOW) {
+                r = { n: 0, since: now };
+                F.req.set(end, r);
+              }
+              if (++r.n < FLOW_MIN) return null;
+              F.req.delete(end);
+              for (const [k, old] of F.fields) if (now - old.used > FLOW_IDLE) F.fields.delete(k);
+              if (F.fields.size >= FLOW_MAX) {
+                let lru = null;
+                for (const [k, old] of F.fields) if (!lru || old.used < lru[1].used) lru = [k, old];
+                F.fields.delete(lru[0]);
+              }
+              f = new FlowField(g, cols, rows, end);
+              F.fields.set(end, f);
+            }
+            f.used = now;
+            if (F.budgetAt !== now) {
+              F.budgetAt = now;
+              F.left = FLOW_STEP_BUDGET;
+            }
+            if (!f.done[start] && F.left > 0) {
+              const popped = f.grow(start, F.left);
+              F.left -= popped;
+              const perf = typeof window !== "undefined" ? window.PerformanceAudit : null;
+              if (perf) this._perfPathExpanded = (this._perfPathExpanded || 0) + popped;
+            }
+            if (!f.done[start]) return null;
+            this._flowRoutes = (this._flowRoutes || 0) + 1;
+            return f.route(start, cell);
           }
           findPathAStar(u, tx, ty) {
             const perf = typeof window !== "undefined" ? window.PerformanceAudit : null;
@@ -1682,9 +1808,9 @@
           }
           sysCleanup(dt, c) {
             const s = this.s;
-            s.units = s.units.filter((u) => u.hp > 0);
-            s.buildings = s.buildings.filter((b) => b.hp > 0);
-            s.nodes = s.nodes.filter((n) => n.amount > 0);
+            if (s.units.some((u) => !(u.hp > 0))) s.units = s.units.filter((u) => u.hp > 0);
+            if (s.buildings.some((b) => !(b.hp > 0))) s.buildings = s.buildings.filter((b) => b.hp > 0);
+            if (s.nodes.some((n) => !(n.amount > 0))) s.nodes = s.nodes.filter((n) => n.amount > 0);
             for (const fx of s.effects) fx.life -= dt;
             s.effects = s.effects.filter((f) => f.life > 0);
           }
