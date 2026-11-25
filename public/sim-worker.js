@@ -1945,8 +1945,8 @@
             }
           }
           sysAINavalRaid(dt, c) {
+            this.s.navalTimer += dt;
             this.aiScope(() => {
-              this.s.navalTimer += dt;
               if (!this.raids && this.s.navalTimer > (this.s.difficulty === "easy" ? 260 : 155)) {
                 this.s.navalTimer = 0;
                 const dock = this.s.buildings.find((b) => b.team === 0 && b.kind === "dock"), navy = this.s.units.filter((u) => u.team === 1 && this.sea(u) && D[u.kind].damage > 0);
