@@ -181,7 +181,17 @@ class Sim{
  sysClock(dt,c){const s=this.s;this._stepDt=dt;this._ticks=(this._ticks||0)+1;s.time+=dt;s.aiTimer+=dt;s.raidTimer+=dt;}
  sysBuildings(dt,c){const s=this.s;for(const b of s.buildings){if(b.hp<=0)continue;b.cool=Math.max(0,b.cool-dt);b.flash=Math.max(0,b.flash-dt);b.attackPulse=Math.max(0,b.attackPulse-dt);if(!b.complete)continue;if(b.kind==='farm')b.amount=Math.min(9000,b.amount+dt*2);if(b.kind==='market'&&!D.market.noPassiveGold)s.resources[b.team].gold+=dt;
  if(b.queue.length){const q=b.queue[0];q.left-=dt;if(q.left<=0){b.queue.shift();if(q.type==='research')this.applyResearch(b.team,q.kind);else{const angle=this.rand(0,Math.PI*2),u=this.add(q.kind,b.team,b.x+Math.cos(angle)*(D[b.kind].r+64),b.y+Math.sin(angle)*(D[b.kind].r+64));this.freeSpawn(u);this.emit('trained',{team:b.team,kind:q.kind});if(this.rallySpawn)this.rallySpawn(u,b);else if(b.team&&u.kind!=='villager')this.order([u],{type:'move',x:2810+this.rand(-100,100),y:850+this.rand(-90,90)})}}}
- if(D[b.kind].damage&&!b.cool){/* v44: only units already inside range can pass the range test below, so the nearest valid one inside range is the same pick */const range=this.stat(b,'range'),enemy=this.nearest(b,s.units.filter(u=>u.team!==b.team&&u.hp>0&&!u.embarkedOn&&distance(b,u)<range&&(!this.canTarget||this.canTarget(b,u))));if(enemy&&distance(b,enemy)<range)this.strike(b,enemy)}}}
+ if(D[b.kind].damage&&!b.cool){/* v44: only units already inside range can pass the range test below, so the nearest valid one inside range is the same pick */const range=this.stat(b,'range'),enemy=this.nearestUnitInRange(b,range);if(enemy&&distance(b,enemy)<range)this.strike(b,enemy)}}}
+ /* P5: units around a point from the shared spatial service. unitGrid() is a PointGrid of s.units at their positions when it was
+    built; it is rebuilt whenever the units array is replaced or grows, the step changes, or a caller that moved units calls
+    unitGridDirty(). Callers that need exact answers test live positions and keep units-array order (the grid only narrows). */
+ unitGrid(){const U=this.s.units,n=U.length,t=this.s.time;let g=this._unitGrid;if(g&&g.U===U&&g.n===n&&g.t===t&&!g.dirty)return g;const W=Math.max(128,MAP.width||0),H=Math.max(128,MAP.height||0);
+  if(!g||g.cap<n||g.W!==W||g.H!==H){const cap=Math.max(n+256,g?.cap||0);g={cap,W,H,xs:new Float64Array(cap),ys:new Float64Array(cap),grid:g&&g.W===W&&g.H===H?g.grid:new Spatial.PointGrid(W,H,128),list:[]}}
+  for(let i=0;i<n;i++){g.xs[i]=U[i].x;g.ys[i]=U[i].y}g.grid.build(n,g.xs,g.ys,null);g.U=U;g.n=n;g.t=t;g.dirty=false;return this._unitGrid=g}
+ unitGridDirty(){if(this._unitGrid)this._unitGrid.dirty=true}
+ /* the v44 tower pick: nearest hostile-to-b live unit strictly inside range that b can target, first in units order on ties */
+ nearestUnitInRange(b,range){const U=this.s.units,g=this.unitGrid(),m=g.grid.query(b.x-range,b.y-range,b.x+range,b.y+range),idx=g.grid.out;let best=null,bd=Infinity;
+  for(let k=0;k<m;k++){const u=U[idx[k]];if(u.team===b.team||u.hp<=0||u.embarkedOn)continue;const d=distance(b,u);if(!(d<range)||(this.canTarget&&!this.canTarget(b,u)))continue;if(!best||d<bd){best=u;bd=d}}return best}
  sysUnits(dt,c){const s=this.s;for(const u of s.units){if(u.hp<=0||u.embarkedOn)continue;const d=D[u.kind];u.cool=Math.max(0,u.cool-dt);u.flash=Math.max(0,u.flash-dt);u.attackPulse=Math.max(0,u.attackPulse-dt);u.combatTarget=null;u.working=false;let o=u.order,target=o?.id?this.byId(o.id):null;
  // Workers retain gathering/build orders. v40: a move (or retreat) order is the player's highest-priority command: it
  // breaks off combat at once and walks to the destination without auto-targeting; automatic retaliation resumes only on

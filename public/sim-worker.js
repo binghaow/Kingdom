@@ -1484,10 +1484,52 @@
                 }
               }
               if (D[b.kind].damage && !b.cool) {
-                const range = this.stat(b, "range"), enemy = this.nearest(b, s.units.filter((u) => u.team !== b.team && u.hp > 0 && !u.embarkedOn && distance(b, u) < range && (!this.canTarget || this.canTarget(b, u))));
+                const range = this.stat(b, "range"), enemy = this.nearestUnitInRange(b, range);
                 if (enemy && distance(b, enemy) < range) this.strike(b, enemy);
               }
             }
+          }
+          /* P5: units around a point from the shared spatial service. unitGrid() is a PointGrid of s.units at their positions when it was
+             built; it is rebuilt whenever the units array is replaced or grows, the step changes, or a caller that moved units calls
+             unitGridDirty(). Callers that need exact answers test live positions and keep units-array order (the grid only narrows). */
+          unitGrid() {
+            const U = this.s.units, n = U.length, t = this.s.time;
+            let g = this._unitGrid;
+            if (g && g.U === U && g.n === n && g.t === t && !g.dirty) return g;
+            const W = Math.max(128, MAP.width || 0), H = Math.max(128, MAP.height || 0);
+            if (!g || g.cap < n || g.W !== W || g.H !== H) {
+              const cap = Math.max(n + 256, g?.cap || 0);
+              g = { cap, W, H, xs: new Float64Array(cap), ys: new Float64Array(cap), grid: g && g.W === W && g.H === H ? g.grid : new Spatial.PointGrid(W, H, 128), list: [] };
+            }
+            for (let i = 0; i < n; i++) {
+              g.xs[i] = U[i].x;
+              g.ys[i] = U[i].y;
+            }
+            g.grid.build(n, g.xs, g.ys, null);
+            g.U = U;
+            g.n = n;
+            g.t = t;
+            g.dirty = false;
+            return this._unitGrid = g;
+          }
+          unitGridDirty() {
+            if (this._unitGrid) this._unitGrid.dirty = true;
+          }
+          /* the v44 tower pick: nearest hostile-to-b live unit strictly inside range that b can target, first in units order on ties */
+          nearestUnitInRange(b, range) {
+            const U = this.s.units, g = this.unitGrid(), m = g.grid.query(b.x - range, b.y - range, b.x + range, b.y + range), idx = g.grid.out;
+            let best = null, bd = Infinity;
+            for (let k = 0; k < m; k++) {
+              const u = U[idx[k]];
+              if (u.team === b.team || u.hp <= 0 || u.embarkedOn) continue;
+              const d = distance(b, u);
+              if (!(d < range) || this.canTarget && !this.canTarget(b, u)) continue;
+              if (!best || d < bd) {
+                best = u;
+                bd = d;
+              }
+            }
+            return best;
           }
           sysUnits(dt, c) {
             const s = this.s;
@@ -4875,13 +4917,39 @@
               }
             }
           }
+          /* P5: wall rectangles of the current wall list in a BoxIndex (src/core/spatial.js, 192 px), each padded by 26 px (the largest pad
+             blocked/walk test with), rebuilt when the wall list or the wall parts are replaced. Same answers as scanning every wall: both
+             tests are yes/no and only rectangles whose padded box reaches the point/leg can answer yes. */
+          wallIndex() {
+            const list = this.wallList(), parts = this._wallParts;
+            let c = this._wallIdx;
+            if (c && c.list === list && c.parts === parts) return c;
+            const W = this.world?.width || K2.map.width, H = this.world?.height || K2.map.height, walls = [], rects = [];
+            for (const b of list) for (const r of parts?.get(b.id) || []) {
+              walls.push(b);
+              rects.push(r);
+            }
+            const idx = c && c.W === W && c.H === H ? c.idx : new K2.spatial.BoxIndex(W, H, 192);
+            idx.build(rects.length, (i, o) => {
+              const r = rects[i];
+              o[0] = r.x - r.rx - 26;
+              o[1] = r.y - r.ry - 26;
+              o[2] = r.x + r.rx + 26;
+              o[3] = r.y + r.ry + 26;
+            });
+            return this._wallIdx = { list, parts, W, H, idx, walls, rects };
+          }
           blocked(x, y, u = null) {
             if (super.blocked(x, y, u)) return true;
             if (this.air?.(u)) return false;
             if (!this._wallParts) this.refreshWalls();
-            for (const b of this.wallList()) {
+            const list = this.wallList();
+            if (!list.length) return false;
+            const c = this.wallIndex(), idx = c.idx, k = idx.cellOf(x, y);
+            for (let j = idx.start[k], e = idx.start[k + 1]; j < e; j++) {
+              const i = idx.items[j], b = c.walls[i], r = c.rects[i];
               if (b.hp <= 0 || !D[b.kind]?.wall || D[b.kind].gate && u && this.allied(b.team, u.team)) continue;
-              for (const r of this._wallParts.get(b.id) || []) if (Math.abs(x - r.x) < r.rx + 15 && Math.abs(y - r.y) < r.ry + 15) return true;
+              if (Math.abs(x - r.x) < r.rx + 15 && Math.abs(y - r.y) < r.ry + 15) return true;
             }
             return false;
           }
@@ -4889,14 +4957,20 @@
             this.refreshWalls();
             const before = { x: u.x, y: u.y }, result = this.workWalk(u, p, stop, dt);
             if (this.air?.(u) || u.x === before.x && u.y === before.y) return result;
-            for (const b of this.wallList()) {
-              if (b.hp <= 0 || !D[b.kind]?.wall || D[b.kind].gate && this.allied(b.team, u.team)) continue;
-              for (const r of this._wallParts.get(b.id) || []) if (wallCrosses(before, u, r, Math.max(15, Math.min(26, D[u.kind].r || 15)))) {
-                u.x = before.x;
-                u.y = before.y;
-                u.path = [];
-                u.repath = 0;
-                return false;
+            if (!this.wallList().length) return result;
+            const c = this.wallIndex(), idx = c.idx, pad = Math.max(15, Math.min(26, D[u.kind].r || 15)), q0 = idx.col(Math.min(before.x, u.x)), q1 = idx.col(Math.max(before.x, u.x)), r0 = idx.row(Math.min(before.y, u.y)), r1 = idx.row(Math.max(before.y, u.y));
+            for (let row = r0; row <= r1; row++) for (let col = q0; col <= q1; col++) {
+              const k = row * idx.cols + col;
+              for (let j = idx.start[k], e = idx.start[k + 1]; j < e; j++) {
+                const i = idx.items[j], b = c.walls[i];
+                if (b.hp <= 0 || !D[b.kind]?.wall || D[b.kind].gate && this.allied(b.team, u.team)) continue;
+                if (wallCrosses(before, u, c.rects[i], pad)) {
+                  u.x = before.x;
+                  u.y = before.y;
+                  u.path = [];
+                  u.repath = 0;
+                  return false;
+                }
               }
             }
             return result;
