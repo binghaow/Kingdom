@@ -213,6 +213,30 @@ var KingdomSpatial = (() => {
       this.total = total;
       return this;
     }
+    /* Same as query, by cell coordinates (clamped to the grid). */
+    queryCells(q0, r0, q1, r1, after = -1) {
+      if (!(q0 <= q1) || !(r0 <= r1)) return 0;
+      q0 = q0 < 0 ? 0 : q0 >= this.cols ? this.cols - 1 : q0;
+      q1 = q1 < 0 ? 0 : q1 >= this.cols ? this.cols - 1 : q1;
+      r0 = r0 < 0 ? 0 : r0 >= this.rows ? this.rows - 1 : r0;
+      r1 = r1 < 0 ? 0 : r1 >= this.rows ? this.rows - 1 : r1;
+      const start = this.start, items = this.items;
+      let m = 0;
+      for (let r = r0; r <= r1; r++) {
+        const base = r * this.cols, a = start[base + q0], b = start[base + q1 + 1];
+        if (b - a + m > this.out.length) {
+          const o = new Int32Array((b - a + m) * 2 + 256);
+          o.set(this.out.subarray(0, m));
+          this.out = o;
+        }
+        for (let k = a; k < b; k++) {
+          const j = items[k];
+          if (j > after) this.out[m++] = j;
+        }
+      }
+      if (r1 > r0 || q1 > q0) this.out.subarray(0, m).sort();
+      return m;
+    }
     /* Indices of the items in cells overlapping [x0, x1] x [y0, y1] with index > after, ascending. Returns the count; the
        indices are in this.out[0 .. count). */
     query(x0, y0, x1, y1, after = -1) {

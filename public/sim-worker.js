@@ -535,6 +535,30 @@
             this.total = total;
             return this;
           }
+          /* Same as query, by cell coordinates (clamped to the grid). */
+          queryCells(q0, r0, q1, r1, after = -1) {
+            if (!(q0 <= q1) || !(r0 <= r1)) return 0;
+            q0 = q0 < 0 ? 0 : q0 >= this.cols ? this.cols - 1 : q0;
+            q1 = q1 < 0 ? 0 : q1 >= this.cols ? this.cols - 1 : q1;
+            r0 = r0 < 0 ? 0 : r0 >= this.rows ? this.rows - 1 : r0;
+            r1 = r1 < 0 ? 0 : r1 >= this.rows ? this.rows - 1 : r1;
+            const start = this.start, items = this.items;
+            let m = 0;
+            for (let r = r0; r <= r1; r++) {
+              const base = r * this.cols, a = start[base + q0], b = start[base + q1 + 1];
+              if (b - a + m > this.out.length) {
+                const o = new Int32Array((b - a + m) * 2 + 256);
+                o.set(this.out.subarray(0, m));
+                this.out = o;
+              }
+              for (let k = a; k < b; k++) {
+                const j = items[k];
+                if (j > after) this.out[m++] = j;
+              }
+            }
+            if (r1 > r0 || q1 > q0) this.out.subarray(0, m).sort();
+            return m;
+          }
           /* Indices of the items in cells overlapping [x0, x1] x [y0, y1] with index > after, ascending. Returns the count; the
              indices are in this.out[0 .. count). */
           query(x0, y0, x1, y1, after = -1) {
@@ -888,51 +912,66 @@
           blocked(x, y) {
             return x < 20 || y < 20 || x > MAP.width - 20 || y > MAP.height - 20 || river(x, y) || this.s.buildings.some((b) => b.hp > 0 && distance(b, { x, y }) < D[b.kind].r + 9);
           }
+          /* P5: same pairs, same order, same pushes as the v44 bucket pass (128 px buckets of the positions at the start of the pass; for unit i
+             every later unit j whose start bucket lies within +-reach buckets of i's current bucket, in ascending j; push when closer than
+             0.8 (ra + rb)), but on typed columns: positions mirrored in Float64Arrays (kept in sync with every push), radii per step, the buckets
+             in a counting-sort PointGrid (src/core/spatial.js), a squared-distance pre-test before Math.hypot. Returns the pairs tested. */
           separateCrowd() {
-            const units = this.s.units, buckets = this._collisionBuckets || (this._collisionBuckets = /* @__PURE__ */ new Map()), pool = this._collisionBucketPool || (this._collisionBucketPool = []), candidates = this._collisionCandidates || (this._collisionCandidates = []), CELL = 128;
-            buckets.clear();
-            let bucketCount = 0, maxRadius = 0;
-            for (let i = 0; i < units.length; i++) {
-              const u = units[i];
-              if (u.hp <= 0 || u.embarkedOn) continue;
-              const radius = D[u.kind]?.r || 0;
-              if (radius > maxRadius) maxRadius = radius;
-              const cx = Math.floor(u.x / CELL), cy = Math.floor(u.y / CELL), key = cy * 65536 + cx;
-              let bucket = buckets.get(key);
-              if (!bucket) {
-                bucket = pool[bucketCount] || (pool[bucketCount] = []);
-                bucket.length = 0;
-                buckets.set(key, bucket);
-                bucketCount++;
-              }
-              bucket.push(i);
+            const units = this.s.units, n = units.length, CELL = 128;
+            let c = this._crowd;
+            if (!c || c.cap < n) {
+              const cap = n + 256;
+              c = this._crowd = { cap, xs: new Float64Array(cap), ys: new Float64Array(cap), rad: new Float64Array(cap), qx: new Float64Array(cap), qy: new Float64Array(cap), live: new Uint8Array(cap), grid: c?.grid || null, gw: c?.gw, gh: c?.gh };
             }
+            const W = Math.max(CELL, MAP.width || 0), H = Math.max(CELL, MAP.height || 0);
+            if (!c.grid || c.gw !== W || c.gh !== H) {
+              c.grid = new Spatial.PointGrid(W, H, CELL);
+              c.gw = W;
+              c.gh = H;
+            }
+            const xs = c.xs, ys = c.ys, rad = c.rad, qx = c.qx, qy = c.qy, live = c.live, grid = c.grid;
+            let maxRadius = 0;
+            for (let i = 0; i < n; i++) {
+              const u = units[i];
+              if (u.hp <= 0 || u.embarkedOn) {
+                live[i] = 0;
+                continue;
+              }
+              live[i] = 1;
+              const d = D[u.kind], r = d?.r || 0;
+              if (r > maxRadius) maxRadius = r;
+              rad[i] = d ? d.r : NaN;
+              xs[i] = u.x;
+              ys[i] = u.y;
+              qx[i] = Math.floor(u.x / CELL);
+              qy[i] = Math.floor(u.y / CELL);
+            }
+            grid.build(n, xs, ys, (i) => live[i] === 1);
             const reach = Math.ceil(maxRadius * 1.6 / CELL);
             let tested = 0;
-            for (let i = 0; i < units.length; i++) {
-              const a = units[i];
-              if (a.hp <= 0 || a.embarkedOn) continue;
-              const cx = Math.floor(a.x / CELL), cy = Math.floor(a.y / CELL);
-              candidates.length = 0;
-              for (let y = cy - reach; y <= cy + reach; y++) for (let x = cx - reach; x <= cx + reach; x++) {
-                const bucket = buckets.get(y * 65536 + x);
-                if (bucket) {
-                  for (const j of bucket) if (j > i) candidates.push(j);
-                }
-              }
-              candidates.sort((a2, b) => a2 - b);
-              for (const j of candidates) {
+            for (let i = 0; i < n; i++) {
+              if (!live[i]) continue;
+              const a = units[i], cx = Math.floor(xs[i] / CELL), cy = Math.floor(ys[i] / CELL), m = grid.queryCells(cx - reach, cy - reach, cx + reach, cy + reach, i), out = grid.out;
+              for (let k = 0; k < m; k++) {
+                const j = out[k];
+                if (Math.abs(qx[j] - cx) > reach || Math.abs(qy[j] - cy) > reach) continue;
                 tested++;
-                const b = units[j], dx = b.x - a.x, dy = b.y - a.y, d = Math.hypot(dx, dy), min = (D[a.kind].r + D[b.kind].r) * 0.8;
+                const dx = xs[j] - xs[i], dy = ys[j] - ys[i], min = (rad[i] + rad[j]) * 0.8;
+                if (!(dx * dx + dy * dy <= min * min * 1.000001 + 1e-9)) continue;
+                const d = Math.hypot(dx, dy);
                 if (d < min && d > 0.01) {
-                  const p = (min - d) * 0.2, ax = a.x - dx / d * p, ay = a.y - dy / d * p, bx = b.x + dx / d * p, by = b.y + dy / d * p;
+                  const b = units[j], p = (min - d) * 0.2, ax = xs[i] - dx / d * p, ay = ys[i] - dy / d * p, bx = xs[j] + dx / d * p, by = ys[j] + dy / d * p;
                   if (!this.blocked(ax, ay, a)) {
                     a.x = ax;
                     a.y = ay;
+                    xs[i] = ax;
+                    ys[i] = ay;
                   }
                   if (!this.blocked(bx, by, b)) {
                     b.x = bx;
                     b.y = by;
+                    xs[j] = bx;
+                    ys[j] = by;
                   }
                 }
               }

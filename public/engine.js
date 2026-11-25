@@ -71,11 +71,20 @@ class Sim{
  research(b,key){const error=this.researchError(b,key);if(error||this.s.ended)return error||'战役结束';const cost=this.researchCost(key,b.team);this.pay(cost,b.team);b.queue.push({type:'research',kind:key,left:cost.time,total:cost.time});return ''}
  applyResearch(team,key){if(key==='age')this.s.ages[team]++;else this.s.tech[team][key]++;for(const u of this.s.units.filter(u=>u.team===team)){const ratio=u.hp/u.maxhp;u.maxhp=this.stat(u,'hp');u.hp=Math.max(1,ratio*u.maxhp)}this.emit('research',{team,key,name:key==='age'?ageNames[this.s.ages[team]]:TECH[key].name});this.fx('upgrade',{x:this.townOf(team)?.x||0,y:this.townOf(team)?.y||0},2)}
  blocked(x,y){return x<20||y<20||x>MAP.width-20||y>MAP.height-20||river(x,y)||this.s.buildings.some(b=>b.hp>0&&distance(b,{x,y})<D[b.kind].r+9)}
- separateCrowd(){const units=this.s.units,buckets=this._collisionBuckets||(this._collisionBuckets=new Map()),pool=this._collisionBucketPool||(this._collisionBucketPool=[]),candidates=this._collisionCandidates||(this._collisionCandidates=[]),CELL=128; buckets.clear();let bucketCount=0,maxRadius=0;
-  for(let i=0;i<units.length;i++){const u=units[i];if(u.hp<=0||u.embarkedOn)continue;const radius=D[u.kind]?.r||0;if(radius>maxRadius)maxRadius=radius;const cx=Math.floor(u.x/CELL),cy=Math.floor(u.y/CELL),key=cy*65536+cx;let bucket=buckets.get(key);if(!bucket){bucket=pool[bucketCount]||(pool[bucketCount]=[]);bucket.length=0;buckets.set(key,bucket);bucketCount++}bucket.push(i)}
+ /* P5: same pairs, same order, same pushes as the v44 bucket pass (128 px buckets of the positions at the start of the pass; for unit i
+    every later unit j whose start bucket lies within +-reach buckets of i's current bucket, in ascending j; push when closer than
+    0.8 (ra + rb)), but on typed columns: positions mirrored in Float64Arrays (kept in sync with every push), radii per step, the buckets
+    in a counting-sort PointGrid (src/core/spatial.js), a squared-distance pre-test before Math.hypot. Returns the pairs tested. */
+ separateCrowd(){const units=this.s.units,n=units.length,CELL=128;let c=this._crowd;if(!c||c.cap<n){const cap=n+256;c=this._crowd={cap,xs:new Float64Array(cap),ys:new Float64Array(cap),rad:new Float64Array(cap),qx:new Float64Array(cap),qy:new Float64Array(cap),live:new Uint8Array(cap),grid:c?.grid||null,gw:c?.gw,gh:c?.gh}}
+  const W=Math.max(CELL,MAP.width||0),H=Math.max(CELL,MAP.height||0);if(!c.grid||c.gw!==W||c.gh!==H){c.grid=new Spatial.PointGrid(W,H,CELL);c.gw=W;c.gh=H}
+  const xs=c.xs,ys=c.ys,rad=c.rad,qx=c.qx,qy=c.qy,live=c.live,grid=c.grid;let maxRadius=0;
+  for(let i=0;i<n;i++){const u=units[i];if(u.hp<=0||u.embarkedOn){live[i]=0;continue}live[i]=1;const d=D[u.kind],r=d?.r||0;if(r>maxRadius)maxRadius=r;rad[i]=d?d.r:NaN;xs[i]=u.x;ys[i]=u.y;qx[i]=Math.floor(u.x/CELL);qy[i]=Math.floor(u.y/CELL)}
+  grid.build(n,xs,ys,i=>live[i]===1);
   const reach=Math.ceil(maxRadius*1.6/CELL);let tested=0;
-  for(let i=0;i<units.length;i++){const a=units[i];if(a.hp<=0||a.embarkedOn)continue;const cx=Math.floor(a.x/CELL),cy=Math.floor(a.y/CELL);candidates.length=0;for(let y=cy-reach;y<=cy+reach;y++)for(let x=cx-reach;x<=cx+reach;x++){const bucket=buckets.get(y*65536+x);if(bucket)for(const j of bucket)if(j>i)candidates.push(j)}candidates.sort((a,b)=>a-b);
-   for(const j of candidates){tested++;const b=units[j],dx=b.x-a.x,dy=b.y-a.y,d=Math.hypot(dx,dy),min=(D[a.kind].r+D[b.kind].r)*.8;if(d<min&&d>.01){const p=(min-d)*.2,ax=a.x-dx/d*p,ay=a.y-dy/d*p,bx=b.x+dx/d*p,by=b.y+dy/d*p;if(!this.blocked(ax,ay,a)){a.x=ax;a.y=ay}if(!this.blocked(bx,by,b)){b.x=bx;b.y=by}}}}
+  for(let i=0;i<n;i++){if(!live[i])continue;const a=units[i],cx=Math.floor(xs[i]/CELL),cy=Math.floor(ys[i]/CELL),m=grid.queryCells(cx-reach,cy-reach,cx+reach,cy+reach,i),out=grid.out;
+   for(let k=0;k<m;k++){const j=out[k];if(Math.abs(qx[j]-cx)>reach||Math.abs(qy[j]-cy)>reach)continue;tested++;
+    const dx=xs[j]-xs[i],dy=ys[j]-ys[i],min=(rad[i]+rad[j])*.8;if(!(dx*dx+dy*dy<=min*min*1.000001+1e-9))continue;const d=Math.hypot(dx,dy);
+    if(d<min&&d>.01){const b=units[j],p=(min-d)*.2,ax=xs[i]-dx/d*p,ay=ys[i]-dy/d*p,bx=xs[j]+dx/d*p,by=ys[j]+dy/d*p;if(!this.blocked(ax,ay,a)){a.x=ax;a.y=ay;xs[i]=ax;ys[i]=ay}if(!this.blocked(bx,by,b)){b.x=bx;b.y=by;xs[j]=bx;ys[j]=by}}}}
   return tested}
  getGrid(){if(this.grid)return this.grid;const cols=MAP.width/MAP.cell,rows=MAP.height/MAP.cell;this.grid=new Uint8Array(cols*rows);for(let y=0;y<rows;y++)for(let x=0;x<cols;x++)this.grid[y*cols+x]=this.blocked(x*MAP.cell+24,y*MAP.cell+24)?1:0;return this.grid}
  freeSpawn(u){if(!this.blocked(u.x,u.y))return;const g=this.getGrid(),cols=MAP.width/MAP.cell;let best=null,bd=Infinity;for(let i=0;i<g.length;i++)if(!g[i]){const p={x:(i%cols)*48+24,y:Math.floor(i/cols)*48+24},d=distance(u,p);if(d<bd){bd=d;best=p}}if(best){u.x=best.x;u.y=best.y;u.path=[]}}
