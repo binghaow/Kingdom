@@ -22,7 +22,9 @@
    is catching up (refresh, reconnect, restored room) and does not hold the others; when every active seat is that far
    behind, the relay waits for the most advanced one instead of running ahead with nobody playing. SYSTEM_SEAT — commands
    the relay itself inserts (computer takeover / release), delivered in the same ordered stream as player commands. */
-const TAKEOVER_MS = 60000, CATCHUP = 50, SYSTEM_SEAT = 99;
+/* STUCK_MS / TALKING_MS (2026-11-25, docs/p3e/stall-20min.md): a seat that keeps talking (a message within TALKING_MS) while
+   its executed turn stays below the sealed turn for STUCK_MS is stuck, not slow or offline; it stops holding the others. */
+const TAKEOVER_MS = 60000, CATCHUP = 50, SYSTEM_SEAT = 99, STUCK_MS = 8000, TALKING_MS = 3000;
 const PERIOD = 100, STEPS_PER_TURN = 2, STEP = 0.05, HASH_EVERY = 20, D_MIN = 2, D_MAX = 5, AHEAD = 10, ACTIVE_MS = 5000,
   MAX_SEATS = 8, MAX_CMDS = 32, MAX_CMD_BYTES = 4096, MAX_HASHES = 16, MAX_ROWS = 2000, PROTOCOL = 1;
 
@@ -35,7 +37,7 @@ function clockTurn(startAt, period, now) { return Math.floor((now - startAt) / p
    seat is catching up, the most advanced one paces the relay. The SQL in http.cjs (HOLD) is the same rule. */
 function sealLimit(startAt, period, now, seats, ahead = AHEAD, activeMs = TAKEOVER_MS, sealed = -Infinity) {
   const elapsed = clockTurn(startAt, period, now) - 1;
-  const active = (seats || []).filter((s) => s && s.human && !s.mode && now - s.seen <= activeMs);
+  const active = (seats || []).filter((s) => s && s.human && !s.mode && now - s.seen <= activeMs && !(Number.isFinite(s.moved) && s.at < sealed && now - s.moved > STUCK_MS && now - s.seen <= TALKING_MS));
   if (!active.length) return elapsed;
   const near = active.filter((s) => s.at >= sealed - CATCHUP);
   const pace = near.length ? Math.min(...near.map((s) => s.at)) : Math.max(...active.map((s) => s.at));
@@ -130,5 +132,5 @@ function hashReports(row) {
   return out;
 }
 
-module.exports = { TAKEOVER_MS, CATCHUP, SYSTEM_SEAT, systemCommand, majority, hashReports, PERIOD, STEPS_PER_TURN, STEP, HASH_EVERY, D_MIN, D_MAX, AHEAD, ACTIVE_MS, MAX_SEATS, MAX_CMDS, MAX_ROWS, PROTOCOL,
+module.exports = { TAKEOVER_MS, STUCK_MS, TALKING_MS, CATCHUP, SYSTEM_SEAT, systemCommand, majority, hashReports, PERIOD, STEPS_PER_TURN, STEP, HASH_EVERY, D_MIN, D_MAX, AHEAD, ACTIVE_MS, MAX_SEATS, MAX_CMDS, MAX_ROWS, PROTOCOL,
   clockTurn, sealLimit, assignTurn, adaptDelay, commandText, parseClient, recordHash, sortRows, rowsJSON, makeSetup, recording };

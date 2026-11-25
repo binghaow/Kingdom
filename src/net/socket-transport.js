@@ -7,6 +7,8 @@
      reopens at once and this does not count as a drop.
    - Watchdog: an open socket that delivers no 'turns' message for `stallMs` (default 4 s; the relay heartbeat is 1 s) is
      treated as dead and closed — the 2026-11-19 field failure was exactly such a silent socket.
+   - Progress watchdog: heartbeats arrive but the game has waited for a turn longer than `stuckMs` (default 6 s) and the
+     seat holding it is not offline -> silent planned reconnect (docs/p3e/stall-20min.md).
    - Unplanned drops reconnect with exponential backoff: 0, 250, 500 ms, 1, 2, 4, 8 s, then every 10 s (reset once turns
      flow again). wake() (page visible again, network back online) retries at once.
    - hello carries the last turn received, so the relay replays the missed turns (catch-up), and commands sent but not yet
@@ -25,7 +27,8 @@ export class SocketTransport {
     this.onFail = opts.onFail || null; this.onError = opts.onError || null; this.onReceive = opts.onReceive || null; this.onMessage = opts.onMessage || null;
     this.ws = null; this.timer = null; this.retry = null; this.stopped = false; this.fatal = null; this.open = false; this.pings = 0;
     this.everOpen = false; this.failedConnects = 0; this.drops = []; this.reconnects = 0; this.lastTurnsAt = 0; this.attempt = 0;
-    this.planned = false; this.openedAt = 0; this.stats = { planned: 0, watchdog: 0, backoffMs: 0, maxBackoff: 0 };
+    this.planned = false; this.openedAt = 0; this.stats = { planned: 0, watchdog: 0, stuck: 0, backoffMs: 0, maxBackoff: 0 };
+    this.stuckMs = opts.stuckMs || 6000; this.lastStuck = -Infinity;
   }
   start() {
     if (this.stopped || this.fatal) return this;
@@ -76,6 +79,15 @@ export class SocketTransport {
       if (!this.open || ws !== this.ws) return;
       // Watchdog: a socket that is open but delivers nothing (not even the relay's 1 s heartbeat) is dead.
       if (c.now() - this.lastTurnsAt > this.stallMs) { this.stats.watchdog++; c.stats.watchdog = this.stats.watchdog; end(); return; }
+      // Progress watchdog (field report 2026-11-25: about 20 minutes into a 2-player match every unit stopped until the player
+      // dropped and reconnected by hand). The socket was alive (heartbeats, so the watchdog above never fired) but no new turn
+      // came. When the game has waited longer than stuckMs and the seat it waits for is not simply offline (that case has its
+      // own countdown and computer takeover), do what the manual reconnect did: reopen silently. hello is a fresh connection,
+      // so the relay re-reads this seat's executed turn and resends every turn after the last one received. At most every 15 s.
+      const now = c.now();
+      if (c.waitingSince !== null && now - c.waitingSince > this.stuckMs && now - this.lastStuck > 15000 && !c.waiting(0)?.offline) {
+        this.lastStuck = now; this.stats.stuck++; c.stats.stuckReconnects = this.stats.stuck; this.planned = true; end(); return;
+      }
       const hashes = c.hashQueue.splice(0, 16), ack = { type: 'ack', x: c.nextTurn - 1 }; if (hashes.length) ack.h = hashes;
       if (c.reclaim) ack.k = 1;
       if (this.pings % 4 === 0) ack.s = 1; // seat table about once a second (who is behind, takeover countdown)

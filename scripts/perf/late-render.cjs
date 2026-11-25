@@ -15,9 +15,11 @@ const {pct,median,r1,r2,args}=require(path.join(__dirname,'../release/lib.cjs'))
 /* worker counters over the sample window: steps run, mean step ms in the worker, frame build ms (worker), frame apply ms (page) */
 function workerStats(a,b,frames,secs){const w0=a.worker||{},w1=b.worker||{},steps=(w1.steps||0)-(w0.steps||0),fr=(w1.frames||0)-(w0.frames||0),applied=b.frames-a.frames;
   return {steps,stepsPerSec:r1(steps/secs),tickMeanMs:r2(((w1.tickMs||0)-(w0.tickMs||0))/Math.max(1,steps)),maxTickMs:r1(w1.maxTickMs||0),frameBuildMeanMs:r2(((w1.frameMs||0)-(w0.frameMs||0))/Math.max(1,fr)),applyMeanMs:r2((b.applyMs-a.applyMs)/Math.max(1,applied)),maxApplyMs:r1(b.maxApplyMs),postMs:r2(b.postMs-a.postMs),owedDropped:b.owedDropped-a.owedDropped,mismatches:b.mismatches.length,framesApplied:applied,displayFrames:frames}}
-async function run({secs=10,profile,shot,warm=4,stacks:stacksMode=false,pre=null,worker=false,away=false}={}){let chromium;try{({chromium}=require('playwright'))}catch(e){return {skipped:'playwright not available: '+e.message}}
+async function run({secs=10,profile,shot,warm=4,stacks:stacksMode=false,pre=null,worker=false,away=false,phone=false,saver=null}={}){let chromium;try{({chromium}=require('playwright'))}catch(e){return {skipped:'playwright not available: '+e.message}}
   const server=await serve(),browser=await chromium.launch({args:['--disable-gpu'],...(process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH?{executablePath:process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH}:{})});
-  const ctx=await browser.newContext({viewport:{width:1920,height:1080}}),p=await ctx.newPage(),errors=[];
+  /* phone:true = iPhone-class landscape context (852x393 CSS px, DPR 3, touch: coarse pointer); saver '1'/'0' pins the power-saver setting */
+  const ctx=await browser.newContext(phone?{viewport:{width:852,height:393},deviceScaleFactor:3,isMobile:true,hasTouch:true}:{viewport:{width:1920,height:1080}}),p=await ctx.newPage(),errors=[];
+  if(saver!==null)await ctx.addInitScript(v=>{try{localStorage.setItem('kingdom-power-saver',v)}catch{}},String(saver));
   /* away:true (P4) keeps the same 400-unit battle running but looks at a quiet corner of the map (expansion.js focusPoint through the NavalUI bridge) */
   if(away)await ctx.addInitScript(()=>{let v;Object.defineProperty(window,'NavalUI',{configurable:true,get(){return v},set(x){const b=x.bind;x.bind=a=>{window.__api=a;return b.call(x,a)};v=x}})});p.on('pageerror',e=>errors.push(e.message));
   try{await p.goto(`http://127.0.0.1:${server.address().port}/?perf=1${worker?'&simWorker=1':''}`);await p.waitForFunction(()=>window.KingdomArt&&KingdomArt.loaded,null,{timeout:120000});
@@ -52,7 +54,8 @@ async function run({secs=10,profile,shot,warm=4,stacks:stacksMode=false,pre=null
     const hud=await p.evaluate(()=>document.getElementById('performance-audit')?.textContent||'');if(shot)await p.screenshot({path:shot});
     const g=re=>{const m=hud.match(re);return m?m.slice(1).map(Number):[]},iv=[];for(let i=1;i<sample.t.length;i++)iv.push(sample.t[i]-sample.t[i-1]);
     const alive=await p.evaluate(()=>{const s=window.frontier.state;const st=KingdomArt.attackStatus?.();return {alive:s.units.filter(u=>u.hp>0).length,dpr:window.FrontierRenderBudget?.dpr??null,attack:st&&{sets:st.loaded.length,mb:Math.round(st.bytes/1048576),limitMb:Math.round(st.limit/1048576),tints:st.tints}}});
-    return {viewport:'1920x1080',setup,unitsAlive:alive.alive,renderDpr:alive.dpr,attackCache:alive.attack,frames:iv.length,fps:r1(1000/(median(iv)||1)),frameP50:r1(pct(iv,.5)),frameP95:r1(pct(iv,.95)),
+    const drawn=sample.per.drawImage.filter(n=>n>0).length,span=(sample.t.at(-1)-sample.t[0])/1000||1;
+    return {viewport:phone?'852x393@3 touch':'1920x1080',powerSaver:await p.evaluate(()=>window.FrontierRenderBudget?.powerSaver??null),drawnFps:r1(drawn/span),mainJsPerSec:r1((M1.ScriptDuration-M0.ScriptDuration)*1000/span),mainTaskPerSec:r1((M1.TaskDuration-M0.TaskDuration)*1000/span),mainJsPerDrawn:r2((M1.ScriptDuration-M0.ScriptDuration)*1000/Math.max(1,drawn)),setup,unitsAlive:alive.alive,renderDpr:alive.dpr,attackCache:alive.attack,frames:iv.length,fps:r1(1000/(median(iv)||1)),frameP50:r1(pct(iv,.5)),frameP95:r1(pct(iv,.95)),
       simSteps:sample.sim.length,simP50:r1(pct(sample.sim,.5)),simP95:r1(pct(sample.sim,.95)),
       /* main-thread cost per displayed frame (CDP Performance metrics over the sample: JS = ScriptDuration, all tasks = TaskDuration incl. structured-clone decoding, style, paint) */
       mainJsPerFrame:r2((M1.ScriptDuration-M0.ScriptDuration)*1000/Math.max(1,iv.length)),mainTaskPerFrame:r2((M1.TaskDuration-M0.TaskDuration)*1000/Math.max(1,iv.length)),
@@ -60,4 +63,4 @@ async function run({secs=10,profile,shot,warm=4,stacks:stacksMode=false,pre=null
       hudRender:g(/render ([\d.]+)\/([\d.]+)/),hudScene:g(/scene ([\d.]+)\/([\d.]+)/),hudUpdate:g(/update ([\d.]+)\/([\d.]+)/),hud:hud.replace(/\s+/g,' ').slice(0,600),errors,top,probe:await p.evaluate(()=>window.__probe||null),...(stacksMode?{stacks:sample.stacks.map(([k,v])=>`${Math.round(v/Math.max(1,iv.length))}/frame ${k}`)}:{})}}
   finally{await browser.close();server.close()}}
 module.exports={run};
-if(require.main===module){const a=args();run({secs:+(a.secs||10),profile:a.profile,shot:a.shot,stacks:!!a.stacks,pre:a.pre||null,worker:!!a.worker,away:!!a.away}).then(r=>{if(a.json)fs.writeFileSync(a.json,JSON.stringify(r,null,1));console.log(JSON.stringify(r,null,1))}).catch(e=>{console.error(e);process.exit(1)})}
+if(require.main===module){const a=args();run({secs:+(a.secs||10),profile:a.profile,shot:a.shot,stacks:!!a.stacks,pre:a.pre||null,worker:!!a.worker,away:!!a.away,phone:!!a.phone,saver:a.saver??null}).then(r=>{if(a.json)fs.writeFileSync(a.json,JSON.stringify(r,null,1));console.log(JSON.stringify(r,null,1))}).catch(e=>{console.error(e);process.exit(1)})}

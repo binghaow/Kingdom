@@ -86,6 +86,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
         if (round % 3 === 0) { const home = await p.$('#home'); if (home) { await home.click().catch(() => {}); await sleep(150); const trn = await p.$('[data-action="train-villager"]'); if (trn) await trn.click().catch(() => {}); } }
       }
       round++; await sleep(2500);
+      if (argv.includes('--log') && round % 12 === 0) { const row = []; for (const t of [A, B]) row.push(await t.page.evaluate(() => { const c = KingdomCore.lockstep.current.client; return [c.nextTurn, c.sealed, c.waitingSince === null ? 0 : Math.round(performance.timeOrigin + performance.now() - c.waitingSince), c.stats.reconnects || 0, c.stats.watchdog || 0]; })); console.error(new Date().toISOString().slice(11, 19), 'turn/sealed/waitMs/reconnects/watchdog', JSON.stringify(row), 'errors', errors.length); }
     }
     await sleep(1500);
     const state = async (t) => t.page.evaluate(() => { const L = KingdomCore.lockstep.current, c = L.client; return { turn: c.nextTurn, step: c.step, hashes: c.hashLog, desync: c.desync, executed: L.executed, stats: { ...c.stats, latency: c.stats.latency }, rtt: c.rtt, delay: c.delay, lag: c.lagTurns(), view: L.stats, time: window.frontier.state.time, units: window.frontier.state.units.length }; });

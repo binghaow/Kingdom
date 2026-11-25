@@ -32,7 +32,12 @@ function faultyFetch(f) {
    corrupt {fromStep}    this client reports wrong checksums from that step (desync handling)
    restartAt turn        page refresh: client + transport discarded, a new one rejoins with the same seat token and
                          catches up from turn 0
-   saveAt turn           3c online save at that turn (src/net/saves.js makeSave), returned in the result */
+   saveAt turn           3c online save at that turn (src/net/saves.js makeSave), returned in the result
+   wedge {atTurn}        2026-11-25 20-minute freeze model: from that turn the CURRENT socket keeps delivering heartbeats but no
+                         turn data reaches the client (a wedged connection); a new socket works again (what the player's
+                         manual reconnect did). Without the progress watchdog the client waits forever.
+   stuck {atTurn, ms}    this client stops executing turns for ms while its socket keeps acking and pinging (a connected
+                         but stalled page); the relay must not let it hold the other seats */
 (async () => {
   const { LockstepClient } = await import(pathToFileURL(path.join(ROOT, 'src/net/lockstep.js')).href);
   const { AutoTransport } = await import(pathToFileURL(path.join(ROOT, 'src/net/auto-transport.js')).href);
@@ -48,14 +53,17 @@ function faultyFetch(f) {
   const hashMod = await import(pathToFileURL(path.join(ROOT, 'src/core/hash.js')).href);
   const endTurn = cfg.turns, samples = []; let stepMs = 0, steps = 0, maxStep = 0, finalAtEnd = null, switched = null, save = null, restart = null;
   const bot = createBot(K, cfg.seat, cfg.seats.find((x) => x.seat === cfg.seat)?.team ?? -1, cfg.botSeed || 1);
-  const faults = { outage: cfg.outage ? { ...cfg.outage, done: false } : null, freeze: cfg.freeze ? { ...cfg.freeze, done: false } : null };
+  const faults = { outage: cfg.outage ? { ...cfg.outage, done: false } : null, freeze: cfg.freeze ? { ...cfg.freeze, done: false } : null, wedge: cfg.wedge ? { ...cfg.wedge, done: false } : null, stuck: cfg.stuck ? { ...cfg.stuck, done: false } : null };
+  let wedged = null, stuckUntil = 0;
   let client, transport, buildMs = 0, prevHashes = [], snaps = null, savePending = null, mark = null;
   function session() {
     const b0 = Date.now();
     const c = new LockstepClient({ K, commands, setup: cfg.setup, seat: cfg.seat, seats: cfg.seats, startAt: cfg.startAt, period: cfg.period, now, resumeAt: cfg.resume || null });
     buildMs = Date.now() - b0;
-    const t = new AutoTransport({ mode: cfg.transport || 'http', httpUrl: cfg.base + '/api/lockstep/' + cfg.room, wsUrl: cfg.base.replace(/^http/, 'ws') + '/api/lockstep/' + cfg.room + '/ws' + (cfg.wsPath || ''), token: cfg.token, client: c, fetch, WebSocket: FlakyWS, timeout: cfg.timeout || 4000, stallMs: cfg.stallMs, onSwitch: (r) => { switched = r; } });
+    const t = new AutoTransport({ mode: cfg.transport || 'http', httpUrl: cfg.base + '/api/lockstep/' + cfg.room, wsUrl: cfg.base.replace(/^http/, 'ws') + '/api/lockstep/' + cfg.room + '/ws' + (cfg.wsPath || ''), token: cfg.token, client: c, fetch, WebSocket: FlakyWS, timeout: cfg.timeout || 4000, stallMs: cfg.stallMs, stuckMs: cfg.stuckMs, onSwitch: (r) => { switched = r; } });
     if (cfg.trace) c.stats.trace = [];
+    const recv = c.receive.bind(c);
+    c.receive = (msg, ...rest) => { if (wedged && transport?.active?.ws === wedged && msg) { const { t, se, ...keep } = msg; return recv(keep, ...rest); } return recv(msg, ...rest); };
     const run = c.runTurn.bind(c);
     c.runTurn = () => {
       const turn = c.nextTurn, a = performance.now(); run(); const d = performance.now() - a; stepMs += d; steps++; if (d > maxStep) maxStep = d;
@@ -75,7 +83,10 @@ function faultyFetch(f) {
   let lastTurn = -1, lastMove = Date.now(), stalled = null;
   const block = (ms) => Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, ms);
   while (client.nextTurn < endTurn && !client.desync && !transport.fatal) {
-    const o = faults.outage, f = faults.freeze;
+    const o = faults.outage, f = faults.freeze, w = faults.wedge, k = faults.stuck;
+    if (w && !w.done && client.nextTurn >= w.atTurn && transport.active?.ws) { w.done = true; w.from = client.nextTurn; w.at = Date.now(); wedged = transport.active.ws; }
+    if (w && w.done && !w.recovered && client.nextTurn > w.from + 20) { w.recovered = Date.now() - w.at; w.stuckReconnects = client.stats.stuckReconnects || 0; }
+    if (k && !k.done && client.nextTurn >= k.atTurn) { k.done = true; k.from = client.nextTurn; stuckUntil = Date.now() + k.ms; }
     if (o && !o.done && client.nextTurn >= o.atTurn) { o.done = true; o.from = client.nextTurn; offlineUntil = Date.now() + o.ms; try { transport.active?.ws?.close(); } catch { /* ignore */ } }
     if (f && !f.done && client.nextTurn >= f.atTurn) { f.done = true; f.from = client.nextTurn; block(f.ms); }
     if (cfg.restartAt && !restart && client.nextTurn >= cfg.restartAt) {
@@ -83,7 +94,7 @@ function faultyFetch(f) {
       [client, transport] = session();
     }
     if (restart && !restart.caughtUp && client.sealed > restart.from && !client.progress() && client.nextTurn >= restart.from) { restart.caughtUp = Date.now() - restart.at; restart.turns = client.nextTurn; }
-    snaps?.tick(); client.advance(cfg.budget || 40); await sleep(cfg.loop || 4);
+    snaps?.tick(); if (Date.now() >= stuckUntil) client.advance(cfg.budget || 40); await sleep(cfg.loop || 4);
     if (cfg.markTurn && mark === null && client.nextTurn >= cfg.markTurn) mark = Date.now() - t0; // 3e: wall ms until the restore point is reached
     if (client.nextTurn !== lastTurn) { lastTurn = client.nextTurn; lastMove = Date.now(); }
     else if (cfg.stall && Date.now() - lastMove > cfg.stall * 1000) { stalled = { turn: client.nextTurn, sealed: client.sealed, seconds: cfg.stall }; break; }

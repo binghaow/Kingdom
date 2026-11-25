@@ -19,7 +19,7 @@ const core = require('./relay-core.cjs');
 
 const SCHEMA = [
   "CREATE TABLE IF NOT EXISTS lockstep_rooms (id TEXT PRIMARY KEY NOT NULL, start_at INTEGER NOT NULL, period INTEGER NOT NULL, sealed INTEGER NOT NULL DEFAULT -1, delay INTEGER NOT NULL DEFAULT 2, setup TEXT NOT NULL, seats TEXT NOT NULL, status TEXT NOT NULL DEFAULT 'playing', desync TEXT, expires_at INTEGER NOT NULL, base INTEGER NOT NULL DEFAULT 0)",
-  'CREATE TABLE IF NOT EXISTS lockstep_seats (room TEXT NOT NULL, seat INTEGER NOT NULL, team INTEGER NOT NULL, token TEXT NOT NULL, human INTEGER NOT NULL DEFAULT 1, seen INTEGER NOT NULL DEFAULT 0, at INTEGER NOT NULL DEFAULT -1, rtt INTEGER, mode INTEGER NOT NULL DEFAULT 0, flag INTEGER NOT NULL DEFAULT 0, PRIMARY KEY (room, seat))',
+  'CREATE TABLE IF NOT EXISTS lockstep_seats (room TEXT NOT NULL, seat INTEGER NOT NULL, team INTEGER NOT NULL, token TEXT NOT NULL, human INTEGER NOT NULL DEFAULT 1, seen INTEGER NOT NULL DEFAULT 0, at INTEGER NOT NULL DEFAULT -1, rtt INTEGER, mode INTEGER NOT NULL DEFAULT 0, flag INTEGER NOT NULL DEFAULT 0, moved INTEGER NOT NULL DEFAULT 0, PRIMARY KEY (room, seat))',
   'CREATE TABLE IF NOT EXISTS lockstep_cmds (room TEXT NOT NULL, seat INTEGER NOT NULL, seq INTEGER NOT NULL, turn INTEGER NOT NULL, cmd TEXT NOT NULL, PRIMARY KEY (room, seat, seq))',
   'CREATE INDEX IF NOT EXISTS lockstep_cmds_turn ON lockstep_cmds (room, turn)',
   'CREATE TABLE IF NOT EXISTS lockstep_segments (room TEXT NOT NULL, last_turn INTEGER NOT NULL, rows TEXT NOT NULL, PRIMARY KEY (room, last_turn))',
@@ -29,7 +29,7 @@ const SCHEMA = [
 ];
 /* 3c columns for tables created by the 3a/3b relay (live D1 already has them without these columns). ADD COLUMN fails with
    "duplicate column" when present — that error is expected and ignored. */
-const UPGRADES = ['ALTER TABLE lockstep_rooms ADD COLUMN base INTEGER NOT NULL DEFAULT 0', 'ALTER TABLE lockstep_seats ADD COLUMN mode INTEGER NOT NULL DEFAULT 0', 'ALTER TABLE lockstep_seats ADD COLUMN flag INTEGER NOT NULL DEFAULT 0'];
+const UPGRADES = ['ALTER TABLE lockstep_rooms ADD COLUMN base INTEGER NOT NULL DEFAULT 0', 'ALTER TABLE lockstep_seats ADD COLUMN mode INTEGER NOT NULL DEFAULT 0', 'ALTER TABLE lockstep_seats ADD COLUMN flag INTEGER NOT NULL DEFAULT 0', 'ALTER TABLE lockstep_seats ADD COLUMN moved INTEGER NOT NULL DEFAULT 0'];
 const LIFETIME = 6 * 60 * 60 * 1000, DESYNC_KEEP = 3 * 24 * 60 * 60 * 1000; // a room with a desync is kept 3 days for investigation
 const ready = new WeakMap();
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -90,7 +90,11 @@ async function lookup(raw, id, tokenHash) { await ensureSchema(raw); return sess
 
 /* Hold rule in SQL (relay-core sealLimit with `sealed`): the slowest playing seat seen within TAKEOVER_MS that is not more than
    CATCHUP turns behind the sealed turn; if every such seat is catching up, the most advanced one; with no playing seat, the clock. */
-const HOLD = (active, catchup, clock) => `COALESCE((SELECT MIN(at) FROM lockstep_seats WHERE room = ?1 AND human = 1 AND mode = 0 AND seen >= ${active} AND at >= lockstep_rooms.sealed - ${catchup}), (SELECT MAX(at) FROM lockstep_seats WHERE room = ?1 AND human = 1 AND mode = 0 AND seen >= ${active}), ${clock})`;
+/* Stuck seat (relay-core STUCK_MS): still talking (a message within TALKING_MS) but its executed turn has not moved for STUCK_MS
+   while behind the sealed turn. It no longer holds the others (the 20-minute freeze, docs/p3e/stall-20min.md: one connected
+   client not advancing kept the whole room waiting, with no takeover because its pings kept it "present"). */
+const NOT_STUCK = (now) => `NOT (at < lockstep_rooms.sealed AND moved < ${Math.floor(now - core.STUCK_MS)} AND seen >= ${Math.floor(now - core.TALKING_MS)})`;
+const HOLD = (active, catchup, clock, now) => `COALESCE((SELECT MIN(at) FROM lockstep_seats WHERE room = ?1 AND human = 1 AND mode = 0 AND seen >= ${active} AND at >= lockstep_rooms.sealed - ${catchup} AND ${NOT_STUCK(now)}), (SELECT MAX(at) FROM lockstep_seats WHERE room = ?1 AND human = 1 AND mode = 0 AND seen >= ${active}), ${clock})`;
 
 /* 3c computer takeover / release / desync exit: one guarded switch of a seat's mode plus the matching system command at the
    first turn nobody has received yet (sealed + 1), in one transaction. The UPDATE's guard (current mode, and for takeover
@@ -114,13 +118,13 @@ async function exchange(raw, id, head, msg, now, held = 0) {
   const db = session(raw), c = core.clockTurn(head.startAt, head.period, now), seat = head.seat, active = now - core.TAKEOVER_MS;
   // at is monotonic except on a fresh connection (hello / first poll), which reports the client's true executed turn: a
   // refreshed page restarts from turn 0 and must count as catching up, not as still being at its old turn.
-  const statements = [db.prepare(`UPDATE lockstep_seats SET seen = MAX(seen, ?3), at = ${msg.fresh ? '?4' : 'MAX(at, ?4)'}, rtt = COALESCE(?5, rtt) WHERE room = ?1 AND seat = ?2`).bind(id, seat, Math.min(now, msg.seen ?? now), msg.at, msg.rtt)];
+  const statements = [db.prepare(`UPDATE lockstep_seats SET seen = MAX(seen, ?3), moved = CASE WHEN ${msg.fresh ? '1' : '?4 > at'} THEN ?6 ELSE moved END, at = ${msg.fresh ? '?4' : 'MAX(at, ?4)'}, rtt = COALESCE(?5, rtt) WHERE room = ?1 AND seat = ?2`).bind(id, seat, Math.min(now, msg.seen ?? now), msg.at, msg.rtt, now)];
   // Back from a computer takeover and caught up: release the seat at the next undelivered turn.
   if (msg.reclaim) statements.push(...switchStatements(db, id, seat, 1, 0, releaseCmd(head)));
   // Turn = MAX(sealed + 1, MIN(clock turn, hold limit + 1)) (relay-core assignTurn), computed inside the INSERT so it is atomic.
-  for (const cmd of msg.cmds) statements.push(db.prepare(`INSERT INTO lockstep_cmds (room, seat, seq, turn, cmd) SELECT ?1, ?2, ?3, MAX(sealed + 1, MIN(?4, ${HOLD('?6', '?8', '?4')} + ?7 + 1)), ?5 FROM lockstep_rooms WHERE id = ?1 AND status = 'playing' AND NOT EXISTS (SELECT 1 FROM lockstep_seats WHERE room = ?1 AND seat = ?2 AND mode = 2) ON CONFLICT (room, seat, seq) DO NOTHING`).bind(id, seat, cmd.seq, c, cmd.text, active, core.AHEAD, core.CATCHUP));
+  for (const cmd of msg.cmds) statements.push(db.prepare(`INSERT INTO lockstep_cmds (room, seat, seq, turn, cmd) SELECT ?1, ?2, ?3, MAX(sealed + 1, MIN(?4, ${HOLD('?6', '?8', '?4', now)} + ?7 + 1)), ?5 FROM lockstep_rooms WHERE id = ?1 AND status = 'playing' AND NOT EXISTS (SELECT 1 FROM lockstep_seats WHERE room = ?1 AND seat = ?2 AND mode = 2) ON CONFLICT (room, seat, seq) DO NOTHING`).bind(id, seat, cmd.seq, c, cmd.text, active, core.AHEAD, core.CATCHUP));
   const sealAt = statements.length;
-  statements.push(db.prepare(`UPDATE lockstep_rooms SET sealed = MAX(sealed, MIN(?2, ${HOLD('?3', '?5', '?2')} + ?4)) WHERE id = ?1 RETURNING sealed, delay, status, desync`).bind(id, c - 1, active, core.AHEAD, core.CATCHUP));
+  statements.push(db.prepare(`UPDATE lockstep_rooms SET sealed = MAX(sealed, MIN(?2, ${HOLD('?3', '?5', '?2', now)} + ?4)) WHERE id = ?1 RETURNING sealed, delay, status, desync`).bind(id, c - 1, active, core.AHEAD, core.CATCHUP));
   const hashAt = statements.length;
   for (const h of msg.hashes) statements.push(db.prepare('INSERT INTO lockstep_hashes (room, step, hash, agree, bad) VALUES (?1, ?2, ?3, ?4, NULL) ON CONFLICT (room, step) DO UPDATE SET agree = CASE WHEN hash = excluded.hash THEN agree | excluded.agree ELSE agree END, bad = CASE WHEN hash = excluded.hash THEN bad ELSE COALESCE(bad || \',\', \'\') || ?5 END RETURNING hash, agree, bad').bind(id, h.step, h.hash, 1 << seat, seat + ':' + h.hash));
   const readAt = statements.length;

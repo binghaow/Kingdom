@@ -240,6 +240,9 @@ V 时代飞艇工场先研发航空工程，再生产侦察热气球、运输飞
 超过 4 秒没有收到服务器回应（请求仍在等待）|No reply from the server for over 4 s (request still pending)
 错误|error
 点击查看重连原因|Tap to see why it is reconnecting
+省电模式：开|Power saver: on
+省电模式：关|Power saver: off
+省电模式：手机和平板默认开启，画面最多每秒 30 帧、暂停时更低，并降低画布分辨率|Power saver: on by default on phones and tablets; at most 30 frames per second, fewer while paused, lower canvas resolution
 最近一次失败|Last failure
 信息|Message
 距上次成功|Since last success

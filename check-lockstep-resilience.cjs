@@ -12,6 +12,7 @@
       others finish; with 2 players the tie goes to the host;
    6. page refresh: a new client with the same seat token catches up from turn 0 (early) or from the relay's verified
       snapshot (after turn 3000) and plays on;
+   4b. 20-minute freeze model: wedged socket -> silent reconnect; connected-but-stalled seat stops holding the others;
    7. online save / restore: save at a turn, restore through the lobby (new room, segments, claim), replay to the save point
       (checksum equal to the save), unclaimed seat taken over by the computer, play continues.
    Wall-clock relay timers are shortened (TAKEOVER_MS 6 s) and the turn clock accelerated; every run checks per-step
@@ -63,6 +64,22 @@ const sys = (r, seat) => r.recording.commands.filter((c) => c.seat === core.SYST
   r = await run('short-outage', { clients: 2, seconds: 60, period: 50, transport: 'ws', clientCfg: (s) => (s.seat === 1 ? { outage: { atTurn: 200, ms: 2500 } } : {}) });
   assert.equal(sys(r).length, 0, 'no takeover for a short outage');
   done.push(`short outage 2.5 s: wait only, no takeover, seat 1 reconnects ${r.raw.find((c) => c.seat === 1).reconnects}x, consistent`);
+
+  // 4b. 20-minute freeze (docs/p3e/stall-20min.md). (a) Wedged connection: heartbeats keep coming but no turn data reaches seat 1
+  //     (what only a manual reconnect fixed in the field) -> the progress watchdog reopens the socket silently after ~6 s;
+  //     without it the client waits forever (stuckMs disabled: proven to stop, kept out of the check for time).
+  r = await run('wedge', { clients: 2, seconds: 50, period: 50, transport: 'ws', stall: 25, clientCfg: (s) => (s.seat === 1 ? { wedge: { atTurn: 200 } } : {}) });
+  const wd = r.raw.find((c) => c.seat === 1).faults.wedge;
+  assert.ok(wd.recovered > 0 && wd.recovered < 12000 && wd.stuckReconnects >= 1, 'wedged socket recovered by a silent reconnect: ' + JSON.stringify(wd));
+  assert.equal(sys(r).length, 0, 'no takeover for a wedged socket');
+  done.push(`wedged socket (heartbeats, no turns) on seat 1 at turn ${wd.from}: silent reconnect after ${(wd.recovered / 1000).toFixed(1)} s (${wd.stuckReconnects} progress-watchdog reconnect), no takeover, consistent`);
+  // (b) Connected but stalled page: seat 0 stops executing for 20 s while its socket keeps acking -> after STUCK_MS it no longer
+  //     holds seat 1 (before: everybody waited, with no takeover because the pings kept seat 0 present).
+  r = await run('stuck-seat', { clients: 2, seconds: 70, period: 50, transport: 'ws', clientCfg: (s) => (s.seat === 0 ? { stuck: { atTurn: 200, ms: 20000 } } : {}) });
+  const other = r.raw.find((c) => c.seat === 1), waitedMs = other.stats.stallMs;
+  assert.ok(waitedMs < 16000, 'the other seat waited less than the 20 s stall: ' + waitedMs);
+  assert.equal(sys(r).length, 0, 'no takeover for a talking seat');
+  done.push(`seat 0 connected but not executing for 20 s: seat 1 waited ${(waitedMs / 1000).toFixed(1)} s in total (relay stops holding for a stuck seat after ${core.STUCK_MS / 1000} s), seat 0 caught up, consistent`);
 
   // 5. Desync: 3 players -> majority; 2 players -> tie to the host.
   r = await run('desync3', { clients: 3, seconds: 60, period: 50, transport: 'ws', clientCfg: (s) => (s.seat === 2 ? { corrupt: { fromStep: 400 } } : {}), allow: (c) => c.seat === 2, expectDesync: true });

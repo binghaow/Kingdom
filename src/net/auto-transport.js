@@ -13,7 +13,7 @@ export class AutoTransport {
     const o = this.opts, WS = o.WebSocket || globalThis.WebSocket;
     if (o.mode === 'ws' && WS && o.wsUrl) {
       this.mode = 'ws';
-      this.active = new SocketTransport({ url: o.wsUrl, token: o.token, client: this.client, WebSocket: WS, onError: o.onError, onReceive: o.onReceive, onMessage: o.onMessage, stallMs: o.stallMs, onFail: (r) => this.fallback(r) }).start();
+      this.active = new SocketTransport({ url: o.wsUrl, token: o.token, client: this.client, WebSocket: WS, onError: o.onError, onReceive: o.onReceive, onMessage: o.onMessage, stallMs: o.stallMs, stuckMs: o.stuckMs, onFail: (r) => this.fallback(r) }).start();
     } else this.http();
     return this;
   }
