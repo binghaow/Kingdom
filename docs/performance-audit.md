@@ -335,3 +335,22 @@ Full `npm test` and `npm run build` passed. Local browser preview could not conn
 ## 运行期内存预算（feature/memory-and-device-check）
 
 详见 [memory-budget.md](memory-budget.md)：图集改用 createImageBitmap 解码进画布、运行期派生画布缓存统一进 160/96/64 MB 的全局 LRU 预算。后期 412 单位场景渲染进程内存（headless Chromium）电脑 955→666 MB、手机配置 961→629 MB，late-render HUD render p50 26→22 ms、release-check 渲染场景未变慢；仍高于 400/300 MB 目标，剩余为渲染进程地板与常驻帧图（P6）。真机未测。
+
+## 2026-11-25 · iPhone 后期发热：省电模式（分支 `fix/lobby-buildings-net`）
+
+**测法**：`node scripts/perf/late-render.cjs --phone [--away] --saver 0|1 [--pre "document.getElementById('pause').click()"]`，headless Chromium（无 GPU，**本机只有 2 核**），手机横屏上下文 852×393 CSS px、DPR 3、触屏（coarse pointer）；后期场景 4 国约 360 单位、AI 开。指标：每秒画出的帧（rAF 中真正绘制的帧）、主线程 JS 每秒耗时（CDP ScriptDuration，发热的代理量）、主线程全部任务每秒耗时。**这是本机 headless 数据，不是 iPhone 帧率或功耗**。
+
+| 场景（各 2 次，10 s） | 省电关 | 省电开 |
+|---|---|---|
+| 镜头在空地、战斗照打：画出帧/秒 | 59.4 / 58.6 | **30 / 30** |
+| 同上：主线程 JS ms/秒 | 490 / 520 | **322 / 324（−36%）** |
+| 同上：主线程全部任务 ms/秒 | 683 / 771 | **432 / 440（−40%）** |
+| 同上：每帧 JS ms / HUD render p50 | 8.3–8.9 / 3.6–4.2 | 10.7–10.8 / 3.9（含每秒 20 步模拟，帧数减半后摊到每帧更多） |
+| 暂停菜单：画出帧/秒、JS ms/秒、任务 ms/秒 | 59.4、297、567 | **7.5、43、87（−86%）** |
+| 四军同屏交战（本机 CPU 已满，15–20 帧，帧率上限不起作用） | 15 fps，JS 406–420 ms/s | 20 fps，JS 447–471 ms/s（画布倍数更低，同样 CPU 画出更多帧） |
+
+**改了什么**（`public/expansion.js`，只改表现层）：手机/平板默认开“省电模式”（暂停菜单按钮“省电模式：开/关”，存 localStorage，主屏 App 也能改）：画面最多每秒 30 帧，暂停/菜单/结束后每秒 8 帧；触屏画布倍数上限 1.5 → 1.25。模拟时钟不变（跳过的 rAF 把时间计入下一帧的步进累加），锁步、录像不受影响。电脑默认关，桌面渲染路径不变（release-check 渲染节确认）。
+
+**没做 / 留给 P5/P6**：屏幕外和远处单位降细节、每帧重复计算的系统性削减（渲染本身仍是每帧 3.6–4.2 ms，后期交战时 14–15 ms）。模拟每秒 20 步约 180 ms/秒的主线程时间不受省电模式影响，彻底解决靠模拟进 Worker（P4 4c-2）和 P5/P6。
+
+**需要真机验证**：iPhone 后期（≥ 8 分钟、≥ 100 人口）开着省电模式玩 15 分钟以上：发热、帧率是否稳在 30、战场和小地图是否正常（AGENTS.md 画布规则）、1.25 倍画布在 iPhone 上的清晰度是否可以接受。
