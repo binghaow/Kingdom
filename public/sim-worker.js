@@ -9654,7 +9654,7 @@
                     sim.emit("aiLanding", { team, target: F.target.team, size: out.length, x: Math.round(b.lx), y: Math.round(b.ly), region: there.length * 2 >= out.length ? "enemy" : "other" });
                     x.stage = "return";
                     x.since = s.time;
-                    sim.order([ship], { type: "move", x: F.port.x, y: F.port.y });
+                    if (F.port) sim.order([ship], { type: "move", x: F.port.x, y: F.port.y });
                   } else if (s.time - x.since > 160) {
                     x.stage = "flee";
                     sim.order([ship], { type: "move", x: F.port.x, y: F.port.y });
