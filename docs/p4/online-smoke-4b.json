@@ -1,0 +1,109 @@
+{
+ "config": {
+  "minutes": 4,
+  "period": 50,
+  "latency": 47,
+  "limit": 10000,
+  "outage": 90,
+  "outageAt": 99,
+  "freeze": 20,
+  "freezeAt": 99,
+  "refreshAt": 99,
+  "port": 8765,
+  "json": "docs/p4/online-smoke-4b.json",
+  "latencyScaled": 24,
+  "turns": 2400,
+  "room": "FFVS99G8",
+  "map": "coast_l",
+  "nations": 3,
+  "computerSeats": 1
+ },
+ "ok": true,
+ "finals": [
+  "5a5d4ae3",
+  "5a5d4ae3"
+ ],
+ "checksumStepsCompared": 240,
+ "mismatch": null,
+ "wallSeconds": 243,
+ "sealed": 2402,
+ "rows": {
+  "cmds": 973,
+  "system": 0,
+  "hashes": 240,
+  "bad": 0,
+  "cmdBytes": 65979
+ },
+ "plan": [
+  "SEARCH lockstep_cmds USING INDEX lockstep_cmds_turn (room=? AND turn>? AND turn<?)",
+  "USE TEMP B-TREE FOR LAST 2 TERMS OF ORDER BY"
+ ],
+ "system": [],
+ "platform": {
+  "calls": 0,
+  "refused": 0,
+  "sockets": 0
+ },
+ "clients": [
+  {
+   "seat": 0,
+   "turns": 2400,
+   "transport": "ws",
+   "fallback": null,
+   "reconnects": 1,
+   "socket": {
+    "planned": 1,
+    "watchdog": 0,
+    "backoffMs": 0,
+    "maxBackoff": 0
+   },
+   "faults": {
+    "outage": {
+     "atTurn": 59400,
+     "ms": 90000,
+     "done": false
+    },
+    "freeze": null
+   },
+   "restart": null,
+   "control": [],
+   "stallMs": 0,
+   "watchdog": 0,
+   "commands": 492,
+   "units": 98,
+   "simMsPerTurn": 5.39,
+   "latencyP50": 195,
+   "latencyP90": 198
+  },
+  {
+   "seat": 1,
+   "turns": 2400,
+   "transport": "ws",
+   "fallback": null,
+   "reconnects": 1,
+   "socket": {
+    "planned": 1,
+    "watchdog": 0,
+    "backoffMs": 0,
+    "maxBackoff": 0
+   },
+   "faults": {
+    "outage": null,
+    "freeze": {
+     "atTurn": 59400,
+     "ms": 20000,
+     "done": false
+    }
+   },
+   "restart": null,
+   "control": [],
+   "stallMs": 0,
+   "watchdog": 0,
+   "commands": 481,
+   "units": 98,
+   "simMsPerTurn": 5.44,
+   "latencyP50": 195,
+   "latencyP90": 198
+  }
+ ]
+}

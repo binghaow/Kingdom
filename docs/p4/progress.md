@@ -123,3 +123,13 @@
 - 验收：`check-replay` 4 段录像校验值与 4a 完全相同（未重录）；另用 3 局电脑对电脑（cliff/straits/lake，600–1200 s）和一局“打掉对方全部建筑后再跑 900 步”比对 4a 提交与 4b 的整份状态 SHA-1，全部相同。`check-pipeline.cjs`（入 check-all）：模拟层不得再有 tick 覆盖/`super.tick`、顺序、registerSystem 插入位置、计时、结束后跳过内层。
 - 性能（Node，`scripts/perf/late-game.cjs 600`，371 单位，与 4a 提交交替各 3 次）：每步均值 9.35/9.00/8.91 → 8.70/9.49/9.50 ms，p95 16.6–17.0 → 16.1–17.8 ms，在本机噪声内（完整 release-check 见报告）。
 - 剩下没做：`window.PerformanceAudit` 的寻路/碰撞/迷雾两处旧计时钩子仍在（只在页面主线程有效）；Worker 模式下 HUD 看不到系统分项（Worker 自己可以 `profileSystems`，没接到 HUD）；units 系统内部（移动/寻路/战斗）要等 P5 的数据重排才能拆开。
+
+## 3. 4c-2 联机模拟进 Worker（本段未做）
+- 原因：本次额度优先给 4a（含统计中发现的三个 AI 卡死问题）和 4b；按优先级 0→1→2→3 停在可发布的 4a/4b。
+- 计划不变（见第一段 4.4c-2）：`LockstepClient` + `network-commands` + 快照/追帧放进 `src/sim/host.js` 的新消息类型（`lsInit / lsTurn / lsIssue`），传输层（`auto-transport.js`）留在主线程，收到的回合 `postMessage` 进 Worker；渲染副本用 Worker 生成的 slim 视图（`networkSnapshot` 同格式），`KingdomNetworkClient.apply` 不变；开关仍是“多线程”设置 + `?simWorker`，默认关。现在 4a 已让电脑座位的指令成为状态的一部分，Worker 里跑联机不需要额外处理电脑座位。
+- 验收沿用：check-lockstep / check-lockstep-restore / resilience + “同一联机录像主线程与 Worker 校验值相同” + 2 人带电脑座位的浏览器冒烟（开/关各一次）。
+
+## 4. 交付检查（第二段）
+- check-all 69/69（含新增 check-ai-commands、check-pipeline），resilience 单独 PASS；build、check-artifact 通过；release-check 113 PASS / 1 WARN（千兵 >40 ms 步，只记录）/ 0 FAIL（`docs/release-reports/2026-11-25-a6a7aab.md`）；联机冒烟 2 人 + 1 电脑座位 240 校验值一致。
+- 未验证：Safari/iPad/iPhone 真机；浏览器里 `?perf=1` 的系统分项只在主线程模拟时显示（Worker 模式未接）；电脑对电脑统计是 Node、每步 0.1 s，不是真实对局的 0.05 s。
+- 合规影响：未引入新的发布合规依赖（新增的 `kingdom-commands.js` 是同源脚本，无新权限/网络请求/第三方代码）。
