@@ -235,6 +235,8 @@ addSimLayer(Sim,'engine',{pre:[['engine.ended',Sim.prototype.sysEnded],['engine.
    replay runner and the simulation worker use. The gate is installed lazily on the prototype of every class that is
    instantiated (new.target), because upper layers override the entry points and call super: only the outermost call may decide. */
 const Commands=typeof module!=='undefined'&&module.exports?require('./kingdom-commands.js'):root.KingdomCommands;
+/* P5: the spatial service (src/core/spatial.js, loaded as public/kingdom-spatial.js before engine.js); every layer reads it as K.spatial. */
+const Spatial=typeof module!=='undefined'&&module.exports?require('./kingdom-spatial.js'):root.KingdomSpatial;
 const GATED=typeof Symbol==='function'?Symbol('commandGate'):'__commandGate';
 function gateCommands(Ctor){const P=Ctor&&Ctor.prototype;if(!P||Object.prototype.hasOwnProperty.call(P,GATED))return;if(!Commands)throw Error('kingdom-commands.js must be loaded before engine.js');Object.defineProperty(P,GATED,{value:true});
  for(const name of Commands.TYPES){const inner=P[name];if(typeof inner!=='function')continue;Object.defineProperty(P,name,{configurable:true,writable:true,value:function(...args){return this._aiPhase>0?this.aiCommand(name,args):inner.apply(this,args)}})}
@@ -250,5 +252,5 @@ Sim.prototype.aiUnitOf=function(u){return this.s.aiUnits?.[u.id]};
 Sim.prototype.aiPrepareOrder=function(units){return units};
 Sim.prototype.aiPruneUnits=function(){const m=this.s.aiUnits;if(!m)return;for(const id of Object.keys(m))if(!this.byId(+id))delete m[id]};
 Sim.prototype.drainCommands=function(){this._applyingAI=true;try{return Commands.drainCommands(this)}finally{this._applyingAI=false}};
-const api={addSimLayer,registerSystem,SKIP,profileSystems,takeSystemProfile,Sim,defs:D,tech:TECH,map:MAP,ageNames,river,riverCenter:center,distance,townRules:TOWN_RULES};if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.KingdomSim=api;
+const api={spatial:Spatial,addSimLayer,registerSystem,SKIP,profileSystems,takeSystemProfile,Sim,defs:D,tech:TECH,map:MAP,ageNames,river,riverCenter:center,distance,townRules:TOWN_RULES};if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.KingdomSim=api;
 })(typeof window!=='undefined'?window:globalThis);
