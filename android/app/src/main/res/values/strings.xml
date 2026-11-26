@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Frontier Kingdom Playtest</string>
+    <string name="title_activity_main">Frontier Kingdom Playtest</string>
+    <string name="package_name">com.frontierkingdom.playtest</string>
+    <string name="custom_url_scheme">com.frontierkingdom.playtest</string>
+</resources>

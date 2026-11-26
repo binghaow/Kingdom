@@ -4,6 +4,8 @@ This is a working release checklist for Frontier Kingdom's eventual iPhone/iPad 
 
 ## Current known state
 
+- Android offline trial work: [plan and collection boundaries](android-playtest-plan.md). Local diagnostics are opt-in, capped at 300 records / 7 days, and shared only by user action; no analytics backend is implemented. Android app backup is disabled. Native packaging is under validation, not evidence of iOS readiness or release clearance.
+
 - The game is currently a browser-based HTML/JavaScript game.
 - A browser link is not an iOS app build and does not demonstrate App Store readiness.
 - Native packaging/build, TestFlight validation, and App Review have not been recorded as complete here.

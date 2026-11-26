@@ -1,0 +1,7 @@
+{
+  "appId": "com.frontierkingdom.playtest",
+  "appName": "Frontier Kingdom Playtest",
+  "webDir": ".local/android-web",
+  "android": { "allowMixedContent": false },
+  "server": { "androidScheme": "https" }
+}

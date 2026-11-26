@@ -1,0 +1,30 @@
+'use strict';
+// Runtime contract test for consent, bounded storage, sharing and worker snapshot identity.
+const vm=require('node:vm'),fs=require('node:fs'),assert=require('node:assert/strict');
+const data=new Map(),listeners={},controls={},parents={},timers=new Map();let nextTimer=0,shared;
+const element=()=>({dataset:{},children:[],value:'',checked:false,append(x){this.children.push(x)},showModal(){},close(){},querySelector(selector){return controls[selector]??(controls[selector]=element())}});
+for(const id of ['welcome','pause-screen','end-dialog'])parents[id]=element();
+const state={time:1,units:[],buildings:[],ages:[1],difficulty:'normal',nations:['britain','china']};
+const win={FrontierPlaytestBuild:{source:'test'},frontier:{state,paused:false},KingdomSim:{defs:{}},FrontierNative:{async exportReport(r){shared=r}},addEventListener(name,fn){listeners[name]=fn}};
+const ctx={window:win,document:{hidden:false,documentElement:{lang:'en'},body:element(),querySelector(){return null},querySelectorAll(){return []},getElementById(id){return parents[id]||null},createElement:element,addEventListener(name,fn){listeners[name]=fn}},localStorage:{getItem:k=>data.get(k)||null,setItem:(k,v)=>data.set(k,v)},navigator:{userAgent:'Android 14 Chrome/130.0.0.0'},crypto:{randomUUID:()=>String(nextTimer)+'-session'},innerWidth:393,innerHeight:852,devicePixelRatio:2,setInterval(fn){timers.set(++nextTimer,fn);return nextTimer},clearInterval(id){timers.delete(id)},setTimeout(){},Date,console};
+vm.runInNewContext(fs.readFileSync(require('node:path').join(__dirname,'../../public/playtest.js'),'utf8'),ctx);
+const key='frontier-trial-observations-v1';
+assert.equal(timers.size,0,'no sampling without consent');
+listeners.error({lineno:1,colno:2,message:'SECRET',filename:'https://private'});
+assert.equal(JSON.parse(data.get(key)).length,0,'no error storage without consent');
+parents.welcome.children[0].onclick();
+controls['#trial-consent'].onchange({target:{checked:true}});
+assert.equal(timers.size,1);
+for(let i=0;i<400;i++)listeners.error({lineno:i,colno:2,message:'SECRET',filename:'https://private'});
+let events=JSON.parse(data.get(key));assert.equal(events.length,300);assert(!data.get(key).includes('SECRET'));assert(!data.get(key).includes('https://private'));
+const sample=[...timers.values()][0];
+sample();win.frontier.state={...state,time:16};sample();
+events=JSON.parse(data.get(key));assert.equal(events.filter(e=>e.type==='session_observed').length,0,'replacing a worker snapshot must not start a new session (first session has aged out of the bounded buffer)');
+for(const name of ['#trial-reason','#trial-stop','#trial-return'])controls[name]=element();
+controls['#trial-reason'].value='slow';controls['textarea'].value='A voluntary test report';
+(async()=>{
+ await controls['#trial-share'].onclick();assert.equal(shared.reason,'slow');assert.equal(shared.notes,'A voluntary test report');assert(shared.diagnostics.length<=300);assert(!JSON.stringify(shared).includes('SECRET'));
+ controls['#trial-clear'].onclick();assert.equal(timers.size,0);assert.equal(JSON.parse(data.get(key)).length,0);
+ listeners.error({lineno:5,colno:6});assert.equal(JSON.parse(data.get(key)).length,0,'clearing also revokes collection');
+ console.log('PASS consent default-off, bounded diagnostics, error redaction, worker snapshot identity, voluntary export, clear/revoke. Mocked runtime contract, not a browser/native-device test.');
+})().catch(e=>{console.error(e);process.exitCode=1});
