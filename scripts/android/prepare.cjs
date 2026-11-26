@@ -14,6 +14,12 @@ html=html.replace('<script src="network-ui.js"></script>','').replace('<script s
 html=html.replace('</head>','<link rel="stylesheet" href="playtest.css"></head>');
 html=html.replace('</body>','<script src="native-bridge.js"></script><script src="playtest-build.js"></script><script src="playtest.js"></script></body>');
 fs.writeFileSync(path.join(out,'index.html'),html);
+const notices=['Runtime dependency notices (additional Android/Gradle dependency audit remains required).'];
+for(const name of ['core','android','filesystem','share']){
+ const dir=path.join(root,'node_modules/@capacitor',name),pkg=JSON.parse(fs.readFileSync(path.join(dir,'package.json'),'utf8'));
+ notices.push('@capacitor/'+name+' '+pkg.version+'\n'+fs.readFileSync(path.join(dir,'LICENSE'),'utf8'));
+}
+fs.writeFileSync(path.join(out,'third-party-notices.txt'),notices.join('\n\n----------------\n\n'));
 const sha=cp.execFileSync('git',['rev-parse','HEAD'],{cwd:root,encoding:'utf8'}).trim();
 const dirty=cp.spawnSync('git',['diff','--quiet','HEAD','--'],{cwd:root}).status!==0||!!cp.execFileSync('git',['ls-files','--others','--exclude-standard'],{cwd:root,encoding:'utf8'}).trim();
 fs.writeFileSync(path.join(out,'playtest-build.js'),'window.FrontierPlaytestBuild='+JSON.stringify({channel:'android-offline-trial',source:sha,dirty,schema:1})+';');
