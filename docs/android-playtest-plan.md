@@ -1,5 +1,7 @@
 # Android 单机试玩与反馈计划 — 2026-11-26
 
+后续细化与文件 dashboard：[实时统计、反馈分析和获客方案](playtest-dashboard-and-acquisition.md)。当前文件工具与云端实时统计的实施边界分别列明。
+
 ## 基线与交付边界
 
 已联网 fetch GitHub main：d1dfb30。Sites 当前第 73 版，与上一轮 d1dfb30 部署记录一致；不是再次部署。原工作目录仍有音频草稿，未修改；独立工作分支 codex/android-playtest。

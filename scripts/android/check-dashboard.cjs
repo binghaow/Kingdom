@@ -1,0 +1,12 @@
+'use strict';
+const assert=require('node:assert/strict'),A=require('../../tools/playtest-dashboard/analytics.js');
+const legacy={schema:1,build:{source:'test'},notes:'"卡顿",\n<script>不是代码</script>',diagnostics:[{at:1000,session:'a',type:'progress',gameSeconds:5},{at:61000,session:'a',type:'progress',gameSeconds:65}]};
+const imported=A.fromReport(legacy),s=A.summary(imported);
+assert.equal(s.sessions,1);assert.equal(s.uniqueInstallations,0);assert.equal(s.knownTimeSessions,0);assert.equal(s.phases.length,0);assert.equal(s.feedback.length,1);
+assert.equal(A.summary([...imported,...imported]).feedback.length,1);
+const roundTrip=A.parseCSV(A.toCSV(imported));assert.equal(A.summary([...imported,...roundTrip]).feedback.length,1);assert.equal(roundTrip[0].notes,legacy.notes);assert.equal(JSON.parse(roundTrip.find(r=>r.row_type==='event').payload_json).gameSeconds,5);
+const metrics=A.summary([{row_type:'session',session_id:'s',install_id:'i',active_seconds:20},{row_type:'session',session_id:'s',install_id:'i',active_seconds:30},{row_type:'session',session_id:'s2',install_id:'i',active_seconds:0},{row_type:'event',event:'phase_interval',phase:'economy',duration_ms:5000}]);
+assert.equal(metrics.sessions,2);assert.equal(metrics.uniqueInstallations,1);assert.equal(metrics.totalActiveSeconds,30);assert.equal(metrics.knownTimeSessions,2);assert.deepEqual(metrics.phases,[['economy',5]]);
+const dangerous=[{row_type:'feedback',notes:' =HYPERLINK("https://bad")'}];const safe=A.toCSV(dangerous);assert(safe.includes("' =HYPERLINK"));assert.equal(A.summary([...dangerous,...A.parseCSV(safe)]).feedback.length,1,'safe spreadsheet export must retain stable IDs');
+assert.throws(()=>A.parseCSV('row_type,row_type\nfeedback,feedback'));assert.throws(()=>A.parseCSV('row_type,notes\nfeedback,"unfinished'));assert.throws(()=>A.normalize([{row_type:'unknown'}]));
+console.log('PASS dashboard: no invented players/time/dwell from legacy reports; cumulative-session time, de-duplication, multiline UTF-8 CSV, raw payload preservation, formula escaping, export/reimport IDs and malformed input checks. Node logic tests; no visual sign-off.');
