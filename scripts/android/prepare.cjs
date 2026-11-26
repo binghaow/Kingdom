@@ -15,7 +15,7 @@ html=html.replace('</head>','<link rel="stylesheet" href="playtest.css"></head>'
 html=html.replace('</body>','<script src="native-bridge.js"></script><script src="playtest-build.js"></script><script src="playtest.js"></script></body>');
 fs.writeFileSync(path.join(out,'index.html'),html);
 const sha=cp.execFileSync('git',['rev-parse','HEAD'],{cwd:root,encoding:'utf8'}).trim();
-const dirty=!!cp.execFileSync('git',['status','--porcelain','--untracked-files=normal'],{cwd:root,encoding:'utf8'}).trim();
+const dirty=cp.spawnSync('git',['diff','--quiet','HEAD','--'],{cwd:root}).status!==0||!!cp.execFileSync('git',['ls-files','--others','--exclude-standard'],{cwd:root,encoding:'utf8'}).trim();
 fs.writeFileSync(path.join(out,'playtest-build.js'),'window.FrontierPlaytestBuild='+JSON.stringify({channel:'android-offline-trial',source:sha,dirty,schema:1})+';');
 require('esbuild').buildSync({entryPoints:[path.join(root,'mobile/native-entry.js')],outfile:path.join(out,'native-bridge.js'),bundle:true,format:'iife',platform:'browser',target:'es2020'});
 // Fail closed if the main game would require a remote script, font or stylesheet.
