@@ -24,7 +24,11 @@ const done=[];const ok=(name)=>{done.push(name);console.log('  ok '+name)};
 
 /* page helpers (installed once per page) */
 const PAGE_SETUP=()=>{
-  const sim=__api.getSim(),s=sim.state,K=KingdomSim,A=KingdomArt;sim.ai=()=>{};sim.raids=()=>{};
+  const sim=__api.getSim(),s=sim.state,K=KingdomSim,A=KingdomArt;
+  // This is an input/queue-routing fixture, not a timed simulation test. Keep positions and queues stable between gestures:
+  // moving villagers can re-enter the "buildings only" box, and production/AI can issue unrelated orders during clicks.
+  // The live page, renderer, event handlers, command methods and all input assertions remain in use.
+  sim.tick=()=>{};sim.ai=()=>{};sim.raids=()=>{};
   window.__log=[];for(const m of ['order','train','setRally']){const f=sim[m].bind(sim);sim[m]=(...a)=>{__log.push(m==='order'?[m,a[1]?.type,a[0].map(u=>u.id)]:m==='train'?[m,a[0].id,a[1]]:[m,a[0].id,a[1]&&{x:Math.round(a[1].x),y:Math.round(a[1].y)}]);return f(...a)}}
   Object.assign(s.resources[0],{food:99999,wood:99999,gold:99999,stone:99999});
   const town=s.buildings.find(b=>b.team===0&&b.kind==='town');
@@ -152,7 +156,14 @@ async function touchPage(browser,port){
   const vis=await p.evaluate(()=>__barracks.filter(id=>__inView(frontier.state.buildings.find(b=>b.id===id))).length);
   const bPt=await p.evaluate(()=>{const bs=__barracks.map(id=>frontier.state.buildings.find(b=>b.id===id));for(const b of bs){const h=__hitPoint(b);if(h)return h}return null});assert(bPt,'no barracks under a finger');
   const q=await p.evaluate(w=>__toScreen(w),bPt);
-  const cdp=await ctx.newCDPSession(p);await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:q.x,y:q.y}]});await p.waitForTimeout(650);await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});await p.waitForTimeout(150);
+  const cdp=await ctx.newCDPSession(p);await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:q.x,y:q.y}]});
+  try {
+    await p.waitForTimeout(650);
+    // Under a busy headless renderer, the page's 450 ms timer may run later than the driver's wall-clock sleep.
+    // Hold the real touch until the observable long-press result, rather than lifting before the handler runs.
+    await until(()=>frontier.selected.length>=2&&frontier.selected.every(id=>__barracks.includes(id)),null,5000);
+  } finally { await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]}); }
+  await p.waitForTimeout(150);
   let sel=await p.evaluate(()=>frontier.selected),allB=await p.evaluate(()=>frontier.selected.every(id=>__barracks.includes(id)));
   assert(sel.length>=2&&allB,'long press selects the same-type buildings on screen ('+sel.length+' of '+vis+' visible)');assert(sel.length>=vis,'every visible barracks is selected');
   ok('touch: long press on a barracks selects all '+sel.length+' barracks on screen');
