@@ -641,7 +641,7 @@
           const latency = mine ? now - mine.at : null;
           if (latency !== null) this.stats.latency.push(latency);
           if (mine && this.stats.trace) this.stats.trace.push([+mine.clock.toFixed(2), turn, +this.clockTurn().toFixed(2)]);
-          this.onResult?.(result, r.cmd, latency);
+          this.onResult?.(result, r.cmd, latency, r.seq);
         }
       }
       this.turns.delete(turn);
@@ -1242,7 +1242,7 @@
             return;
           }
           const text = (await Promise.all(r.data.map((p) => p))).join("");
-          const loaded = client.loadSnapshot({ turn: r.turn, hash: r.hash, text: await decode(text, r.meta?.enc), aiSeats: r.meta?.aiSeats || [], seq: r.seq, encoded: { enc: r.meta?.enc === "gzip" ? "gzip" : "json", data: text } });
+          const loaded = await client.loadSnapshot({ turn: r.turn, hash: r.hash, text: await decode(text, r.meta?.enc), aiSeats: r.meta?.aiSeats || [], seq: r.seq, encoded: { enc: r.meta?.enc === "gzip" ? "gzip" : "json", data: text } });
           if (loaded.ok) {
             stats.loads++;
             stats.loadMs += Date.now() - t0;
@@ -1263,8 +1263,488 @@
     };
   }
 
-  // src/net/browser.js
+  // src/net/worker-lockstep.js
   var VIEW_EVERY = 90;
+  function mergeProfile(into, add) {
+    if (!add) return into;
+    const out = into || {};
+    for (const k of Object.keys(add)) {
+      const v = add[k], e = out[k] || (out[k] = { ms: 0, n: 0, max: 0 });
+      e.ms += v.ms;
+      e.n += v.n;
+      if (v.max > e.max) e.max = v.max;
+    }
+    return out;
+  }
+  function startWorkerLockstep(root2, opts) {
+    const ls = opts.room.lockstep;
+    if (!ls) throw new Error("lockstep: room lockstep metadata missing");
+    const url = opts.url || "sim-worker.js";
+    const worker = new root2.Worker(url);
+    const now = () => root2.performance.timeOrigin + root2.performance.now();
+    const executed = [];
+    const teams = new Map((ls.seats || []).map((s) => [s.seat, s.team]));
+    const team = teams.has(opts.seat) ? teams.get(opts.seat) : -1;
+    const resumeAt = ls.snap && Number.isSafeInteger(ls.snap.turn) && ls.snap.turn > 0 ? { turn: ls.snap.turn, hash: ls.snap.hash } : null;
+    let ready = false, busy = false, loadingSnap = false, saving = false, stopped = false;
+    let lastView = -Infinity, viewTurn = -1, waitShown = false, progressShown = false, timer = null, reqSeq = 0;
+    let pendingRows = [], wasCatchup = false, profiling = !!opts.profile, sysProf = null;
+    const waiting = /* @__PURE__ */ new Map(), idleWaiters = [];
+    const stats = { views: 0, viewMs: 0, maxViewMs: 0, catchupMs: 0, catchupTurns: 0, workerSimMs: 0, workerTurns: 0 };
+    const proxy = {
+      setup: ls.setup,
+      seat: opts.seat,
+      teams,
+      team,
+      startAt: ls.startAt,
+      period: ls.period || DEFAULT_PERIOD,
+      now,
+      navRoom: opts.room.id,
+      nextTurn: 0,
+      step: 0,
+      sealed: -1,
+      delay: 2,
+      seen: /* @__PURE__ */ new Set(),
+      outbox: [],
+      seq: 0,
+      issued: /* @__PURE__ */ new Map(),
+      hashQueue: [],
+      hashLog: [],
+      offset: null,
+      samples: [],
+      rtt: null,
+      seatInfo: null,
+      desync: null,
+      desyncInfo: null,
+      offer: null,
+      waitingSince: null,
+      log: [],
+      logFrom: 0,
+      margin: 30,
+      aiSeats: /* @__PURE__ */ new Set(),
+      aiTeams: /* @__PURE__ */ new Set(),
+      reclaim: false,
+      control: [],
+      resumeAt,
+      lastSnap: null,
+      saveHash: null,
+      onSnapshot: null,
+      stats: { requests: 0, failures: 0, up: 0, down: 0, latency: [], turnLatency: [], catchup: 0, stalls: 0, stallMs: 0, commands: 0, rejected: 0 },
+      serverNow() {
+        return this.now() + (this.offset ?? 0);
+      },
+      clockTurn() {
+        return (this.serverNow() - this.startAt) / this.period;
+      },
+      lagTurns() {
+        const rtt = this.rtt ?? 100, half = rtt / 2;
+        return Math.max((half + this.margin) / this.period, this.delay - (half + this.period / 2) / this.period);
+      },
+      horizon() {
+        return Math.floor(this.clockTurn() - 1 - this.lagTurns());
+      },
+      issue(type, args) {
+        if (this.team < 0 || this.desync) return false;
+        const item = { seq: ++this.seq, cmd: { type, args: args || {} }, at: this.now(), clock: this.clockTurn() };
+        this.outbox.push(item);
+        this.issued.set(item.seq, item);
+        this.stats.commands++;
+        return true;
+      },
+      outgoing({ wait = true, turns = true, seats = false, reclaim = false } = {}) {
+        const cmds = this.outbox.splice(0, 32), hashes = this.hashQueue.splice(0, 16);
+        const body = { a: this.sealed, x: this.nextTurn - 1 };
+        if (!wait) body.w = 0;
+        if (!turns) body.q = 0;
+        if (this.rtt !== null) body.r = Math.round(this.rtt);
+        if (cmds.length) body.c = cmds.map((c) => [c.seq, c.cmd]);
+        if (hashes.length) body.h = hashes;
+        if (seats) body.s = 1;
+        if (reclaim) body.k = 1;
+        return { body, cmds, hashes, sentAt: this.now() };
+      },
+      requeueUnconfirmed() {
+        const list2 = [...this.issued.values()].filter((i) => !this.seen.has(this.seat + ":" + i.seq) && !this.outbox.includes(i));
+        this.outbox.unshift(...list2.sort((a, b) => a.seq - b.seq));
+      },
+      failed(token) {
+        this.stats.failures++;
+        this.outbox.unshift(...token.cmds.filter((c) => !this.outbox.includes(c)));
+        this.hashQueue.unshift(...token.hashes);
+      },
+      receive(msg, token, recvAt = this.now()) {
+        this.stats.requests++;
+        if (token) {
+          const net = Math.max(0, recvAt - token.sentAt - (msg.hw || 0));
+          this.rtt = this.rtt === null ? net : this.rtt * 0.8 + net * 0.2;
+          this.samples.push({ net, offset: this.startAt + msg.n - (recvAt - net / 2) });
+          if (this.samples.length > 30) this.samples.shift();
+          this.offset = this.samples.reduce((a, b) => b.net < a.net ? b : a).offset;
+        }
+        if (Number.isFinite(msg.d)) this.delay = msg.d;
+        if (msg.snap && (!this.offer || msg.snap.turn > this.offer.turn)) this.offer = msg.snap;
+        if (msg.seats) this.seatInfo = msg.seats.map(([seat, t, at, age, mode2]) => ({ seat, team: t, at, age, mode: mode2 || 0 }));
+        if (msg.ds) {
+          this.desyncInfo = msg.ds;
+          if (!this.desync && (!Array.isArray(msg.ds.losers) || msg.ds.losers.includes(this.seat))) this.desync = msg.ds;
+        }
+        for (const row of msg.t || []) {
+          const [turn, seat, seq] = row, key = seat + ":" + seq;
+          if (seat === this.seat && seq > this.seq) this.seq = seq;
+          if (turn < this.nextTurn || this.seen.has(key)) continue;
+          this.seen.add(key);
+          pendingRows.push(row);
+        }
+        if (Number.isFinite(msg.se) && msg.t && msg.se > this.sealed) this.sealed = msg.se;
+      },
+      progress() {
+        if (this.resumeAt) return { turn: this.nextTurn, target: Math.max(this.sealed, this.resumeAt.turn), behind: Math.max(this.sealed, this.resumeAt.turn) - this.nextTurn, snapshot: true };
+        const behind = this.sealed - this.nextTurn;
+        return behind > CATCHUP ? { turn: this.nextTurn, target: this.sealed, behind } : null;
+      },
+      waiting(limitMs = 1e3) {
+        if (this.waitingSince === null || this.now() - this.waitingSince < limitMs) return null;
+        const behind = (this.seatInfo || []).filter((s) => s.seat !== this.seat && s.team >= 0 && !s.mode && (s.at < this.sealed - 5 || s.age > 1500)).sort((a, b) => a.at - b.at)[0];
+        return behind ? { seat: behind.seat, team: behind.team, ms: this.now() - this.waitingSince, takeoverIn: Math.max(0, Math.ceil((TAKEOVER_MS - behind.age) / 1e3)), offline: behind.age > 1500 } : { seat: null, team: null, ms: this.now() - this.waitingSince };
+      },
+      async loadSnapshot(snap) {
+        if (stopped) return { ok: false, hash: null };
+        loadingSnap = true;
+        try {
+          const msg = await ask("lsLoadSnapshot", { snap: { turn: snap.turn, hash: snap.hash, text: snap.text, aiSeats: snap.aiSeats || [], seq: snap.seq } });
+          if (!msg.ok) return { ok: false, hash: msg.hash };
+          this.nextTurn = msg.nextTurn;
+          this.step = msg.step;
+          this.sealed = Math.max(this.sealed, msg.sealed);
+          pendingRows = pendingRows.filter((r) => r[0] >= snap.turn);
+          this.aiSeats = new Set(msg.aiSeats);
+          this.aiTeams = new Set(msg.aiTeams);
+          if (Number.isSafeInteger(snap.seq) && snap.seq > this.seq) this.seq = snap.seq;
+          this.logFrom = msg.logFrom;
+          this.log = [];
+          this.hashLog.push([msg.step, msg.hash]);
+          this.stats.snapshotTurn = msg.snapshotTurn;
+          this.lastSnap = { turn: snap.turn, step: msg.step, hash: msg.hash, text: snap.text, aiSeats: [...this.aiSeats], encoded: snap.encoded || null };
+          this.saveHash = { turn: msg.nextTurn, hash: msg.hash };
+          if (this.resumeAt && snap.turn >= this.resumeAt.turn) this.resumeAt = null;
+          viewTurn = -1;
+          return { ok: true, hash: msg.hash };
+        } finally {
+          loadingSnap = false;
+        }
+      },
+      recording() {
+        return {
+          format: "kingdom-lockstep",
+          version: 1,
+          setup: this.setup,
+          period: this.period,
+          seats: [...this.teams].map(([seat, t]) => ({ seat, team: t })),
+          turns: this.nextTurn,
+          logFrom: this.logFrom || 0,
+          commands: this.log.slice(),
+          checksums: this.hashLog.map(([step, hash]) => ({ step, hash })),
+          aiSeats: [...this.aiSeats]
+        };
+      }
+    };
+    function ask(type, extra = {}) {
+      if (stopped) return Promise.reject(Error("lockstep worker stopped"));
+      const q = ++reqSeq;
+      return new Promise((resolve, reject) => {
+        waiting.set(q, { resolve, reject });
+        worker.postMessage({ t: type, q, ...extra });
+      });
+    }
+    function waitIdle() {
+      if (!busy) return Promise.resolve();
+      return new Promise((resolve) => idleWaiters.push(resolve));
+    }
+    function flushIdle() {
+      if (busy || !idleWaiters.length) return;
+      const list2 = idleWaiters.splice(0);
+      for (const fn of list2) fn();
+    }
+    function updateStall(executedTurns) {
+      if (!proxy.resumeAt) {
+        const due = proxy.horizon() >= proxy.nextTurn && proxy.nextTurn > proxy.sealed;
+        if (due && !proxy.desync) {
+          if (proxy.waitingSince === null) {
+            proxy.waitingSince = now();
+            proxy.stats.stalls++;
+          }
+        } else if (proxy.waitingSince !== null) {
+          const ms = now() - proxy.waitingSince;
+          proxy.stats.stallMs += ms;
+          proxy.waitingSince = null;
+          if (ms > 50) proxy.margin = Math.min(250, proxy.margin + Math.min(40, ms / 2));
+        }
+        if (executedTurns) proxy.margin = Math.max(30, proxy.margin - 0.5 * executedTurns);
+      }
+      const me = proxy.seatInfo?.find((x) => x.seat === proxy.seat);
+      proxy.reclaim = !!me && me.mode === 1 && proxy.nextTurn >= proxy.sealed - 20;
+    }
+    worker.onmessage = (e) => {
+      const msg = e.data;
+      if (!msg || stopped) return;
+      if (msg.t === "lsReady") {
+        ready = true;
+        proxy.saveHash = { turn: msg.nextTurn, hash: msg.hash };
+        pump();
+        return;
+      }
+      if (msg.t === "lsFrame") {
+        busy = false;
+        proxy.nextTurn = msg.nextTurn;
+        proxy.step = msg.step;
+        proxy.aiSeats = new Set(msg.aiSeats);
+        proxy.aiTeams = new Set(msg.aiTeams);
+        proxy.stats.rejected = msg.rejected;
+        if (msg.n > 1) proxy.stats.catchup += msg.n - 1;
+        if (wasCatchup) {
+          stats.catchupMs += msg.simMs;
+          stats.catchupTurns += msg.n;
+        }
+        stats.workerSimMs += msg.simMs;
+        stats.workerTurns += msg.n;
+        if (msg.log?.length) proxy.log.push(...msg.log);
+        if (msg.hashes?.length) {
+          for (const h of msg.hashes) {
+            proxy.hashQueue.push(h);
+            proxy.hashLog.push(h);
+          }
+        }
+        const at = now();
+        for (const r of msg.results || []) {
+          const mine = proxy.issued.get(r.seq);
+          proxy.issued.delete(r.seq);
+          const latency = mine ? at - mine.at : null;
+          if (latency !== null) proxy.stats.latency.push(latency);
+          if (mine && proxy.stats.trace) proxy.stats.trace.push([+mine.clock.toFixed(2), r.turn, +proxy.clockTurn().toFixed(2)]);
+          executed.push({ type: r.cmd.type, latency, at });
+          if (executed.length > 500) executed.shift();
+          opts.onResult?.(r.result, r.cmd, latency);
+        }
+        for (const ev of msg.controls || []) {
+          proxy.control.push(ev);
+          opts.onControl?.(ev, proxy);
+        }
+        for (const snap of msg.snaps || []) {
+          proxy.lastSnap = { ...snap };
+          proxy.onSnapshot?.(snap);
+        }
+        if (msg.sysProfile) sysProf = mergeProfile(sysProf, msg.sysProfile);
+        if (msg.diag) root2.PerformanceAudit?.mergeWorkerDiag?.(msg.diag);
+        updateStall(msg.n);
+        if (msg.view) {
+          stats.views++;
+          stats.viewMs += msg.viewMs;
+          stats.maxViewMs = Math.max(stats.maxViewMs, msg.viewMs);
+          viewTurn = msg.viewTurn;
+          lastView = now();
+          opts.onView(msg.view);
+        }
+        const p = proxy.progress();
+        if (p || progressShown) {
+          progressShown = !!p;
+          opts.onProgress?.(p);
+        }
+        const wait = p ? null : proxy.waiting(1e3);
+        if (wait || waitShown) {
+          waitShown = !!wait;
+          opts.onWait?.(wait);
+        }
+        flushIdle();
+        return;
+      }
+      if (msg.t === "error") {
+        const w2 = msg.q != null && waiting.get(msg.q);
+        if (w2) {
+          waiting.delete(msg.q);
+          w2.reject(Error(msg.message));
+          return;
+        }
+        busy = false;
+        flushIdle();
+        opts.onError?.(new Error("lockstep worker: " + msg.message), true);
+        return;
+      }
+      const w = waiting.get(msg.q);
+      if (w) {
+        waiting.delete(msg.q);
+        w.resolve(msg);
+      }
+    };
+    worker.onerror = (ev) => {
+      ev?.preventDefault?.();
+      busy = false;
+      flushIdle();
+      opts.onError?.(new Error("lockstep worker failed: " + (ev?.message || "script error")), true);
+    };
+    let mode = ls.transport === "ws" ? "ws" : "http";
+    try {
+      const q = new URLSearchParams(root2.location.search).get("lockstep");
+      if (q === "ws" || q === "http") mode = q;
+    } catch {
+    }
+    const wsUrl = root2.location ? (root2.location.protocol === "https:" ? "wss://" : "ws://") + root2.location.host + "/api/lockstep/" + opts.room.id + "/ws" : null;
+    const transport = new AutoTransport({
+      mode,
+      httpUrl: "/api/lockstep/" + opts.room.id,
+      wsUrl,
+      token: opts.token,
+      client: proxy,
+      onReceive: () => opts.onAlive?.(),
+      onError: (e, fatal) => opts.onError?.(e, fatal),
+      onSwitch: (reason) => opts.onSwitch?.(reason)
+    });
+    const snaps = attachSnapshots(proxy, { url: "/api/lockstep/" + opts.room.id, token: opts.token, onLoaded: (turn, ms) => {
+      transport.resync();
+      opts.onSnapshot?.(turn, ms);
+    } });
+    function pump() {
+      if (stopped) return;
+      snaps.tick();
+      const p = proxy.progress();
+      if (p || progressShown) {
+        progressShown = !!p;
+        opts.onProgress?.(p);
+      }
+      updateStall(0);
+      const wait = p ? null : proxy.waiting(1e3);
+      if (wait || waitShown) {
+        waitShown = !!wait;
+        opts.onWait?.(wait);
+      }
+      if (proxy.desync && !stopped) {
+        opts.onDesync?.(proxy.desync, proxy);
+        stop();
+        return;
+      }
+      opts.onPump?.(proxy);
+      if (!ready || busy || loadingSnap || saving || proxy.resumeAt || proxy.desync) return;
+      const limit = Math.min(proxy.horizon(), proxy.sealed);
+      const canAdvance = proxy.nextTurn <= limit;
+      const wantView = !p && (now() - lastView >= VIEW_EVERY || viewTurn < 0) && (canAdvance || proxy.nextTurn > viewTurn) || !!p && viewTurn < 0 && (canAdvance || proxy.nextTurn > 0);
+      if (!canAdvance && !wantView) return;
+      const rows = pendingRows;
+      pendingRows = [];
+      const behind = proxy.horizon() - proxy.nextTurn;
+      const budget = p ? 60 : behind > 10 ? 40 : 12;
+      const replica = opts.replica?.();
+      wasCatchup = !!p;
+      busy = true;
+      worker.postMessage({
+        t: "lsStep",
+        rows,
+        sealed: proxy.sealed,
+        limit,
+        budget,
+        wantView,
+        viewTurn,
+        eventAfter: wantView ? replica?.lastEvent || 0 : 0,
+        have: wantView ? replica?.have?.() || {} : null
+      });
+    }
+    const wake = () => {
+      if (!root2.document || !root2.document.hidden) transport.wake();
+    };
+    function stop() {
+      if (stopped) return;
+      stopped = true;
+      clearInterval(timer);
+      transport.stop();
+      root2.document?.removeEventListener?.("visibilitychange", wake);
+      root2.removeEventListener?.("online", wake);
+      root2.removeEventListener?.("pageshow", wake);
+      for (const w of waiting.values()) w.reject(Error("lockstep worker stopped"));
+      waiting.clear();
+      flushIdle();
+      try {
+        worker.postMessage({ t: "stop" });
+      } catch {
+      }
+      try {
+        worker.terminate();
+      } catch {
+      }
+    }
+    async function prepareSave() {
+      if (stopped || !ready) return null;
+      saving = true;
+      try {
+        await waitIdle();
+        const m = await ask("lsChecksum");
+        proxy.saveHash = { turn: m.turn, hash: m.hash };
+        return m;
+      } finally {
+        saving = false;
+      }
+    }
+    function setProfile(on) {
+      profiling = !!on;
+      if (!profiling) sysProf = null;
+      if (!stopped) try {
+        worker.postMessage({ t: "profile", on: profiling });
+      } catch {
+      }
+    }
+    function takeSystemProfile() {
+      const p = sysProf;
+      sysProf = null;
+      return p;
+    }
+    transport.start();
+    timer = setInterval(pump, 16);
+    root2.document?.addEventListener?.("visibilitychange", wake);
+    root2.addEventListener?.("online", wake);
+    root2.addEventListener?.("pageshow", wake);
+    worker.postMessage({
+      t: "lsInit",
+      setup: ls.setup,
+      seat: opts.seat,
+      seats: ls.seats,
+      startAt: ls.startAt,
+      period: ls.period,
+      resumeAt,
+      navRoom: opts.room.id,
+      hashes: true,
+      profile: profiling
+    });
+    return {
+      client: proxy,
+      transport,
+      stats,
+      stop,
+      executed,
+      snaps,
+      mode: "live",
+      worker: true,
+      get stopped() {
+        return stopped;
+      },
+      get ready() {
+        return ready;
+      },
+      recording: () => proxy.recording(),
+      prepareSave,
+      setProfile,
+      takeSystemProfile,
+      issue(type, args) {
+        if (stopped) return false;
+        if (proxy.progress()) {
+          opts.onRefused?.("catchup");
+          return false;
+        }
+        const ok = proxy.issue(type, args);
+        if (ok) transport.kick();
+        return ok;
+      }
+    };
+  }
+
+  // src/net/browser.js
+  var VIEW_EVERY2 = 90;
   function driver(root2, client, opts, transport, extra = null) {
     const K = root2.KingdomSim, now = client.now;
     let lastView = -Infinity, viewTurn = -1, waitShown = false, progressShown = false, timer = null, stopped = false;
@@ -1295,7 +1775,7 @@
         progressShown = !!p;
         opts.onProgress?.(p);
       }
-      if (!p && client.nextTurn > viewTurn && (now() - lastView >= VIEW_EVERY || viewTurn < 0)) view();
+      if (!p && client.nextTurn > viewTurn && (now() - lastView >= VIEW_EVERY2 || viewTurn < 0)) view();
       else if (p && viewTurn < 0 && client.nextTurn > 0) view();
       const wait = p ? null : client.waiting(1e3);
       if (wait || waitShown) {
@@ -1328,6 +1808,16 @@
     }, recording: () => client.recording() };
   }
   function startBrowserLockstep(root2, opts) {
+    if (opts.worker && typeof root2.Worker === "function") {
+      try {
+        return startWorkerLockstep(root2, opts);
+      } catch (e) {
+        try {
+          root2.console?.warn?.("lockstep worker fallback to main thread:", e?.message || e);
+        } catch {
+        }
+      }
+    }
     const K = root2.KingdomSim, commands = root2.KingdomNetCommands, ls = opts.room.lockstep;
     if (!K || !K.NetworkSim || !commands || !ls) throw new Error("lockstep: simulation or command rules not loaded");
     const now = () => root2.performance.timeOrigin + root2.performance.now();
@@ -1482,7 +1972,7 @@
       seats: [...client.teams].map(([seat, team]) => ({ seat, team })),
       turns: client.nextTurn,
       step: client.step,
-      hash: checksum(client.sim).hash,
+      hash: client.sim ? checksum(client.sim).hash : client.saveHash?.turn === client.nextTurn ? client.saveHash.hash : client.hashLog?.at(-1)?.[1] || "",
       aiSeats: [...client.aiSeats],
       // A client that resumed from a relay snapshot has no local log before it: the caller passes the relay recording instead.
       from: from ?? (commands ? 0 : client.logFrom || 0),
@@ -1673,14 +2163,73 @@
       }
     }
   }
-  function mergeNodes(prev, delta) {
-    const byId2 = /* @__PURE__ */ new Map();
-    for (const n of prev || []) byId2.set(n.id, n);
-    for (const n of delta.changed) byId2.set(n.id, n);
-    const order = delta.order || (prev || []).map((n) => n.id);
+  function applyEntityDelta(map, prevOrder, delta, isUnit) {
+    for (let i = 0; i < delta.add.length; i++) {
+      const e = delta.add[i];
+      if (isUnit && e[PATH_LEN] !== void 0) {
+        e.path.length = e[PATH_LEN];
+        delete e[PATH_LEN];
+      }
+      map.set(e.id, e);
+    }
+    for (let i = 0; i < delta.patch.length; i++) {
+      const p = delta.patch[i], base = map.get(p.id);
+      if (!base) continue;
+      for (const k in p) {
+        if (k === "$d" || k === PATH_LEN) continue;
+        base[k] = p[k];
+      }
+      if (isUnit && p[PATH_LEN] !== void 0) base.path.length = p[PATH_LEN];
+      if (p.$d) for (let j = 0; j < p.$d.length; j++) delete base[p.$d[j]];
+    }
+    let order = prevOrder;
+    if (delta.order) {
+      order = delta.order;
+      const keep = new Set(order);
+      for (const id of [...map.keys()]) if (!keep.has(id)) map.delete(id);
+    }
     const out = new Array(order.length);
-    for (let i = 0; i < order.length; i++) out[i] = byId2.get(order[i]);
-    return out;
+    for (let i = 0; i < order.length; i++) out[i] = map.get(order[i]);
+    return { list: out, order };
+  }
+  function applyNodeDelta(map, prevOrder, delta) {
+    for (let i = 0; i < delta.changed.length; i++) {
+      const n = delta.changed[i];
+      map.set(n.id, n);
+    }
+    let order = prevOrder;
+    if (delta.order) {
+      order = delta.order;
+      const keep = new Set(order);
+      for (const id of [...map.keys()]) if (!keep.has(id)) map.delete(id);
+    }
+    const out = new Array(order.length);
+    for (let i = 0; i < order.length; i++) out[i] = map.get(order[i]);
+    return { list: out, order };
+  }
+  function createFrameMirror() {
+    return { world: null, units: /* @__PURE__ */ new Map(), unitOrder: [], buildings: /* @__PURE__ */ new Map(), buildingOrder: [], nodes: /* @__PURE__ */ new Map(), nodeOrder: [] };
+  }
+  function applyFrameState(mirror, frame) {
+    if (frame.world) mirror.world = frame.world;
+    const st = frame.state;
+    st.world = mirror.world;
+    if (frame.units) {
+      const u = applyEntityDelta(mirror.units, mirror.unitOrder, frame.units, true);
+      mirror.unitOrder = u.order;
+      st.units = u.list;
+    } else if (st.units) {
+      restorePaths(st.units);
+    }
+    if (frame.buildings) {
+      const b = applyEntityDelta(mirror.buildings, mirror.buildingOrder, frame.buildings, false);
+      mirror.buildingOrder = b.order;
+      st.buildings = b.list;
+    }
+    const nd = applyNodeDelta(mirror.nodes, mirror.nodeOrder, frame.nodes);
+    mirror.nodeOrder = nd.order;
+    st.nodes = nd.list;
+    return st;
   }
   function encodeForWorker(v, depth = 0) {
     if (v === void 0) return { $u: 1 };
@@ -1722,7 +2271,7 @@
   function createSimWorker(root2, { url = "sim-worker.js", debug = false, getK, onAdopt, onFallback } = {}) {
     const perf = root2.performance;
     let worker = null, sim = null, ready = false, busy = false, owed = 0, seq = 0, queue = [], pendingFrames = [], scheduled = false;
-    let initHash = null, appliedAt = 0, span = STEP3 * 1e3, frameStep = 0, navRev = 0, localFx = [], lastPump = 0, depth = 0, failed = null;
+    let initHash = null, appliedAt = 0, span = STEP3 * 1e3, frameStep = 0, navRev = 0, localFx = [], lastPump = 0, depth = 0, failed = null, profiling = false, sysProf = null, mirror = null, detached = false;
     let prev = /* @__PURE__ */ new Map();
     const waiting = /* @__PURE__ */ new Map(), predicted = /* @__PURE__ */ new Map();
     const stats = { frames: 0, applyMs: 0, maxApplyMs: 0, postMs: 0, requests: 0, owedDropped: 0, commands: 0, mismatches: [], worker: null, error: null, fallback: null };
@@ -1756,6 +2305,14 @@
         post({ t: type, q, ...extra });
       });
     }
+    function detachForPrediction(target) {
+      if (detached || !target?.s) return;
+      detached = true;
+      const s = target.s;
+      if (Array.isArray(s.units)) s.units = s.units.map((u) => ({ ...u }));
+      if (Array.isArray(s.buildings)) s.buildings = s.buildings.map((b) => b.queue ? { ...b, queue: b.queue.slice() } : { ...b });
+      target._idIndex = null;
+    }
     function install2(target) {
       const proto = Object.getPrototypeOf(target);
       for (const name of CAPTURED) {
@@ -1771,6 +2328,7 @@
           const q = ++seq;
           queue.push({ q, m: name, a: enc });
           stats.commands++;
+          detachForPrediction(target);
           let r;
           depth++;
           try {
@@ -1842,10 +2400,13 @@
       waiting.clear();
     }
     function applyFrame(target, f) {
-      const old = target.s, st = f.state;
-      st.world = old.world || f.world;
-      st.nodes = mergeNodes(old.nodes, f.nodes);
-      restorePaths(st.units);
+      const old = target.s;
+      const st = applyFrameState(mirror || (mirror = createFrameMirror()), f);
+      detached = false;
+      if (!st.world && old.world) {
+        st.world = old.world;
+        mirror.world = old.world;
+      }
       for (const k of UI_KEYS) if (st[k] === void 0 && old[k] !== void 0) st[k] = old[k];
       target.s = st;
       if (f.fog) {
@@ -1869,6 +2430,16 @@
         if (p && JSON.stringify(p.r) !== JSON.stringify(r) && stats.mismatches.length < 20) stats.mismatches.push({ m: p.m, local: p.r, worker: r, step: f.step });
       }
       if (f.hashes?.length) (stats.hashes || (stats.hashes = [])).push(...f.hashes);
+      if (f.sysProfile) {
+        sysProf || (sysProf = {});
+        for (const k of Object.keys(f.sysProfile)) {
+          const v = f.sysProfile[k], e = sysProf[k] || (sysProf[k] = { ms: 0, n: 0, max: 0 });
+          e.ms += v.ms;
+          e.n += v.n;
+          if (v.max > e.max) e.max = v.max;
+        }
+      }
+      if (f.diag) root2.PerformanceAudit?.mergeWorkerDiag?.(f.diag);
       stats.worker = f.stats;
     }
     function onMessage(e) {
@@ -1939,6 +2510,7 @@
         localFx = [];
         prev = /* @__PURE__ */ new Map();
         failed = null;
+        mirror = createFrameMirror();
         appliedAt = perf.now();
         span = STEP3 * 1e3;
         frameStep = 0;
@@ -1955,7 +2527,7 @@
         install2(target);
         target.events = target.events || [];
         K.activateWorld?.(target.s.world);
-        post({ t: "init", difficulty: setup.difficulty, options: setup.options || {}, saved: setup.saved || null, created: (/* @__PURE__ */ new Date()).toISOString(), hashes: setup.hashes | 0, prewarm: true });
+        post({ t: "init", difficulty: setup.difficulty, options: setup.options || {}, saved: setup.saved || null, created: (/* @__PURE__ */ new Date()).toISOString(), hashes: setup.hashes | 0, prewarm: true, profile: profiling || !!root2.PerformanceAudit });
         return target;
       },
       /* Stop the worker and keep the game on the main thread from its latest frame (switching to online, tutorial, new war). */
@@ -1986,16 +2558,21 @@
         }
         if (!pendingFrames.length) return;
         const t0 = perf.now(), target = sim;
-        const a = api.alpha(now), units = target.s.units;
+        const a = api.alpha(now), units = target.s.units, saved = [];
         for (let i = 0; i < units.length; i++) {
           const u = units[i], p = prev.get(u.id);
           if (p && p.kind === u.kind && Math.abs(u.x - p.x) + Math.abs(u.y - p.y) < 220) {
+            saved.push(u, u.x, u.y);
             u.x = p.x + (u.x - p.x) * a;
             u.y = p.y + (u.y - p.y) * a;
           }
         }
         capture?.(target);
         prev = new Map(units.map((u) => [u.id, { x: u.x, y: u.y, kind: u.kind }]));
+        for (let i = 0; i < saved.length; i += 3) {
+          saved[i].x = saved[i + 1];
+          saved[i].y = saved[i + 2];
+        }
         const first = frameStep;
         for (const f of pendingFrames) applyFrame(target, f);
         const last = pendingFrames[pendingFrames.length - 1];
@@ -2032,6 +2609,16 @@
       eval(src) {
         if (!debug) return Promise.reject(Error("eval needs ?perf=1"));
         return ask("eval", { src: String(src) }).then((m) => m.value);
+      },
+      setProfile(on) {
+        profiling = !!on;
+        if (!profiling) sysProf = null;
+        if (worker && ready) post({ t: "profile", on: profiling });
+      },
+      takeSystemProfile() {
+        const p = sysProf;
+        sysProf = null;
+        return p;
       }
     };
     return api;
@@ -2175,11 +2762,20 @@
     if (document.body) add();
     else document.addEventListener("DOMContentLoaded", add);
   }
+  var simWorkerWanted = (() => {
+    const q = query.get("simWorker");
+    if (q === "0" || q === "1") return q === "1";
+    try {
+      return root.localStorage?.getItem("kingdom-sim-worker") === "1";
+    } catch {
+      return false;
+    }
+  })();
   core.lockstep = {
     current: null,
     start(opts) {
       core.lockstep.current?.stop();
-      return core.lockstep.current = startBrowserLockstep(root, opts);
+      return core.lockstep.current = startBrowserLockstep(root, { worker: simWorkerWanted, url: "sim-worker.js", profile: !!root.PerformanceAudit, ...opts });
     },
     replay: (rec) => replayLockstep(root.KingdomSim, root.KingdomNetCommands, rec),
     // 3c: online saves (room parameters + recording) and local replay viewing.
@@ -2191,15 +2787,6 @@
   };
   core.installed = install(root.KingdomSim);
   core.clock = { STEP: STEP3, MAX_DT, MAX_STEPS, FixedStep };
-  var simWorkerWanted = (() => {
-    const q = query.get("simWorker");
-    if (q === "0" || q === "1") return q === "1";
-    try {
-      return root.localStorage?.getItem("kingdom-sim-worker") === "1";
-    } catch {
-      return false;
-    }
-  })();
   core.simWorker = simWorkerWanted && typeof root.Worker === "function" ? createSimWorker(root, {
     url: "sim-worker.js",
     debug: query.has("perf"),

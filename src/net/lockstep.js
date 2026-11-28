@@ -142,7 +142,7 @@ export class LockstepClient {
         const latency = mine ? now - mine.at : null;
         if (latency !== null) this.stats.latency.push(latency);
         if (mine && this.stats.trace) this.stats.trace.push([+(mine.clock).toFixed(2), turn, +this.clockTurn().toFixed(2)]);
-        this.onResult?.(result, r.cmd, latency);
+        this.onResult?.(result, r.cmd, latency, r.seq);
       }
     }
     this.turns.delete(turn);

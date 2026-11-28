@@ -1,0 +1,37 @@
+{
+ "steps": 300,
+ "units": 397,
+ "main": {
+  "tickMean": 55.1,
+  "tickP95": 142.07,
+  "hash": "753fa5de"
+ },
+ "worker": {
+  "tickMean": 52.32,
+  "tickP95": 100.84,
+  "frameBuildMean": 9.99,
+  "frameBuildP95": 17.88,
+  "hash": "753fa5de",
+  "mirrorHash": "753fa5de"
+ },
+ "frame": {
+  "bytesMean": 41784,
+  "bytesP95": 130294,
+  "bytesMax": 140034,
+  "kbPerSecondAt20": 816,
+  "decodeMean": 2.44,
+  "decodeP95": 6.18,
+  "applyMean": 0.87,
+  "applyP95": 2.59,
+  "unitsDeltaMean": 258,
+  "nodesChangedMean": 11,
+  "fogFramesShare": 0.1,
+  "parts": {
+   "units": 19022,
+   "buildings": 339,
+   "effects": 5249,
+   "tech": 2564
+  }
+ },
+ "same": true
+}

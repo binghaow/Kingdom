@@ -4,9 +4,10 @@
    The page side is src/sim/client.js; the message handler is src/sim/host.js. */
 
 import K from '../../public/little-ant.js';
+import netCommands from '../../public/network-commands.js';
 import { createHost } from './host.js';
 
 const scope = typeof self !== 'undefined' ? self : globalThis;
 const clock = () => (typeof performance !== 'undefined' ? performance.now() : 0);
-const host = createHost(K, (m) => scope.postMessage(m), { now: clock });
+const host = createHost(K, (m) => scope.postMessage(m), { now: clock, netCommands });
 scope.onmessage = (e) => host.handle(e.data);

@@ -19,7 +19,7 @@ function spawn(){const w=new Worker(SHIM+code,{eval:true});const inbox=[],wait=[
   const next=()=>inbox.length?Promise.resolve(inbox.shift()):new Promise(r=>wait.push(r));return {w,next,post:m=>w.postMessage(m)}}
 async function main(){
   const {runReplay,prewarm}=await import(pathToFileURL(path.join(ROOT,'src/replay/replay.js')).href),{checksum}=await import(pathToFileURL(path.join(ROOT,'src/core/hash.js')).href);
-  const {mergeNodes,restorePaths}=await import(pathToFileURL(path.join(ROOT,'src/sim/frames.js')).href);
+  const {createFrameMirror,applyFrameState}=await import(pathToFileURL(path.join(ROOT,'src/sim/frames.js')).href);
   const K=require(path.join(ROOT,'public/little-ant.js'));
   const files=fs.readdirSync(FIX).filter(f=>f.endsWith('.json')).sort().slice(0,quick?2:undefined);let rng=12345;const rand=()=>(rng=(rng*1103515245+12345)>>>0)/4294967296;
   for(const file of files){const fx=JSON.parse(fs.readFileSync(path.join(FIX,file),'utf8')),t0=Date.now();
@@ -30,7 +30,7 @@ async function main(){
     const {w,next,post}=spawn();post({t:'init',difficulty:fx.setup.difficulty,options:JSON.parse(JSON.stringify(fx.setup.options)),saved:null,hashes:20,prewarm:fx.setup.prewarm!==false});
     let m=await next();assert.equal(m.t,'ready',file+': '+JSON.stringify(m).slice(0,300));
     const page=new K.Sim(fx.setup.difficulty,null,JSON.parse(JSON.stringify(fx.setup.options)));assert.equal(m.hash,checksum(page).hash,file+': worker initial state differs from the page');
-    let frame=await next();assert.equal(frame.t,'frame');const mirror={s:{...frame.state,world:frame.world,nodes:mergeNodes([],frame.nodes)}};
+    let frame=await next();assert.equal(frame.t,'frame');const fm=createFrameMirror(),mirror={s:applyFrameState(fm,frame)};
     const byStep=new Map();for(const c of fx.commands){if(c.dt!==undefined)throw Error(file+': non-standard dt in fixture');if(!byStep.has(c.s))byStep.set(c.s,[]);byStep.get(c.s).push(c)}
     const hashes=[],results=[];let step=0,q=0,bytes=0,frames=0;const v8=require('node:v8');
     while(step<fx.steps){const cmds=(byStep.get(step)||[]).map(c=>({q:++q,m:c.m,a:c.a,want:c.r}));let n=1+Math.floor(rand()*4);for(let k=step+1;k<step+n;k++)if(byStep.has(k)){n=k-step;break}n=Math.min(n,fx.steps-step);
@@ -38,7 +38,7 @@ async function main(){
       for(const [qq,r] of frame.results){const c=cmds.find(c=>c.q===qq);results.push({m:c.m,want:c.want,got:r})}
       hashes.push(...frame.hashes);step+=n;assert.equal(frame.step,step);
       if(frames++%7===0)bytes=Math.max(bytes,v8.serialize(frame).length);
-      mirror.s={...frame.state,world:mirror.s.world,nodes:mergeNodes(mirror.s.nodes,frame.nodes)};restorePaths(mirror.s.units)}
+      mirror.s=applyFrameState(fm,frame)}
     const workerList=hashes.map(([s,h])=>({step:s,hash:h}));
     assert.deepEqual(workerList,main.checksums,file+': worker checksum sequence differs from the main thread');
     for(const r of results)if(r.want!==undefined)assert.equal(JSON.stringify(r.got),JSON.stringify(r.want),file+': '+r.m+' returned differently in the worker');

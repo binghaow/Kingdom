@@ -14,30 +14,37 @@
      --private: host ticks "invite only"; B checks the room is NOT in the list and enters through the invite link
    usage: node scripts/lockstep/browser-duel.cjs [--seconds 65] [--port 8765] [--delay 100] [--join list|code|id] [--legacy] [--private] [--json out.json] */
 const fs = require('node:fs'), argv = process.argv.slice(2), get = (k, d) => { const i = argv.indexOf('--' + k); return i >= 0 ? argv[i + 1] : d; };
-const JOIN = get('join', 'list'), LEGACY = argv.includes('--legacy'), PRIVATE = argv.includes('--private');
+const JOIN = get('join', 'list'), LEGACY = argv.includes('--legacy'), PRIVATE = argv.includes('--private'), AI = argv.includes('--ai'), PERF = argv.includes('--perf'), SAVE = argv.includes('--save');
+const WORKER_MODE = get('sim-worker', 'off'); // off | all | a (A in worker, B on main thread)
 const VIEW = (get('viewport', '1280x720')).split('x').map(Number), SECONDS = +get('seconds', 65), PORT = +get('port', 8765), DELAY = +get('delay', 0), jsonOut = get('json', null);
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 (async () => {
-  const { chromium } = require('playwright'), browser = await chromium.launch({ args: ['--disable-gpu'] });
+  const { chromium } = require('playwright'), browser = await chromium.launch({ args: ['--disable-gpu'], ...(process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH ? { executablePath: process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH } : {}) });
   const errors = [], bad = [], statuses = {};
   async function tab(name) {
     const ctx = await browser.newContext({ viewport: { width: VIEW[0], height: VIEW[1] } }), page = await ctx.newPage();
     page.on('pageerror', (e) => errors.push(name + ': ' + e.message));
     page.on('response', (r) => { const u = new URL(r.url()); if (!u.pathname.startsWith('/api/')) return; const k = u.pathname.split('/')[2] + ' ' + r.status(); statuses[k] = (statuses[k] || 0) + 1; if (r.status() >= 300) bad.push(`${name} ${r.status()} ${u.pathname}`); });
     if (DELAY > 0) await ctx.route('**/api/lockstep/**', async (route) => { await sleep(DELAY / 2); const resp = await route.fetch().catch(() => null); if (!resp) return route.abort().catch(() => {}); await sleep(DELAY / 2); await route.fulfill({ response: resp }).catch(() => {}); });
-    await page.goto(`http://127.0.0.1:${PORT}/`);
+    const useWorker = WORKER_MODE === 'all' || (WORKER_MODE === 'a' && name === 'A');
+    const qs = [];
+    if (useWorker) qs.push('simWorker=1');
+    else if (WORKER_MODE === 'a' && name === 'B') qs.push('simWorker=0');
+    if (PERF) qs.push('perf=1');
+    await page.goto(`http://127.0.0.1:${PORT}/` + (qs.length ? '?' + qs.join('&') : ''));
     await page.waitForFunction(() => window.KingdomArt && KingdomArt.loaded && window.KingdomCore && window.KingdomNetCommands, null, { timeout: 120000 });
-    return { ctx, page, name };
+    return { ctx, page, name, useWorker };
   }
   try {
     const A = await tab('A'), B = await tab('B');
     await A.page.click('#open-online'); await sleep(400);
-    await A.page.fill('#net-name', '甲'); await A.page.selectOption('#net-capacity', LEGACY ? '3' : '2');
+    await A.page.fill('#net-name', '甲'); await A.page.selectOption('#net-capacity', (LEGACY || AI) ? '3' : '2');
     // 3e: Lockstep is the lobby default (nothing to tick); --legacy ticks "旧联机（备用）" and fills the empty seat with the computer.
     const defaults = await A.page.evaluate(() => ({ legacyBox: !!document.getElementById('net-legacy'), legacyChecked: !!document.getElementById('net-legacy')?.checked, betaBox: !!document.getElementById('net-lockstep') }));
     if (!defaults.legacyBox || defaults.legacyChecked || defaults.betaBox) throw new Error('lobby default is not Lockstep: ' + JSON.stringify(defaults));
-    if (LEGACY) { await A.page.check('#net-fill'); await A.page.check('#net-legacy'); }
+    if (LEGACY || AI) await A.page.check('#net-fill');
+    if (LEGACY) await A.page.check('#net-legacy');
     if (PRIVATE) await A.page.check('#net-private');
     await A.page.click('#net-create');
     await A.page.waitForFunction(() => document.getElementById('net-room-code')?.textContent?.trim(), null, { timeout: 20000 });
@@ -89,7 +96,18 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
       if (argv.includes('--log') && round % 12 === 0) { const row = []; for (const t of [A, B]) row.push(await t.page.evaluate(() => { const c = KingdomCore.lockstep.current.client; return [c.nextTurn, c.sealed, c.waitingSince === null ? 0 : Math.round(performance.timeOrigin + performance.now() - c.waitingSince), c.stats.reconnects || 0, c.stats.watchdog || 0]; })); console.error(new Date().toISOString().slice(11, 19), 'turn/sealed/waitMs/reconnects/watchdog', JSON.stringify(row), 'errors', errors.length); }
     }
     await sleep(1500);
-    const state = async (t) => t.page.evaluate(() => { const L = KingdomCore.lockstep.current, c = L.client; return { turn: c.nextTurn, step: c.step, hashes: c.hashLog, desync: c.desync, executed: L.executed, stats: { ...c.stats, latency: c.stats.latency }, rtt: c.rtt, delay: c.delay, lag: c.lagTurns(), view: L.stats, time: window.frontier.state.time, units: window.frontier.state.units.length }; });
+    let saveCheck = null;
+    if (SAVE) {
+      await A.page.click('#pause'); await sleep(300);
+      await A.page.click('#net-save-progress');
+      await A.page.waitForFunction(() => /联机进度已保存/.test(document.getElementById('toast')?.textContent || ''), null, { timeout: 15000 });
+      saveCheck = await A.page.evaluate(async () => {
+        const S = KingdomCore.lockstep.saves, list = await S.list(), first = list[0] ? await S.load(list[0].key) : null;
+        return first ? { valid: S.validSave(first), turns: first.turns, hash: first.hash, commands: first.commands.length } : null;
+      });
+      await A.page.click('#resume').catch(() => {});
+    }
+    const state = async (t) => t.page.evaluate(() => { const L = KingdomCore.lockstep.current, c = L.client; return { worker: !!L.worker, perfHud: document.getElementById('performance-audit')?.textContent || null, turn: c.nextTurn, step: c.step, hashes: c.hashLog, desync: c.desync, executed: L.executed, stats: { ...c.stats, latency: c.stats.latency }, rtt: c.rtt, delay: c.delay, lag: c.lagTurns(), view: L.stats, time: window.frontier.state.time, units: window.frontier.state.units.length }; });
     // Main-thread frame interval of each tab (headless Chromium renders in software on this VM; real devices use the GPU).
     const frames = async (t) => t.page.evaluate(() => new Promise((res) => { const ts = []; const f = (x) => { ts.push(x); if (ts.length < 40) requestAnimationFrame(f); else { const d = ts.slice(1).map((v, i) => v - ts[i]).sort((a, b) => a - b); res({ p50: Math.round(d[d.length >> 1]), p90: Math.round(d[Math.floor(d.length * 0.9)]) }); } }; requestAnimationFrame(f); }));
     const fa = await frames(A), fb = await frames(B);
@@ -103,13 +121,16 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
     for (let i = 0; i < n; i++) if (sa.hashes[i][1] !== sb.hashes[i][1]) { mismatch = { step: sa.hashes[i][0], a: sa.hashes[i][1], b: sb.hashes[i][1] }; break; }
     const internal = [...sa.stats.latency, ...sb.stats.latency].sort((a, b) => a - b);
     const transport = async (t) => t.page.evaluate(() => { const tr = KingdomCore.lockstep.current.transport; return { mode: tr.mode, fallbackReason: tr.fallbackReason || null }; });
-    const res = { seconds: SECONDS, delayMs: DELAY, room: code, join: joinInfo, transport: { A: await transport(A), B: await transport(B) }, statuses, nonOk: bad, pageErrors: errors,
+    const workerOk = sa.worker === A.useWorker && sb.worker === B.useWorker;
+    const perfOk = !PERF || [sa, sb].every((s) => !s.worker || (s.perfHud && /sim systems \(worker\)/.test(s.perfHud)));
+    const saveOk = !SAVE || !!(saveCheck && saveCheck.valid && /^[0-9a-f]{8}$/.test(saveCheck.hash));
+    const res = { seconds: SECONDS, delayMs: DELAY, ai: AI, simWorker: WORKER_MODE, workerActive: { A: sa.worker, B: sb.worker }, perfOk, saveCheck, room: code, join: joinInfo, transport: { A: await transport(A), B: await transport(B) }, statuses, nonOk: bad, pageErrors: errors,
       consistency: { comparedChecksums: n, mismatch, desyncA: sa.desync, desyncB: sb.desync, lastStep: Math.min(sa.step, sb.step), lastHash: sa.hashes[n - 1] },
       clickToExecute: { n: lat.length, of: clicks.length, p50: q(lat, 0.5), p90: q(lat, 0.9), max: lat.at(-1) ?? null },
       issueToExecute: { n: internal.length, p50: q(internal, 0.5), p90: q(internal, 0.9), max: internal.length ? Math.round(internal.at(-1)) : null },
-      tabs: [sa, sb].map((s, i) => ({ tab: 'AB'[i], turn: s.turn, gameTime: +s.time.toFixed(1), units: s.units, rtt: Math.round(s.rtt), delay: s.delay, lagTurns: +s.lag.toFixed(2), stalls: s.stats.stalls, stallMs: Math.round(s.stats.stallMs), catchup: s.stats.catchup, requests: s.stats.requests, failures: s.stats.failures, upBps: Math.round(s.stats.up / (s.turn / 10)), downBps: Math.round(s.stats.down / (s.turn / 10)), rejected: s.stats.rejected, commands: s.stats.commands, viewMsAvg: +(s.view.viewMs / Math.max(1, s.view.views)).toFixed(2), viewMsMax: +s.view.maxViewMs.toFixed(1) })) };
+      tabs: [sa, sb].map((s, i) => ({ tab: 'AB'[i], worker: s.worker, turn: s.turn, gameTime: +s.time.toFixed(1), units: s.units, rtt: Math.round(s.rtt), delay: s.delay, lagTurns: +s.lag.toFixed(2), stalls: s.stats.stalls, stallMs: Math.round(s.stats.stallMs), catchup: s.stats.catchup, requests: s.stats.requests, failures: s.stats.failures, upBps: Math.round(s.stats.up / (s.turn / 10)), downBps: Math.round(s.stats.down / (s.turn / 10)), rejected: s.stats.rejected, commands: s.stats.commands, viewMsAvg: +(s.view.viewMs / Math.max(1, s.view.views)).toFixed(2), viewMsMax: +s.view.maxViewMs.toFixed(1) })) };
     res.frameIntervalMs = { A: fa, B: fb };
-    res.pass = !joinInfo.listedWhilePrivate && !bad.length && !errors.length && !mismatch && !sa.desync && !sb.desync && n >= SECONDS - 5 && lat.length >= clicks.length * 0.8;
+    res.pass = workerOk && perfOk && saveOk && !joinInfo.listedWhilePrivate && !bad.length && !errors.length && !mismatch && !sa.desync && !sb.desync && n >= SECONDS - 5 && lat.length >= clicks.length * 0.8;
     console.log(JSON.stringify(res, null, 1)); if (jsonOut) fs.writeFileSync(jsonOut, JSON.stringify(res, null, 1));
     if (!res.pass) process.exitCode = 1;
   } finally { await browser.close(); }

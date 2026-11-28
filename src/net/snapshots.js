@@ -55,7 +55,7 @@ export function attachSnapshots(client, { url, token, fetch = (...a) => globalTh
         const r = await post({ snapget: offer.turn });
         if (r.hash !== offer.hash || client.nextTurn >= r.turn) { if (need) { stats.failures++; retryAt = Date.now() + 2000; } return; }
         const text = (await Promise.all(r.data.map((p) => p))).join('');
-        const loaded = client.loadSnapshot({ turn: r.turn, hash: r.hash, text: await decode(text, r.meta?.enc), aiSeats: r.meta?.aiSeats || [], seq: r.seq, encoded: { enc: r.meta?.enc === 'gzip' ? 'gzip' : 'json', data: text } });
+        const loaded = await client.loadSnapshot({ turn: r.turn, hash: r.hash, text: await decode(text, r.meta?.enc), aiSeats: r.meta?.aiSeats || [], seq: r.seq, encoded: { enc: r.meta?.enc === 'gzip' ? 'gzip' : 'json', data: text } });
         if (loaded.ok) { stats.loads++; stats.loadMs += Date.now() - t0; stats.lastLoad = { turn: r.turn, ms: Date.now() - t0, bytes: text.length }; onLoaded?.(r.turn, Date.now() - t0); } else { stats.failures++; retryAt = Date.now() + 2000; }
       })().catch((e) => { stats.failures++; retryAt = Date.now() + 2000; onError?.(e); }).finally(() => { busy = false; });
     },

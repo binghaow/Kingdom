@@ -162,3 +162,68 @@
 - iPhone 新联机 25 分钟以上不再卡死、不需手动重连；如出现“等待…”> 10 s，截图重连诊断。
 - 省电模式下后期发热、帧率是否稳在 30、1.25 倍画布清晰度；改了画布分辨率，按 AGENTS.md 须在 iPhone/iPad Safari 玩到后期（≥ 8 分钟、≥ 100 人口）确认战场和小地图不空白。
 - 大厅国家插图、新磨坊/矿场图在 Safari 上的显示。
+
+---
+
+# P4 第三段（4c-2 联机模拟进 Web Worker + Worker `?perf=1` 系统分项）
+
+分支 `gemini/p4-lockstep-worker`（基于 `codex/android-playtest` `314672c`），2026-11-27。对应 `docs/architecture/redesign-plan.md` P4 剩余项 `4c-2`。**玩法、数值、存档格式和默认主线程路径未改**（开关仍为 `?simWorker=1` 或聊天“多线程”设置，默认关闭）。
+
+## 1. 做了什么
+
+### 1.1 联机锁步模拟进 Web Worker（`4c-2`）
+- `src/sim/worker.js`：引入 `public/network-commands.js` 并传给 `createHost`，与已有 `public/little-ant.js`（含 `K.NetworkSim`、`K.networkSnapshot`、`K.networkPersistent`、`K.networkHydrate`）同打进 `public/sim-worker.js`（未压缩 678.2 KiB）。
+- `src/sim/host.js`：新增联机消息处理 `lsInit / lsStep / lsLoadSnapshot / lsChecksum`（复用同一份 `src/net/lockstep.js` `LockstepClient`，无重复模拟逻辑）；回合执行、追帧、每 20 步校验、每 5 分钟快照归一化、`loadSnapshot` 校验和 `K.networkSnapshot(..., { slim: true, have })` 视图生成全部在 Worker 线程内运行。`postMessage` 结构化克隆直接给出副本，主线程不再执行 `JSON.parse(JSON.stringify(v))`。
+- `src/net/worker-lockstep.js`：浏览器侧代理 `startWorkerLockstep`。网络传输层（`AutoTransport`：WebSocket / HTTP）、快照 HTTP 收发（`attachSnapshots`）和渲染副本（`KingdomNetworkClient`）留在主线程不变；代理同步维护时钟、RTT、延迟缓冲、出队指令、校验队列、等待/接管状态，把新到的回合行发给 Worker 并接收 `lsFrame`。新增 `prepareSave()` 在联机存档前向 Worker 取当前精确步校验值，确保 `makeSave()` 产出与主线程同格式的合法存档。
+- `src/net/browser.js`、`src/index.js`：`startBrowserLockstep` 在 `opts.worker` 开启且浏览器支持 `Worker` 时走 `startWorkerLockstep`（构造失败自动回退主线程）；`core.lockstep.start` 沿用 `simWorkerWanted`（`?simWorker=1` 或 `localStorage['kingdom-sim-worker']==='1'`），默认关闭。
+- `src/net/snapshots.js`、`src/net/saves.js`、`public/network-ui.js`：`attachSnapshots` 中 `loadSnapshot` 改为 `await`（兼容主线程同步与 Worker 异步）；`makeSave` 兼容无本地 `client.sim` 的 Worker 代理；`saveOnline` 保存前调用 `lockstep.prepareSave?.()`。
+
+### 1.2 Worker `?perf=1` 系统分项与零 `window` 诊断钩子
+- `public/engine.js` 新增 `setPerfSink / getPerfSink`（保持对测试脚本设置 `window.PerformanceAudit` 的向后兼容），`public/worlds.js` 改用 `K.getPerfSink?.()`；模拟层不再直接依赖 `window.PerformanceAudit`。
+- `src/sim/host.js` 新增 opt-in 消息 `{t:'profile', on}`（`init` / `lsInit` 亦可带 `profile`），仅在开启诊断时调用 `K.profileSystems(true)` 并挂载 Worker 侧 `perfSink`（`findPath / getGrid / collision / fog`），在帧中附带 `sysProfile` 与 `diag`；关闭时完整卸载，正常游玩零开销。
+- `src/sim/client.js`（单机 Worker）与 `src/net/worker-lockstep.js`（联机 Worker）均提供 `setProfile(on)` / `takeSystemProfile()` 并将 `diag` 转发给 `PerformanceAudit.mergeWorkerDiag`。
+- `public/performance-audit.js`：`instrument(on)` 同步设置 `K.setPerfSink` 并通知单机/联机 Worker 开关，`systemsLine()` 优先读取 Worker 系统分项并标注 `sim systems (worker) Xms/step: ...`。
+
+### 1.3 单机 Worker 帧快照增量优化（`units` / `buildings` 字段级 delta）
+- `src/sim/frames.js`（`FRAME_VERSION = 2`）：在原有 `nodes` 增量和 `path` 截断基础上，把 `units` 和 `buildings` 改为字段级增量 `{add, patch, order}`——静止单位 0 字节、移动/交战单位只发变化字段（对 `path` / `drift` / `cargo` / 平坦 `order` 做零分配值比较，检测键删除 `$d`）；接收侧 `createFrameMirror` + `applyFrameState` 原地更新镜像并复用持久 `nodes` Map（不再每帧重建 600 项 Map 或二次浅拷贝实体）。
+- `src/sim/client.js`：`pump()` 插值采集后立即还原 `u.x/u.y`；玩家下达指令做本地预测前按需惰性拷贝 `s.units` / `s.buildings`（`detachForPrediction`），保证正常帧零拷贝且镜像不被预测污染。
+
+## 2. 验证结果（本机 Windows，Node 模拟 + 本地 Chrome headless 浏览器）
+
+### 2.1 单机 Worker 快照前后对比（Node，`node scripts/perf/worker-frames.cjs 300`，397 单位后期场景，同机实测，`docs/p4/worker-frames-delta.json`）
+
+| 指标 | 改前（整份 units/buildings） | 改后（字段级 delta + 零拷贝应用） | 变化 |
+|---|---|---|---|
+| 每帧字节 均值 / p95 / 最大（v8 序列化） | 178,125 / 266,882 / 288,127 B | **41,784 / 130,294 / 140,034 B** | **-76.5% / -51.2% / -51.4%** |
+| 20 帧/秒折合带宽（线程间内存复制） | 3,479 KB/s | **816 KB/s** | **-76.5%** |
+| `units` 分项 / `buildings` 分项 | 159,113 B / 5,057 B | **19,022 B / 339 B** | **-88.0% / -93.3%** |
+| 接收方解码（`v8.deserialize`）均值 / p95 | 7.91 / 12.29 ms | **2.44 / 6.18 ms** | **-69.2% / -49.7%** |
+| 页面应用（`applyFrameState`）均值 / p95 | 2.14 / 4.62 ms | **0.87 / 2.59 ms** | **-59.3% / -43.9%** |
+| 主线程接收总耗时（decode + apply 均值） | 10.05 ms | **3.31 ms** | **-67.1%（3.04× 提速）** |
+| 三方校验值（主线程 / Worker / 镜像） | 一致 `753fa5de` | 一致 `753fa5de` | 逐位一致 |
+
+注：本机 Windows Node 计时绝对值受 CPU 负载影响（两次测试主线程每步均值分别为 33.4 ms 与 55.1 ms），上述改善在后一次更高 CPU 负载下仍成立；为 1000 单位阶段主线程解码留出充足预算（下一步进一步压缩待 P5 列存 TypedArray + Transferable/SAB）。
+
+### 2.2 Node 逻辑与一致性检查
+- `npm run build`、`node check-browser-syntax.cjs`（119 个浏览器 JS）、`node check-core-bundle.cjs`、`node check-artifact.cjs`（含 `dist/client` 核心包与 Worker/D1 检查）：**PASS**。
+- 新增 `node check-lockstep-worker.cjs`（已加入 `check-all.cjs`）：使用 Node `worker_threads` 运行真实打包的 `public/sim-worker.js`，3 国（2 真人 + 1 电脑）220 轮含玩家指令与系统指令（`aiTakeover`/`aiRelease` 含 0 号位 caretaker），不规则批次 + 17 帧 `slim` 视图展开：22 组校验值序列、4 条指令回执、4 条接管事件、最终校验值（`56f3ab93`）与主线程 `LockstepClient` 完全一致；快照加载校验、篡改哈希拒收、加载后再跑 40 轮校验值（`6471ba90`）与主线程完全一致；`profile: false` 不输出、`profile: true` 输出命名系统耗时：**PASS**。
+- `node check-sim-worker.cjs --node-only`（4 段标准录像主线程与 delta 帧镜像校验序列全部一致）：**PASS**。
+- `node check-lockstep.cjs`（使用本机 `.release-tools/node_modules/ws` 与 loopback，7 项全过：relay 规则、旧房间未改、4 客户端大厅 60 s、HTTP 抖动+丢包、WS on D1 断线重连 5/5、DO 适配器、无 WS 回退 HTTP）：**PASS**。
+- `node check-lockstep-restore.cjs`（5.5 分钟存档 turn-3000 快照恢复、房主单人恢复、从 0 回放对比）：**PASS**。
+- `node check-stuck-units.cjs`、`check-pipeline.cjs`、`check-ai-commands.cjs`、`check-replay.cjs`、`check-network.cjs`、`check-lobby.cjs`、`check-netcode.cjs`：**全部 PASS**。
+
+### 2.3 本机 Chrome Headless 浏览器冒烟（非物理真机）
+- 单机 `?simWorker=1` 冒烟（`node scripts/sim-worker/play-smoke.cjs`）：建造、训练、升时代、小蚂蚁/小熊猫、攻击、暂停存档、刷新续玩、`coast_s-2p` 60/60 校验值一致（`1295b3dc`），`applyMsMean: 0.32 ms`，`mismatches: 0`，0 错误、无回退：**PASS**。
+- 单机 `?simWorker=1&perf=1` HUD 验证：真实页面 HUD 正常输出 `collision 0.6ms 68/702 pairs` 与 `sim systems (worker) 3.7ms/step: units ... · fog ... · collision ...`，0 页面错误：**PASS**。
+- 联机 2 真人 + 1 电脑座位（`preview.cjs` + `scripts/lockstep/browser-duel.cjs`，45 s，WebSocket 无回退）：
+  - **全 Worker + `?perf=1` + 存档**（`docs/p4/duel-4c2-worker.json`）：`workerActive: {A:true, B:true}`，94 对校验值全部一致（末步 `1880: c6609f57`），0 错、0 失败；`perfOk: true`（HUD 显示 `sim systems (worker)`）；实机暂停点击“保存联机进度”生成合法存档（`turns: 581, hash: 676fe53b, valid: true`）；点击到执行 20/20（p50 403 ms）；Worker 内 `viewMsAvg` 4.12 / 4.16 ms（主线程无需 JSON 深拷贝）。**PASS**。
+  - **全主线程对照**（`docs/p4/duel-4c2-main.json`）：`workerActive: {A:false, B:false}`，57 对校验值全部一致（`1140: b5aa9688`），0 错；主线程 `viewMsAvg` 5.64 / 5.65 ms（max 13–18.2 ms）。**PASS**。
+  - **混排互通（A 开 Worker / B 走主线程）**（`docs/p4/duel-4c2-mixed.json`）：`workerActive: {A:true, B:false}`，54 对校验值全部一致（`1080: 3ef8ab16`），0 错。**PASS**。
+- 联机 Worker 浏览器快照恢复（`scripts/lockstep/browser-restore.cjs --sim-worker --after 20`，`docs/p4/restore-4c2-worker.json`）：双标签均在 Worker 中下载并校验 turn-3000 快照（78 KB，747 / 704 ms），离线追帧到存档点 turn 3300 校验值 `cf933cc1` 与存档完全一致，续玩至 turn 3531/3536 共 30 对校验值全部一致，0 错：**PASS**。
+
+## 3. 未验证项目与限制
+- `check-lockstep-resilience.cjs` 在本机 Windows 两次运行中遇到环境计时断言未通过（全量模式 `outage` 2x 时钟下 seat 1 未在 110 s 结束前完成 `aiRelease`；`--quick` 模式 120 s 仅触发 1 次计划重连未达 `>=2` 门槛）；该脚本运行主线程 `headless-client.cjs`，待在基线环境复核，不能据此宣称完整 resilience 通过。
+- 本分支尚未运行全量 `node check-all.cjs`（全 71 项）和完整 `npm run release-check` 性能报告，也未做真机 UI 审计（`frontier-ui-audit`）。
+- **Safari / iPad / iPhone / Android 真机未测**：Worker 联机启动、切后台/锁屏恢复、长局内存、弱网与发热仍需真机验证；因此 `?simWorker=1` 仍保持默认关闭，不切换默认值、不删除主线程路径。
+- 本分支更新了 `public/kingdom-core.js` 和 `public/sim-worker.js`；若后续要打新版 Android 试玩 APK，需重新执行 `npm run android:prepare` 同步 `.local/android-web`（当前未触碰 Android APK 与下载页，不构成已发布或真机验收）。
+- 合规影响：未引入新的发布合规依赖（无新权限、无新第三方库、无新增数据采集或远程请求；Worker 与页面同源）。

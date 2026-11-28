@@ -97,9 +97,12 @@ function debugButton() {
 }
 
 /* P3 lockstep (beta, opt-in from the lobby): network-ui.js calls start() when a lockstep room begins. */
+/* P4 4c-1 / 4c-2: ?simWorker=1 (or stored "多线程" preference) runs single-player and lockstep simulations in public/sim-worker.js. Off by default. */
+const simWorkerWanted = (() => { const q = query.get('simWorker'); if (q === '0' || q === '1') return q === '1'; try { return root.localStorage?.getItem('kingdom-sim-worker') === '1'; } catch { return false; } })();
+
 core.lockstep = {
   current: null,
-  start(opts) { core.lockstep.current?.stop(); return (core.lockstep.current = startBrowserLockstep(root, opts)); },
+  start(opts) { core.lockstep.current?.stop(); return (core.lockstep.current = startBrowserLockstep(root, { worker: simWorkerWanted, url: 'sim-worker.js', profile: !!root.PerformanceAudit, ...opts })); },
   replay: (rec) => replayLockstep(root.KingdomSim, root.KingdomNetCommands, rec),
   // 3c: online saves (room parameters + recording) and local replay viewing.
   saves,
@@ -110,10 +113,6 @@ core.installed = install(root.KingdomSim);
 
 /* P4: fixed-step constants for expansion.js (src/core/clock.js). */
 core.clock = { STEP: clock.STEP, MAX_DT: clock.MAX_DT, MAX_STEPS: clock.MAX_STEPS, FixedStep: clock.FixedStep };
-/* P4 step 4c-1: ?simWorker=1 runs a single-player game's simulation in a Web Worker (public/sim-worker.js). Off by default:
-   core.simWorker stays null and expansion.js takes exactly the main-thread path. */
-/* Also on when the player typed “多线程” in chat (stored preference; ?simWorker=0/1 overrides). */
-const simWorkerWanted = (() => { const q = query.get('simWorker'); if (q === '0' || q === '1') return q === '1'; try { return root.localStorage?.getItem('kingdom-sim-worker') === '1'; } catch { return false; } })();
 core.simWorker = simWorkerWanted && typeof root.Worker === 'function' ? createSimWorker(root, {
   url: 'sim-worker.js', debug: query.has('perf'),
   getK: () => root.KingdomSim,

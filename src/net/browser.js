@@ -14,6 +14,7 @@
 import { LockstepClient, CATCHUP } from './lockstep.js';
 import { AutoTransport } from './auto-transport.js';
 import { attachSnapshots } from './snapshots.js';
+import { startWorkerLockstep } from './worker-lockstep.js';
 
 const VIEW_EVERY = 90; // ms between replica views (the relay turn is 100 ms)
 
@@ -59,6 +60,9 @@ function driver(root, client, opts, transport, extra = null) {
 }
 
 export function startBrowserLockstep(root, opts) {
+  if (opts.worker && typeof root.Worker === 'function') {
+    try { return startWorkerLockstep(root, opts); } catch (e) { try { root.console?.warn?.('lockstep worker fallback to main thread:', e?.message || e); } catch { /* ignore */ } }
+  }
   const K = root.KingdomSim, commands = root.KingdomNetCommands, ls = opts.room.lockstep;
   if (!K || !K.NetworkSim || !commands || !ls) throw new Error('lockstep: simulation or command rules not loaded');
   const now = () => root.performance.timeOrigin + root.performance.now();

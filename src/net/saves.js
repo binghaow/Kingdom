@@ -25,7 +25,7 @@ export function makeSave(client, room, { auto = false, commands = null, from = n
     format: FORMAT, version: VERSION, savedAt: new Date().toISOString(), auto,
     room: { id: room.id, code: room.code || null, config: room.config, players },
     self: client.seat, setup: client.setup, period: client.period, seats: [...client.teams].map(([seat, team]) => ({ seat, team })),
-    turns: client.nextTurn, step: client.step, hash: checksum(client.sim).hash, aiSeats: [...client.aiSeats],
+    turns: client.nextTurn, step: client.step, hash: client.sim ? checksum(client.sim).hash : (client.saveHash?.turn === client.nextTurn ? client.saveHash.hash : (client.hashLog?.at(-1)?.[1] || '')), aiSeats: [...client.aiSeats],
     // A client that resumed from a relay snapshot has no local log before it: the caller passes the relay recording instead.
     from: from ?? (commands ? 0 : client.logFrom || 0),
     commands: (commands || client.log).filter((r) => r.turn < client.nextTurn).map((r) => ({ turn: r.turn, seat: r.seat, seq: r.seq, c: r.c })),

@@ -22,7 +22,7 @@
 import { CAPTURED } from '../replay/replay.js';
 import { checksum } from '../core/hash.js';
 import { STEP, MAX_STEPS } from '../core/clock.js';
-import { mergeNodes, restorePaths, encodeForWorker, decodeLocal, resultOf } from './frames.js';
+import { createFrameMirror, applyFrameState, encodeForWorker, decodeLocal, resultOf } from './frames.js';
 
 const UI_KEYS = ['controlGroups']; // written into the state by the page only (tactics-ui.js); carried across frames and into saves
 const NOOP_ON_PROXY = ['updateFog']; // the fog comes from the worker
@@ -30,7 +30,7 @@ const NOOP_ON_PROXY = ['updateFog']; // the fog comes from the worker
 export function createSimWorker(root, { url = 'sim-worker.js', debug = false, getK, onAdopt, onFallback } = {}) {
   const perf = root.performance;
   let worker = null, sim = null, ready = false, busy = false, owed = 0, seq = 0, queue = [], pendingFrames = [], scheduled = false;
-  let initHash = null, appliedAt = 0, span = STEP * 1000, frameStep = 0, navRev = 0, localFx = [], lastPump = 0, depth = 0, failed = null;
+  let initHash = null, appliedAt = 0, span = STEP * 1000, frameStep = 0, navRev = 0, localFx = [], lastPump = 0, depth = 0, failed = null, profiling = false, sysProf = null, mirror = null, detached = false;
   let prev = new Map();
   const waiting = new Map(), predicted = new Map();
   const stats = { frames: 0, applyMs: 0, maxApplyMs: 0, postMs: 0, requests: 0, owedDropped: 0, commands: 0, mismatches: [], worker: null, error: null, fallback: null };
@@ -51,6 +51,16 @@ export function createSimWorker(root, { url = 'sim-worker.js', debug = false, ge
     return new Promise((resolve, reject) => { waiting.set(q, { resolve, reject }); post({ t: type, q, ...extra }); });
   }
 
+  /* Detach target.s entity objects from the pristine mirror lazily, only when local command prediction is about to mutate them. */
+  function detachForPrediction(target) {
+    if (detached || !target?.s) return;
+    detached = true;
+    const s = target.s;
+    if (Array.isArray(s.units)) s.units = s.units.map((u) => ({ ...u }));
+    if (Array.isArray(s.buildings)) s.buildings = s.buildings.map((b) => (b.queue ? { ...b, queue: b.queue.slice() } : { ...b }));
+    target._idIndex = null;
+  }
+
   function install(target) {
     const proto = Object.getPrototypeOf(target);
     for (const name of CAPTURED) {
@@ -60,6 +70,7 @@ export function createSimWorker(root, { url = 'sim-worker.js', debug = false, ge
         let enc;
         try { enc = args.map((a) => encodeForWorker(a)); } catch (e) { return proto[name].apply(this, args); }
         const q = ++seq; queue.push({ q, m: name, a: enc }); stats.commands++;
+        detachForPrediction(target);
         let r;
         depth++;
         try { r = proto[name].apply(target, decodeLocal(target, enc, args)); } catch (e) { r = ''; } finally { depth--; }
@@ -104,10 +115,10 @@ export function createSimWorker(root, { url = 'sim-worker.js', debug = false, ge
   }
 
   function applyFrame(target, f) {
-    const old = target.s, st = f.state;
-    st.world = old.world || f.world;
-    st.nodes = mergeNodes(old.nodes, f.nodes);
-    restorePaths(st.units);
+    const old = target.s;
+    const st = applyFrameState(mirror || (mirror = createFrameMirror()), f);
+    detached = false;
+    if (!st.world && old.world) { st.world = old.world; mirror.world = old.world; }
     for (const k of UI_KEYS) if (st[k] === undefined && old[k] !== undefined) st[k] = old[k];
     target.s = st;
     if (f.fog) {
@@ -124,6 +135,14 @@ export function createSimWorker(root, { url = 'sim-worker.js', debug = false, ge
       if (p && JSON.stringify(p.r) !== JSON.stringify(r) && stats.mismatches.length < 20) stats.mismatches.push({ m: p.m, local: p.r, worker: r, step: f.step });
     }
     if (f.hashes?.length) (stats.hashes ||= []).push(...f.hashes);
+    if (f.sysProfile) {
+      sysProf ||= {};
+      for (const k of Object.keys(f.sysProfile)) {
+        const v = f.sysProfile[k], e = sysProf[k] || (sysProf[k] = { ms: 0, n: 0, max: 0 });
+        e.ms += v.ms; e.n += v.n; if (v.max > e.max) e.max = v.max;
+      }
+    }
+    if (f.diag) root.PerformanceAudit?.mergeWorkerDiag?.(f.diag);
     stats.worker = f.stats;
   }
 
@@ -158,7 +177,7 @@ export function createSimWorker(root, { url = 'sim-worker.js', debug = false, ge
       try {
         worker = new root.Worker(url);
       } catch (e) { failed = 'worker unavailable: ' + (e && e.message || e); onFallback?.(failed, target); return target; }
-      sim = target; ready = false; busy = false; owed = 0; queue = []; pendingFrames = []; localFx = []; prev = new Map(); failed = null;
+      sim = target; ready = false; busy = false; owed = 0; queue = []; pendingFrames = []; localFx = []; prev = new Map(); failed = null; mirror = createFrameMirror();
       appliedAt = perf.now(); span = STEP * 1000; frameStep = 0; navRev = -1; predicted.clear(); stats.hashes = [];
       worker.onmessage = onMessage;
       worker.onerror = (ev) => { ev?.preventDefault?.(); fallback('worker failed: ' + (ev?.message || 'script error')); };
@@ -167,7 +186,7 @@ export function createSimWorker(root, { url = 'sim-worker.js', debug = false, ge
       install(target);
       target.events = target.events || [];
       K.activateWorld?.(target.s.world);
-      post({ t: 'init', difficulty: setup.difficulty, options: setup.options || {}, saved: setup.saved || null, created: new Date().toISOString(), hashes: setup.hashes | 0, prewarm: true });
+      post({ t: 'init', difficulty: setup.difficulty, options: setup.options || {}, saved: setup.saved || null, created: new Date().toISOString(), hashes: setup.hashes | 0, prewarm: true, profile: profiling || !!root.PerformanceAudit });
       return target;
     },
     /* Stop the worker and keep the game on the main thread from its latest frame (switching to online, tutorial, new war). */
@@ -186,13 +205,18 @@ export function createSimWorker(root, { url = 'sim-worker.js', debug = false, ge
       if (!pendingFrames.length) return;
       const t0 = perf.now(), target = sim;
       // Interpolation origin = where each unit is drawn right now, so a new frame never makes a unit jump back.
-      const a = api.alpha(now), units = target.s.units;
+      // Temporarily adjust u.x/u.y for capture(target), then restore so pristine mirror objects stay untouched.
+      const a = api.alpha(now), units = target.s.units, saved = [];
       for (let i = 0; i < units.length; i++) {
         const u = units[i], p = prev.get(u.id);
-        if (p && p.kind === u.kind && Math.abs(u.x - p.x) + Math.abs(u.y - p.y) < 220) { u.x = p.x + (u.x - p.x) * a; u.y = p.y + (u.y - p.y) * a; }
+        if (p && p.kind === u.kind && Math.abs(u.x - p.x) + Math.abs(u.y - p.y) < 220) {
+          saved.push(u, u.x, u.y);
+          u.x = p.x + (u.x - p.x) * a; u.y = p.y + (u.y - p.y) * a;
+        }
       }
       capture?.(target);
       prev = new Map(units.map((u) => [u.id, { x: u.x, y: u.y, kind: u.kind }]));
+      for (let i = 0; i < saved.length; i += 3) { saved[i].x = saved[i + 1]; saved[i].y = saved[i + 2]; }
       const first = frameStep;
       for (const f of pendingFrames) applyFrame(target, f);
       const last = pendingFrames[pendingFrames.length - 1];
@@ -215,6 +239,8 @@ export function createSimWorker(root, { url = 'sim-worker.js', debug = false, ge
     checksum() { return ask('checksum'); },
     /* Benchmarks only (?perf=1): run a script against the worker's simulation. */
     eval(src) { if (!debug) return Promise.reject(Error('eval needs ?perf=1')); return ask('eval', { src: String(src) }).then((m) => m.value); },
+    setProfile(on) { profiling = !!on; if (!profiling) sysProf = null; if (worker && ready) post({ t: 'profile', on: profiling }); },
+    takeSystemProfile() { const p = sysProf; sysProf = null; return p; },
   };
   return api;
 }

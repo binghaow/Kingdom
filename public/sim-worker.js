@@ -730,8 +730,7 @@
             if (!memo || memo.g !== g || memo.cols !== cols || this.s.time < memo.time || this.s.time - memo.time > 2) memo = this._pathMemo = { time: this.s.time, g, cols, map: /* @__PURE__ */ new Map() };
             const key = sy * cols + sx + ":" + (g[ey * cols + ex] ? tx + "," + ty : ey * cols + ex), hit = memo.map.get(key);
             if (hit) {
-              const perf = typeof window !== "undefined" ? window.PerformanceAudit : null;
-              if (perf) this._perfPathExpanded = 0;
+              if (getPerfSink()) this._perfPathExpanded = 0;
               return hit.map((p) => ({ x: p.x, y: p.y }));
             }
             const path = (this.findPathAStar || Sim.prototype.findPathAStar).call(this, u, tx, ty);
@@ -739,7 +738,7 @@
             return path;
           }
           findPathAStar(u, tx, ty) {
-            const perf = typeof window !== "undefined" ? window.PerformanceAudit : null;
+            const perf = getPerfSink();
             if (perf) this._perfPathExpanded = 0;
             const g = this.getGrid(u), cell = MAP.cell, cols = MAP.width / cell, rows = MAP.height / cell, sx = clamp(Math.floor(u.x / cell), 0, cols - 1), sy = clamp(Math.floor(u.y / cell), 0, rows - 1);
             let ex = clamp(Math.floor(tx / cell), 0, cols - 1), ey = clamp(Math.floor(ty / cell), 0, rows - 1), end = ey * cols + ex;
@@ -1322,8 +1321,8 @@
           }
           sysCollision(dt, c) {
             const s = this.s;
-            const perf = typeof window !== "undefined" ? window.PerformanceAudit : null, collisionStart = perf ? performance.now() : 0, collisionPairs = this.separateCrowd();
-            if (perf) perf.collision(performance.now() - collisionStart, collisionPairs, s.units.length * (s.units.length - 1) / 2);
+            const perf = getPerfSink(), collisionStart = perf ? performance.now() : 0, collisionPairs = this.separateCrowd();
+            if (perf) perf.collision?.(performance.now() - collisionStart, collisionPairs, s.units.length * (s.units.length - 1) / 2);
           }
           sysDeaths(dt, c) {
             const s = this.s;
@@ -1462,7 +1461,7 @@
             if (r === SKIP && x.kind === "pre") skipFrom = x.depth;
           }
         }
-        let globalProf = null;
+        let globalProf = null, perfSink = null;
         function profileSystems(on = true) {
           globalProf = on ? globalProf || {} : null;
           return globalProf;
@@ -1471,6 +1470,12 @@
           const p = globalProf;
           if (p) globalProf = {};
           return p;
+        }
+        function setPerfSink(s) {
+          perfSink = s || null;
+        }
+        function getPerfSink() {
+          return perfSink || (typeof window !== "undefined" ? window.PerformanceAudit : null);
         }
         Sim.prototype.profileSystems = function(on = true) {
           this._sysProfile = on ? this._sysProfile || {} : null;
@@ -1543,7 +1548,7 @@
             this._applyingAI = false;
           }
         };
-        const api = { addSimLayer, registerSystem, SKIP, profileSystems, takeSystemProfile, Sim, defs: D, tech: TECH, map: MAP, ageNames, river, riverCenter: center, distance, townRules: TOWN_RULES };
+        const api = { addSimLayer, registerSystem, SKIP, profileSystems, takeSystemProfile, setPerfSink, getPerfSink, Sim, defs: D, tech: TECH, map: MAP, ageNames, river, riverCenter: center, distance, townRules: TOWN_RULES };
         if (typeof module !== "undefined" && module.exports) module.exports = api;
         else root.KingdomSim = api;
       })(typeof window !== "undefined" ? window : globalThis);
@@ -3366,7 +3371,7 @@
              remembered buildings for them); the tick refreshes each team on its own step of the 0.5 s cycle instead of all teams in one step.
              f.revision (what the renderer redraws on) changes only when team 0's view was refreshed. */
           updateFog(only = null) {
-            const perf = typeof window !== "undefined" ? window.PerformanceAudit : null, fogStart = perf ? performance.now() : 0;
+            const perf = K2.getPerfSink?.(), fogStart = perf ? performance.now() : 0;
             if (!this.world) return;
             const s = this.s, w = this.world, cols = w.width / 96, rows = w.height / 96, total = cols * rows;
             if (!this.fog) this.fog = { cols, rows, visible: s.nations.map(() => new Uint8Array(total)), explored: (s.explored || s.nations.map(() => [])).map((a) => Uint8Array.from({ length: total }, (_, i) => a[i] || 0)), memory: s.fogMemory || s.nations.map(() => ({})) };
@@ -3393,7 +3398,7 @@
               for (const e of [...s.nodes, ...s.buildings]) if (this.canSee(t, e)) memory[e.id] = { ...e, queue: [], remembered: true, path: [] };
               for (const [id, e] of Object.entries(memory)) if (this.canSee(t, e) && !this.byId(Number(id))) delete memory[id];
             }
-            if (perf) perf.fog(performance.now() - fogStart);
+            if (perf) perf.fog?.(performance.now() - fogStart);
           }
           sightBlocked(a, b) {
             return this.world.cliffs.some((c) => {
@@ -10750,8 +10755,183 @@
     }
   });
 
+  // public/network-commands.js
+  var require_network_commands = __commonJS({
+    "public/network-commands.js"(exports, module) {
+      ((root) => {
+        "use strict";
+        const K2 = typeof module !== "undefined" && module.exports ? require_network_model() : root.KingdomSim, D = K2.defs;
+        class Problem extends Error {
+          constructor(status, message) {
+            super(message);
+            this.status = status;
+          }
+        }
+        const clean = (v, n = 24) => (typeof v === "string" ? v : "").normalize("NFKC").replace(/[\u0000-\u001f\u007f]/g, "").trim().slice(0, n);
+        function ensureActor(sim, actor) {
+          if (!Number.isInteger(actor) || actor < 0 || actor >= sim.s.nations.length) throw new Problem(403, "无效席位");
+          if (sim.s.defeated.includes(actor)) throw new Problem(409, "你已出局，仍可聊天和观看队友");
+        }
+        function unit(sim, id, actor, building = false) {
+          const e = sim.byId(id);
+          if (!e || e.team !== actor || e.hp <= 0 || !!D[e.kind]?.building !== building) throw new Problem(403, "只能操作自己的有效单位或建筑");
+          return e;
+        }
+        function point(sim, p) {
+          if (!p || !Number.isFinite(p.x) || !Number.isFinite(p.y) || p.x < 0 || p.y < 0 || p.x > sim.world.width || p.y > sim.world.height) throw new Problem(400, "地图位置无效");
+          return { x: p.x, y: p.y };
+        }
+        function chat(sim, actor, body) {
+          const text = clean(body.text, 180);
+          if (!text) return "消息为空";
+          if (/^(daodangui|dadangui|捣蛋鬼|打蛋鬼|资源无限|无限资源|ziyuanwuxian|infinite resources)$/i.test(text)) return "联机模式禁用单机彩蛋";
+          const m = sim.logChat(actor, text, "message");
+          m.channel = body.channel === "team" ? "team" : "all";
+          if (m.channel === "team") m.audience = sim.s.nations.map((_, t) => t).filter((t) => sim.allied(actor, t));
+          return "消息已发送";
+        }
+        function orderUnits(sim, actor, a) {
+          if (!Array.isArray(a.ids) || !a.ids.length || a.ids.length > 160) throw new Problem(400, "所选部队无效");
+          const units = [...new Set(a.ids)].map((id) => unit(sim, id, actor));
+          const o = a.order;
+          if (!o || !["move", "advance", "attack", "gather", "build", "hold", "embark", "repair", "returnCargo"].includes(o.type)) throw new Problem(400, "未知部队命令");
+          let command = { type: o.type };
+          if (o.type === "returnCargo" && !units.some((u) => u.kind === "villager" && u.cargo?.amount > 0)) throw new Problem(400, "没有可送回的村民货物");
+          if (["move", "advance"].includes(o.type)) command = { ...command, ...point(sim, o), retreat: o.retreat === true };
+          if (["attack", "gather", "build", "embark", "repair"].includes(o.type)) {
+            const target = sim.byId(o.id);
+            if (!target) throw new Problem(400, "目标已不存在");
+            if (o.type === "attack" && (!sim.canSee(actor, target) || !units.some((u) => sim.canTarget(u, target)))) throw new Problem(400, "目标不可攻击或尚未发现");
+            if (o.type === "gather" && (!sim.canSee(actor, target) || !units.some((u) => sim.canGather(u, target)) || D[target.kind]?.building && target.team !== actor)) throw new Problem(400, "所选目标不可采集");
+            if (o.type === "build" && (target.team !== actor || !D[target.kind]?.building || target.complete || !units.some((u) => sim.builder(u)))) throw new Problem(400, "没有有效的己方工地");
+            if (o.type === "embark" && (target.team !== actor || !(target.kind === "transport" || D[target.kind]?.transport) || units.some((u) => sim.sea(u) || sim.air(u)))) throw new Problem(400, "请选择己方运输工具与陆军");
+            if (o.type === "repair" && !units.some((u) => !sim.repairError(u, target))) throw new Problem(400, "没有可维修的友军建筑或施工人员");
+            command.id = target.id;
+            if (o.type === "gather") command.resource = target.resource || target.kind;
+          }
+          sim.order(units, command);
+          return "部队指令已执行";
+        }
+        function orderWeight(c) {
+          if (c?.type !== "orders" || !Array.isArray(c.args?.items)) return 1;
+          let n = 0;
+          for (const item of c.args.items) n += Array.isArray(item?.ids) ? Math.max(1, item.ids.length) : 1;
+          return Math.max(1, n);
+        }
+        function execute(sim, actor, c) {
+          if (!c || typeof c.type !== "string") throw new Problem(400, "无效指令");
+          const a = c.args || {};
+          if (c.type === "chat") return chat(sim, actor, a);
+          ensureActor(sim, actor);
+          if (sim.s.ended) throw new Problem(409, "战役已结束");
+          if (c.type === "order") return orderUnits(sim, actor, a);
+          if (c.type === "orders") {
+            const items = a.items;
+            if (!Array.isArray(items) || !items.length || items.length > 160 || orderWeight(c) > 320) throw new Problem(400, "所选部队无效");
+            let accepted = 0, failure = null;
+            const attempt = (args) => {
+              try {
+                orderUnits(sim, actor, args);
+                accepted++;
+              } catch (e) {
+                if (!(e instanceof Problem)) throw e;
+                failure ?? (failure = e);
+              }
+            };
+            for (const item of items) {
+              if (!item || typeof item !== "object") {
+                failure ?? (failure = new Problem(400, "所选部队无效"));
+                continue;
+              }
+              if (item.points === void 0) {
+                if (item.each === true && Array.isArray(item.ids)) for (const id of item.ids) attempt({ ids: [id], order: item.order });
+                else attempt(item);
+                continue;
+              }
+              if (!Array.isArray(item.ids) || !Array.isArray(item.points) || item.points.length !== item.ids.length || !["move", "advance"].includes(item.order?.type)) {
+                failure ?? (failure = new Problem(400, "所选部队无效"));
+                continue;
+              }
+              item.ids.forEach((id, i) => attempt({ ids: [id], order: { type: item.order.type, retreat: item.order.retreat, x: item.points[i]?.x, y: item.points[i]?.y } }));
+            }
+            if (!accepted) throw failure || new Problem(400, "所选部队无效");
+            return failure ? "部分部队未执行：" + failure.message : "部队指令已执行";
+          }
+          if (c.type === "rally") {
+            const b = unit(sim, a.id, actor, true), p = a.point === null ? null : point(sim, a.point);
+            return sim.setRally(b, p, actor) || "集结点已设置";
+          }
+          if (c.type === "train") {
+            if (!Object.hasOwn(D, a.kind) || D[a.kind].building || D[a.kind].companion || D[a.kind].monster) throw new Problem(400, "无效兵种");
+            return sim.train(unit(sim, a.id, actor, sim.byId(a.id)?.kind !== "carrier"), a.kind) || "训练已排队";
+          }
+          if (c.type === "research") {
+            if (a.key !== "age" && !Object.hasOwn(K2.tech, a.key)) throw new Problem(400, "无效科技");
+            return sim.research(unit(sim, a.id, actor, true), a.key) || "研究已排队";
+          }
+          if (c.type === "wallLine") {
+            if (!Object.hasOwn(D, a.kind) || !D[a.kind].wall) throw new Problem(400, "无效城防");
+            const from = point(sim, a.a), to = point(sim, a.b);
+            if (!Array.isArray(a.ids) || !a.ids.length || a.ids.length > 160) throw new Problem(400, "请选择施工人员");
+            const workers = [...new Set(a.ids)].map((id) => unit(sim, id, actor));
+            if (workers.some((u) => !sim.builder(u))) throw new Problem(400, "所选部队不能施工");
+            const r = sim.constructLine(a.kind, from, to, workers, actor);
+            return r.count ? "已安排 " + r.count + " 段城防" + (r.error ? " · " + r.error : "") : r.error || "此处已有城防";
+          }
+          if (c.type === "construct") {
+            if (!Object.hasOwn(D, a.kind) || !D[a.kind].building || ["town", "kclair", "kcreclaimed"].includes(a.kind)) throw new Problem(400, "无效建筑");
+            const p = point(sim, a);
+            if (!Array.isArray(a.ids) || !a.ids.length || a.ids.length > 160) throw new Problem(400, "请选择施工人员");
+            const workers = a.ids.map((id) => unit(sim, id, actor));
+            if (workers.some((u) => !sim.builder(u))) throw new Problem(400, "所选部队不能施工");
+            const r = sim.construct(a.kind, p.x, p.y, workers, actor);
+            return r.error || "工地已建立";
+          }
+          if (["board", "unload", "fish", "skill", "spell", "route"].includes(c.type)) {
+            const u = unit(sim, a.id, actor);
+            if (c.type === "board") return sim.board(u);
+            if (c.type === "unload") return sim.unload(u);
+            if (c.type === "fish") {
+              if (u.kind !== "fishingboat") throw new Problem(400, "请选择渔船");
+              sim.assignFish(u);
+              return "已安排捕鱼";
+            }
+            if (c.type === "skill") return sim.skill(u);
+            if (c.type === "spell") {
+              if (!["frost", "ward", "inferno", "tornado"].includes(a.spell)) throw new Problem(400, "无效法术");
+              return sim.castSpell(u, a.spell);
+            }
+            if (u.kind !== "trader") throw new Problem(400, "请选择商队");
+            return sim.route(u, a.destination) || "商路已安排";
+          }
+          if (c.type === "reward") {
+            if (!Object.hasOwn(K2.rewards, a.choice)) throw new Problem(400, "请选择有效奖励");
+            return sim.claimReward(actor, a.choice);
+          }
+          if (c.type === "alliance") return sim.s.netMode === "diplomacy" ? sim.offerAlliance(actor, Number(a.to)) : "此房间不开放临时联盟";
+          if (c.type === "acceptAlliance") return sim.acceptAlliance(actor, Number(a.from));
+          if (c.type === "rejectAlliance") return sim.rejectAlliance(actor, Number(a.from));
+          if (c.type === "war") return sim.declareWar(actor, Number(a.to));
+          if (c.type === "surrender") {
+            const b = sim.s.buildings.find((b2) => b2.team === actor && b2.kind === "town");
+            if (b) {
+              b.hp = 0;
+              sim.townDestroyed(b);
+            }
+            return "你已投降";
+          }
+          throw new Problem(400, "此指令在联机中不可用");
+        }
+        const api = { Problem, clean, ensureActor, unit, point, chat, orderUnits, orderWeight, execute };
+        if (typeof module !== "undefined" && module.exports) module.exports = api;
+        else root.KingdomNetCommands = api;
+      })(typeof window === "undefined" ? globalThis : window);
+    }
+  });
+
   // src/sim/worker.js
   var import_little_ant = __toESM(require_little_ant(), 1);
+  var import_network_commands = __toESM(require_network_commands(), 1);
 
   // src/core/hash.js
   var OFFSET = 2166136261;
@@ -11089,8 +11269,360 @@
   // src/core/clock.js
   var STEP2 = 0.05;
 
+  // src/net/caretaker.js
+  var PERIOD_TURNS = 30;
+  function caretaker(K2, sim, team, turn) {
+    if (turn % PERIOD_TURNS !== 0) return [];
+    const s = sim.s, out = [];
+    if (s.ended || s.defeated?.includes(team)) return out;
+    const town = s.buildings.find((b) => b.team === team && b.kind === "town" && b.hp > 0 && b.complete !== false);
+    if (!town) return out;
+    const d2 = (a) => (a.x - town.x) ** 2 + (a.y - town.y) ** 2;
+    const mine = s.units.filter((u) => u.team === team && u.hp > 0 && !u.embarkedOn);
+    const villagers = mine.filter((u) => u.kind === "villager");
+    const idle = villagers.filter((u) => !u.order);
+    if (idle.length) {
+      let best = null, bestD = Infinity;
+      for (const n of s.nodes) {
+        if (!((n.amount ?? 1) > 0)) continue;
+        const d = d2(n);
+        if (d >= bestD || d > 900 * 900) continue;
+        if (sim.canGather && !sim.canGather(idle[0], n)) continue;
+        best = n;
+        bestD = d;
+      }
+      if (best) out.push(["orders", { items: [{ ids: idle.slice(0, 8).map((u) => u.id), order: { type: "gather", id: best.id } }] }]);
+    }
+    if (villagers.length < 30 && !(town.queue && town.queue.length)) out.push(["train", { id: town.id, kind: "villager" }]);
+    let foe = null, foeD = 650 * 650;
+    for (const u of s.units) {
+      if (u.hp > 0 && u.team !== team && u.team >= 0 && !(sim.allied && sim.allied(team, u.team))) {
+        const d = d2(u);
+        if (d < foeD) {
+          foe = u;
+          foeD = d;
+        }
+      }
+    }
+    if (foe) {
+      const army = mine.filter((u) => u.kind !== "villager" && K2.defs[u.kind]?.damage > 0 && !(sim.sea && sim.sea(u)));
+      if (army.length) out.push(["order", { ids: army.slice(0, 80).map((u) => u.id), order: { type: "advance", x: foe.x, y: foe.y } }]);
+    }
+    return out;
+  }
+
+  // src/net/lockstep.js
+  var STEP3 = 0.05;
+  var STEPS_PER_TURN = 2;
+  var HASH_EVERY = 20;
+  var DEFAULT_PERIOD = 100;
+  var SYSTEM_SEAT = 99;
+  var CATCHUP = 50;
+  var CATCHUP_HASH = 600;
+  var TAKEOVER_MS = 6e4;
+  var SNAP_EVERY = 3e3;
+  var clone2 = (v) => JSON.parse(JSON.stringify(v));
+  function buildSim(K2, setup) {
+    const sim = new K2.NetworkSim(setup.difficulty, null, clone2(setup.options));
+    sim.s.playerNames = setup.names.slice();
+    sim.s.netMode = setup.netMode;
+    sim.prewarmNav();
+    sim.announce("联机战役已开始");
+    return sim;
+  }
+  var LockstepClient = class {
+    /* opts: K (window.KingdomSim / network-model.js), commands (network-commands.js), setup, seat, seats [{seat,team}],
+       startAt (relay clock ms), period, now() local ms clock, onResult(text, cmd, latencyMs), hashes (default true) */
+    constructor(opts) {
+      this.K = opts.K;
+      this.commands = opts.commands;
+      this.setup = opts.setup;
+      this.seat = opts.seat;
+      this.teams = new Map((opts.seats || []).map((s) => [s.seat, s.team]));
+      this.team = this.teams.has(opts.seat) ? this.teams.get(opts.seat) : -1;
+      this.startAt = opts.startAt;
+      this.period = opts.period || DEFAULT_PERIOD;
+      this.now = opts.now || (() => Date.now());
+      this.onResult = opts.onResult || null;
+      this.onTurn = opts.onTurn || null;
+      this.hashes = opts.hashes !== false;
+      this.sim = opts.sim || buildSim(this.K, this.setup);
+      this.nextTurn = 0;
+      this.step = 0;
+      this.sealed = -1;
+      this.delay = 2;
+      this.turns = /* @__PURE__ */ new Map();
+      this.seen = /* @__PURE__ */ new Set();
+      this.outbox = [];
+      this.sentCmds = /* @__PURE__ */ new Map();
+      this.seq = 0;
+      this.issued = /* @__PURE__ */ new Map();
+      this.hashQueue = [];
+      this.hashLog = [];
+      this.offset = null;
+      this.samples = [];
+      this.rtt = null;
+      this.seatInfo = null;
+      this.desync = null;
+      this.waitingSince = null;
+      this.log = [];
+      this.margin = 30;
+      this.aiSeats = /* @__PURE__ */ new Set();
+      this.aiTeams = /* @__PURE__ */ new Set();
+      this.desyncInfo = null;
+      this.reclaim = false;
+      this.control = [];
+      this.stats = { requests: 0, failures: 0, up: 0, down: 0, latency: [], turnLatency: [], catchup: 0, stalls: 0, stallMs: 0, commands: 0, rejected: 0 };
+      this.resumeAt = opts.resumeAt && Number.isSafeInteger(opts.resumeAt.turn) && opts.resumeAt.turn > 0 ? { turn: opts.resumeAt.turn, hash: opts.resumeAt.hash } : null;
+      this.lastSnap = null;
+    }
+    /* ---- clock ---- */
+    serverNow() {
+      return this.now() + (this.offset ?? 0);
+    }
+    clockTurn() {
+      return (this.serverNow() - this.startAt) / this.period;
+    }
+    /* Playback horizon (design section 4): a command reaching the relay in turn T's window runs about D*period after it was
+       issued; never closer to the seal than half a round trip plus a jitter margin. The margin starts at 30 ms, grows after
+       each wait longer than 50 ms (turn not here yet when due) and shrinks again by 5 ms per second, so a jittery link or a busy device trades a little
+       delay for smooth playback instead of stopping and starting. */
+    lagTurns() {
+      const rtt = this.rtt ?? 100, half = rtt / 2;
+      return Math.max((half + this.margin) / this.period, this.delay - (half + this.period / 2) / this.period);
+    }
+    horizon() {
+      return Math.floor(this.clockTurn() - 1 - this.lagTurns());
+    }
+    /* ---- outgoing ---- */
+    issue(type, args) {
+      if (this.team < 0 || this.desync) return false;
+      const item = { seq: ++this.seq, cmd: { type, args: args || {} }, at: this.now(), clock: this.clockTurn() };
+      this.outbox.push(item);
+      this.issued.set(item.seq, item);
+      this.stats.commands++;
+      return true;
+    }
+    /* Message for the relay; the caller passes the returned token back to sent()/failed(). */
+    outgoing({ wait = true, turns = true, seats = false, reclaim = false } = {}) {
+      const cmds = this.outbox.splice(0, 32), hashes = this.hashQueue.splice(0, 16);
+      const body = { a: this.sealed, x: this.nextTurn - 1 };
+      if (!wait) body.w = 0;
+      if (!turns) body.q = 0;
+      if (this.rtt !== null) body.r = Math.round(this.rtt);
+      if (cmds.length) body.c = cmds.map((c) => [c.seq, c.cmd]);
+      if (hashes.length) body.h = hashes;
+      if (seats) body.s = 1;
+      if (reclaim) body.k = 1;
+      return { body, cmds, hashes, sentAt: this.now() };
+    }
+    /* Commands sent but not yet seen in a delivered turn go back to the front of the queue (after a reconnect or a transport
+       switch); the relay ignores a seat+seq it already stored. */
+    requeueUnconfirmed() {
+      const waiting = [...this.issued.values()].filter((i) => !this.seen.has(this.seat + ":" + i.seq) && !this.outbox.includes(i));
+      this.outbox.unshift(...waiting.sort((a, b) => a.seq - b.seq));
+    }
+    failed(token) {
+      this.stats.failures++;
+      this.outbox.unshift(...token.cmds.filter((c) => !this.outbox.includes(c)));
+      this.hashQueue.unshift(...token.hashes);
+    }
+    /* ---- incoming ---- */
+    receive(msg, token, recvAt = this.now()) {
+      this.stats.requests++;
+      if (token) {
+        const net = Math.max(0, recvAt - token.sentAt - (msg.hw || 0));
+        this.rtt = this.rtt === null ? net : this.rtt * 0.8 + net * 0.2;
+        this.samples.push({ net, offset: this.startAt + msg.n - (recvAt - net / 2) });
+        if (this.samples.length > 30) this.samples.shift();
+        this.offset = this.samples.reduce((a, b) => b.net < a.net ? b : a).offset;
+      }
+      if (Number.isFinite(msg.d)) this.delay = msg.d;
+      if (msg.snap && (!this.offer || msg.snap.turn > this.offer.turn)) this.offer = msg.snap;
+      if (msg.seats) this.seatInfo = msg.seats.map(([seat, team, at, age, mode]) => ({ seat, team, at, age, mode: mode || 0 }));
+      if (msg.ds) {
+        this.desyncInfo = msg.ds;
+        if (!this.desync && (!Array.isArray(msg.ds.losers) || msg.ds.losers.includes(this.seat))) this.desync = msg.ds;
+      }
+      for (const row of msg.t || []) {
+        const [turn, seat, seq, cmd] = row, key = seat + ":" + seq;
+        if (seat === this.seat && seq > this.seq) this.seq = seq;
+        if (turn < this.nextTurn || this.seen.has(key)) continue;
+        this.seen.add(key);
+        let list = this.turns.get(turn);
+        if (!list) this.turns.set(turn, list = []);
+        list.push({ seat, seq, cmd });
+      }
+      if (Number.isFinite(msg.se) && msg.t && msg.se > this.sealed) this.sealed = msg.se;
+    }
+    /* ---- simulation ---- */
+    runTurn() {
+      const turn = this.nextTurn, list = (this.turns.get(turn) || []).sort((a, b) => a.seat - b.seat || a.seq - b.seq), now = this.now();
+      for (const r of list) {
+        if (r.seat === SYSTEM_SEAT) {
+          this.applySystem(r.cmd, turn);
+          this.log.push({ turn, seat: r.seat, seq: r.seq, c: r.cmd });
+          continue;
+        }
+        const team = this.teams.has(r.seat) ? this.teams.get(r.seat) : -1;
+        let result;
+        try {
+          result = team >= 0 ? this.commands.execute(this.sim, team, r.cmd) : "观战席位不能下令";
+        } catch (e) {
+          result = { error: String(e?.message || e) };
+          this.stats.rejected++;
+        }
+        this.log.push({ turn, seat: r.seat, seq: r.seq, c: r.cmd });
+        if (r.seat === this.seat) {
+          const mine = this.issued.get(r.seq);
+          this.issued.delete(r.seq);
+          const latency = mine ? now - mine.at : null;
+          if (latency !== null) this.stats.latency.push(latency);
+          if (mine && this.stats.trace) this.stats.trace.push([+mine.clock.toFixed(2), turn, +this.clockTurn().toFixed(2)]);
+          this.onResult?.(result, r.cmd, latency, r.seq);
+        }
+      }
+      this.turns.delete(turn);
+      if (this.aiTeams.has(0)) for (const [type, args] of caretaker(this.K, this.sim, 0, turn)) {
+        try {
+          this.commands.execute(this.sim, 0, { type, args });
+        } catch {
+        }
+      }
+      const catching = this.sparseCatchup !== false && this.nextTurn < this.sealed - CATCHUP;
+      for (let i = 0; i < STEPS_PER_TURN; i++) {
+        this.sim.tick(STEP3);
+        this.step++;
+        if (i === STEPS_PER_TURN - 1 && (turn + 1) % SNAP_EVERY === 0) this.normalize(turn + 1);
+        if (this.hashes && this.step % (catching ? CATCHUP_HASH : HASH_EVERY) === 0) {
+          const h = checksum(this.sim).hash;
+          this.hashQueue.push([this.step, h]);
+          this.hashLog.push([this.step, h]);
+          if (this.snapshot && this.snapshot.step === this.step) {
+            this.snapshot.hash = h;
+            this.lastSnap = { ...this.snapshot };
+            this.onSnapshot?.(this.snapshot);
+          }
+        }
+      }
+      this.nextTurn++;
+      this.onTurn?.(turn);
+    }
+    /* System command (relay seat SYSTEM_SEAT): {type:'aiTakeover'|'aiRelease', args:{seat, team, reason}}. A team is computer
+       controlled while every human seat of it is taken over. Teams >= 1 use the Sim's own computer player (removed from
+       s.humanTeams, thinking from now); team 0 uses the caretaker above. */
+    applySystem(cmd, turn) {
+      const seat = cmd?.args?.seat;
+      if (!Number.isSafeInteger(seat) || !this.teams.has(seat)) return;
+      if (cmd.type === "aiTakeover") this.aiSeats.add(seat);
+      else if (cmd.type === "aiRelease") this.aiSeats.delete(seat);
+      else return;
+      const team = this.teams.get(seat), seats = [...this.teams].filter(([, t]) => t === team).map(([s2]) => s2), ai = seats.every((x) => this.aiSeats.has(x));
+      const s = this.sim.s, was = this.aiTeams.has(team);
+      if (ai && !was) {
+        this.aiTeams.add(team);
+        if (team > 0) {
+          s.humanTeams = (s.humanTeams || []).filter((t) => t !== team);
+          if (s.nextThink) s.nextThink[team] = s.time;
+        }
+      } else if (!ai && was) {
+        this.aiTeams.delete(team);
+        if (team > 0) s.humanTeams = (this.setup.options.humanTeams || []).filter((t) => !this.aiTeams.has(t));
+      }
+      this.control.push({ turn, seat, team, type: cmd.type, reason: cmd.args.reason || null });
+      this.onControl?.({ turn, seat, team, type: cmd.type, reason: cmd.args.reason || null, ai });
+    }
+    /* Snapshot (see SNAP_EVERY): normalize the simulation in place and keep the JSON text for upload. */
+    normalize(turn) {
+      const text = JSON.stringify(this.K.networkPersistent(this.sim));
+      this.sim = this.K.networkHydrate(JSON.parse(text), { room: this.navRoom || null });
+      this.snapshot = { turn, step: turn * STEPS_PER_TURN, text, aiSeats: [...this.aiSeats], hash: null, live: this.nextTurn >= this.sealed - CATCHUP };
+    }
+    /* Resume from a relay snapshot (verified by the caller against the majority checksum): the state at the start of `turn`. */
+    loadSnapshot(snap) {
+      const sim = this.K.networkHydrate(JSON.parse(snap.text), { room: this.navRoom || null });
+      const hash = checksum(sim).hash;
+      if (hash !== snap.hash) return { ok: false, hash };
+      sim.prewarmNav?.();
+      this.sim = sim;
+      this.nextTurn = snap.turn;
+      this.step = snap.turn * STEPS_PER_TURN;
+      this.sealed = Math.max(this.sealed, snap.turn - 1);
+      for (const t of [...this.turns.keys()]) if (t < snap.turn) this.turns.delete(t);
+      this.aiSeats = new Set(snap.aiSeats || []);
+      this.aiTeams = /* @__PURE__ */ new Set();
+      for (const team of new Set(this.teams.values())) {
+        const seats = [...this.teams].filter(([, t]) => t === team).map(([x]) => x);
+        if (seats.length && seats.every((x) => this.aiSeats.has(x))) this.aiTeams.add(team);
+      }
+      if (Number.isSafeInteger(snap.seq) && snap.seq > this.seq) this.seq = snap.seq;
+      this.logFrom = snap.turn;
+      this.log = [];
+      this.hashLog.push([this.step, hash]);
+      this.stats.snapshotTurn = snap.turn;
+      this.lastSnap = { turn: snap.turn, step: this.step, hash, text: snap.text, aiSeats: [...this.aiSeats], encoded: snap.encoded || null };
+      if (this.resumeAt && snap.turn >= this.resumeAt.turn) this.resumeAt = null;
+      return { ok: true, hash };
+    }
+    /* Catch-up progress (refresh / reconnect / restored room): null when on time. */
+    progress() {
+      if (this.resumeAt) return { turn: this.nextTurn, target: Math.max(this.sealed, this.resumeAt.turn), behind: Math.max(this.sealed, this.resumeAt.turn) - this.nextTurn, snapshot: true };
+      const behind = this.sealed - this.nextTurn;
+      return behind > CATCHUP ? { turn: this.nextTurn, target: this.sealed, behind } : null;
+    }
+    /* Runs every turn that is both sealed and due, within a time budget (ms). A device that fell behind (background tab,
+       slow frame) runs extra turns until it is back on the horizon (catch-up). Returns turns executed. */
+    advance(budget = 12) {
+      if (this.resumeAt) return 0;
+      const start = this.now(), limit = Math.min(this.horizon(), this.sealed);
+      let n = 0;
+      while (this.nextTurn <= limit && !this.desync) {
+        this.runTurn();
+        n++;
+        if (this.now() - start > budget) break;
+      }
+      if (n > 1) this.stats.catchup += n - 1;
+      const due = this.horizon() >= this.nextTurn && this.nextTurn > this.sealed;
+      if (due && !this.desync) {
+        if (this.waitingSince === null) {
+          this.waitingSince = this.now();
+          this.stats.stalls++;
+        }
+      } else if (this.waitingSince !== null) {
+        const ms = this.now() - this.waitingSince;
+        this.stats.stallMs += ms;
+        this.waitingSince = null;
+        if (ms > 50) this.margin = Math.min(250, this.margin + Math.min(40, ms / 2));
+      }
+      if (n) this.margin = Math.max(30, this.margin - 0.5 * n);
+      const me = this.seatInfo?.find((x) => x.seat === this.seat);
+      this.reclaim = !!me && me.mode === 1 && this.nextTurn >= this.sealed - 20;
+      return n;
+    }
+    /* Who the game is waiting for, once a wait exceeds 1 s (design section 6): the slowest seat that is behind, else the network. */
+    waiting(limitMs = 1e3) {
+      if (this.waitingSince === null || this.now() - this.waitingSince < limitMs) return null;
+      const behind = (this.seatInfo || []).filter((s) => s.seat !== this.seat && s.team >= 0 && !s.mode && (s.at < this.sealed - 5 || s.age > 1500)).sort((a, b) => a.at - b.at)[0];
+      return behind ? { seat: behind.seat, team: behind.team, ms: this.now() - this.waitingSince, takeoverIn: Math.max(0, Math.ceil((TAKEOVER_MS - behind.age) / 1e3)), offline: behind.age > 1500 } : { seat: null, team: null, ms: this.now() - this.waitingSince };
+    }
+    recording() {
+      return {
+        format: "kingdom-lockstep",
+        version: 1,
+        setup: this.setup,
+        period: this.period,
+        seats: [...this.teams].map(([seat, team]) => ({ seat, team })),
+        turns: this.nextTurn,
+        logFrom: this.logFrom || 0,
+        commands: this.log.slice(),
+        checksums: this.hashLog.map(([step, hash]) => ({ step, hash })),
+        aiSeats: [...this.aiSeats]
+      };
+    }
+  };
+
   // src/sim/frames.js
-  var FRAME_VERSION = 1;
+  var FRAME_VERSION = 2;
   var PATH_SENT = 2;
   var PATH_LEN = "__pathLength";
   var flat = (v) => v !== null && typeof v === "object" ? JSON.stringify(v) : v;
@@ -11103,7 +11635,7 @@
     }
     return count !== prev.__n;
   }
-  function remember(n) {
+  function rememberNode(n) {
     const o = { __n: 0 };
     for (const k in n) {
       o[k] = flat(n[k]);
@@ -11111,21 +11643,217 @@
     }
     return o;
   }
+  function isFlatObj(v) {
+    if (!v || typeof v !== "object" || Array.isArray(v)) return false;
+    for (const k in v) {
+      const x = v[k];
+      if (x !== null && typeof x === "object") return false;
+    }
+    return true;
+  }
+  function sameFlatObj(a, b) {
+    if (!a || !b) return false;
+    let n = 0;
+    for (const k in b) {
+      n++;
+      const x = b[k], y = a[k];
+      if (x !== y && !(x !== x && y !== y)) return false;
+      if (!(k in a)) return false;
+    }
+    return n === a.__n;
+  }
+  function copyFlatObj(v) {
+    const o = { __n: 0 };
+    for (const k in v) {
+      o[k] = v[k];
+      o.__n++;
+    }
+    return o;
+  }
+  function slimEntity(e, isUnit) {
+    if (!isUnit) return e;
+    const p = e.path;
+    if (p && p.length > PATH_SENT) return { ...e, path: p.slice(0, PATH_SENT), [PATH_LEN]: p.length };
+    return e;
+  }
+  function cachePath(rec, p) {
+    if (!p) {
+      rec.__pl = p === null ? -2 : -1;
+      return;
+    }
+    const len = p.length;
+    rec.__pl = len;
+    if (len > 0) {
+      rec.__p0x = p[0].x;
+      rec.__p0y = p[0].y;
+    }
+    if (len > 1) {
+      rec.__p1x = p[1].x;
+      rec.__p1y = p[1].y;
+    }
+  }
+  function pathChanged(rec, p) {
+    if (!p) return rec.__pl !== (p === null ? -2 : -1);
+    const len = p.length;
+    if (rec.__pl !== len) return true;
+    if (len > 0 && (rec.__p0x !== p[0].x || rec.__p0y !== p[0].y)) return true;
+    if (len > 1 && (rec.__p1x !== p[1].x || rec.__p1y !== p[1].y)) return true;
+    return false;
+  }
+  function cacheField(k, v) {
+    if (v === null || typeof v !== "object") return v;
+    if (k === "drift" && Array.isArray(v) && v.length === 3) return { __d: 1, a: v[0], b: v[1], c: v[2] };
+    if (k === "cargo" && !Array.isArray(v)) return { __c: 1, r: v.resource, a: v.amount };
+    if (k === "order" && isFlatObj(v)) return { __f: copyFlatObj(v) };
+    return { __j: JSON.stringify(v) };
+  }
+  function rememberEntity(e, isUnit) {
+    const rec = { __n: 0, __pl: -3, __p0x: 0, __p0y: 0, __p1x: 0, __p1y: 0 };
+    for (const k in e) {
+      rec.__n++;
+      if (isUnit && k === "path") {
+        cachePath(rec, e.path);
+        rec.path = 1;
+        continue;
+      }
+      rec[k] = cacheField(k, e[k]);
+    }
+    return rec;
+  }
+  function diffEntity(rec, e, isUnit) {
+    let patch = null, count = 0;
+    for (const k in e) {
+      count++;
+      const v = e[k];
+      if (isUnit && k === "path") {
+        if (!("path" in rec)) {
+          rec.__n++;
+          rec.path = 1;
+          cachePath(rec, v);
+          (patch || (patch = { id: e.id })).path = v && v.length > PATH_SENT ? v.slice(0, PATH_SENT) : v;
+          if (v && v.length > PATH_SENT) patch[PATH_LEN] = v.length;
+        } else if (pathChanged(rec, v)) {
+          cachePath(rec, v);
+          (patch || (patch = { id: e.id })).path = v && v.length > PATH_SENT ? v.slice(0, PATH_SENT) : v;
+          if (v && v.length > PATH_SENT) patch[PATH_LEN] = v.length;
+        }
+        continue;
+      }
+      const had = k in rec, prev = rec[k];
+      if (v === null || typeof v !== "object") {
+        if (!had) {
+          rec.__n++;
+          rec[k] = v;
+          (patch || (patch = { id: e.id }))[k] = v;
+        } else if (prev !== v && !(v !== v && prev !== prev)) {
+          rec[k] = v;
+          (patch || (patch = { id: e.id }))[k] = v;
+        }
+        continue;
+      }
+      if (k === "drift" && Array.isArray(v) && v.length === 3) {
+        if (had && prev && prev.__d && prev.a === v[0] && prev.b === v[1] && prev.c === v[2]) continue;
+        if (!had) rec.__n++;
+        if (prev && prev.__d) {
+          prev.a = v[0];
+          prev.b = v[1];
+          prev.c = v[2];
+        } else rec[k] = { __d: 1, a: v[0], b: v[1], c: v[2] };
+        (patch || (patch = { id: e.id }))[k] = v;
+        continue;
+      }
+      if (k === "cargo" && !Array.isArray(v)) {
+        if (had && prev && prev.__c && prev.r === v.resource && prev.a === v.amount) continue;
+        if (!had) rec.__n++;
+        if (prev && prev.__c) {
+          prev.r = v.resource;
+          prev.a = v.amount;
+        } else rec[k] = { __c: 1, r: v.resource, a: v.amount };
+        (patch || (patch = { id: e.id }))[k] = v;
+        continue;
+      }
+      if (k === "order" && isFlatObj(v)) {
+        if (had && prev && prev.__f && sameFlatObj(prev.__f, v)) continue;
+        if (!had) rec.__n++;
+        rec[k] = { __f: copyFlatObj(v) };
+        (patch || (patch = { id: e.id }))[k] = v;
+        continue;
+      }
+      const s = JSON.stringify(v);
+      if (had && prev && prev.__j === s) continue;
+      if (!had) rec.__n++;
+      if (prev && "__j" in prev) prev.__j = s;
+      else rec[k] = { __j: s };
+      (patch || (patch = { id: e.id }))[k] = v;
+    }
+    if (count !== rec.__n) {
+      let del = null;
+      for (const k in rec) {
+        if (k === "__n" || k === "__pl" || k === "__p0x" || k === "__p0y" || k === "__p1x" || k === "__p1y") continue;
+        if (!(k in e)) {
+          delete rec[k];
+          rec.__n--;
+          if (isUnit && k === "path") rec.__pl = -3;
+          (del || (del = [])).push(k);
+        }
+      }
+      if (del) (patch || (patch = { id: e.id })).$d = del;
+    }
+    return patch;
+  }
+  function diffList(list, cache, prevOrder, isUnit) {
+    const add = [], patch = [];
+    let orderChanged = !prevOrder || prevOrder.length !== list.length;
+    if (!orderChanged) {
+      for (let i = 0; i < list.length; i++) if (prevOrder[i] !== list[i].id) {
+        orderChanged = true;
+        break;
+      }
+    }
+    const seen = orderChanged ? /* @__PURE__ */ new Set() : null;
+    for (let i = 0; i < list.length; i++) {
+      const e = list[i], id = e.id;
+      if (seen) seen.add(id);
+      const rec = cache.get(id);
+      if (!rec) {
+        add.push(slimEntity(e, isUnit));
+        cache.set(id, rememberEntity(e, isUnit));
+      } else {
+        const p = diffEntity(rec, e, isUnit);
+        if (p) patch.push(p);
+      }
+    }
+    let order = null;
+    if (orderChanged) {
+      order = new Array(list.length);
+      for (let i = 0; i < list.length; i++) order[i] = list[i].id;
+      for (const id of [...cache.keys()]) if (!seen.has(id)) cache.delete(id);
+    }
+    return { delta: { add, patch, order }, nextOrder: orderChanged ? order.slice() : prevOrder };
+  }
   function createFrameSource() {
-    return { nodes: /* @__PURE__ */ new Map(), order: null, fogRev: -1, grid: null, seaGrid: null, gates: null, navRev: 0, worldSent: false };
+    return {
+      units: /* @__PURE__ */ new Map(),
+      unitOrder: null,
+      buildings: /* @__PURE__ */ new Map(),
+      buildingOrder: null,
+      nodes: /* @__PURE__ */ new Map(),
+      order: null,
+      fogRev: -1,
+      grid: null,
+      seaGrid: null,
+      gates: null,
+      navRev: 0,
+      worldSent: false
+    };
   }
   function buildFrame(sim, src, step) {
     const s = sim.s, state = {};
-    for (const k in s) if (k !== "world" && k !== "nodes") state[k] = s[k];
-    const units = s.units;
-    let slim = null;
-    for (let i = 0; i < units.length; i++) {
-      const u = units[i], p = u.path;
-      if (p && p.length > PATH_SENT) {
-        (slim || (slim = units.slice()))[i] = { ...u, path: p.slice(0, PATH_SENT), [PATH_LEN]: p.length };
-      }
-    }
-    if (slim) state.units = slim;
+    for (const k in s) if (k !== "world" && k !== "nodes" && k !== "units" && k !== "buildings") state[k] = s[k];
+    const uDiff = diffList(s.units, src.units, src.unitOrder, true);
+    src.unitOrder = uDiff.nextOrder;
+    const bDiff = diffList(s.buildings, src.buildings, src.buildingOrder, false);
+    src.buildingOrder = bDiff.nextOrder;
     const list = s.nodes, changed = [];
     let orderChanged = !src.order || src.order.length !== list.length;
     if (!orderChanged) {
@@ -11140,7 +11868,7 @@
       if (seen) seen.add(n.id);
       if (nodeChanged(src.nodes.get(n.id), n)) {
         changed.push(n);
-        src.nodes.set(n.id, remember(n));
+        src.nodes.set(n.id, rememberNode(n));
       }
     }
     let order = null;
@@ -11166,7 +11894,19 @@
     }
     const events = sim.events;
     sim.events = [];
-    const frame = { t: "frame", v: FRAME_VERSION, step, time: s.time, state, nodes: { changed, order }, fog, events, navRev: src.navRev };
+    const frame = {
+      t: "frame",
+      v: FRAME_VERSION,
+      step,
+      time: s.time,
+      state,
+      units: uDiff.delta,
+      buildings: bDiff.delta,
+      nodes: { changed, order },
+      fog,
+      events,
+      navRev: src.navRev
+    };
     if (!src.worldSent) {
       frame.world = s.world;
       src.worldSent = true;
@@ -11183,9 +11923,80 @@
   }
 
   // src/sim/host.js
-  function createHost(K2, post, { now = () => 0 } = {}) {
-    let sim = null, rec = null, src = null, step = 0, hashes = 0, hashList = [];
+  function createHost(K2, post, { now = () => 0, netCommands: netCommands2 = null } = {}) {
+    let sim = null, rec = null, src = null, step = 0, hashes = 0, hashList = [], profiling = false, diag = null;
+    let ls = null, lsResults = [], lsControls = [], lsSnaps = [];
+    const wrapped = [];
     const stats = { steps: 0, tickMs: 0, maxTickMs: 0, frames: 0, frameMs: 0, maxFrameMs: 0 };
+    const freshDiag = () => ({ pathCalls: 0, pathFails: 0, pathMs: 0, pathExpanded: 0, gridCalls: 0, gridMs: 0, collision: 0, collisionPairs: 0, collisionTotal: 0, fogCalls: 0, fogMs: 0 });
+    const diagSink = {
+      path(ms, failed, expanded) {
+        if (!diag) return;
+        diag.pathCalls++;
+        if (failed) diag.pathFails++;
+        diag.pathMs += ms;
+        diag.pathExpanded += expanded || 0;
+      },
+      grid(ms) {
+        if (!diag) return;
+        diag.gridCalls++;
+        diag.gridMs += ms;
+      },
+      collision(ms, pairs = 0, total = 0) {
+        if (!diag) return;
+        diag.collision += ms;
+        diag.collisionPairs += pairs;
+        diag.collisionTotal += total;
+      },
+      fog(ms) {
+        if (!diag) return;
+        diag.fogCalls++;
+        diag.fogMs += ms;
+      }
+    };
+    function instrumentWorker(on) {
+      K2.setPerfSink?.(on ? diagSink : null);
+      const ctors = [K2.Sim, K2.NetworkSim].filter(Boolean);
+      if (on) {
+        if (wrapped.length) return;
+        for (const C of ctors) {
+          const p = C.prototype;
+          for (const [name, run] of [["findPath", function(ms, res) {
+            diagSink.path(ms, !res?.length, this._perfPathExpanded);
+          }], ["getGrid", function(ms) {
+            diagSink.grid(ms);
+          }]]) {
+            const orig = p[name];
+            if (typeof orig !== "function") continue;
+            const own = Object.getOwnPropertyDescriptor(p, name);
+            p[name] = function(...args) {
+              const t0 = now(), res = orig.apply(this, args);
+              run.call(this, now() - t0, res);
+              return res;
+            };
+            wrapped.push({ p, name, own });
+          }
+        }
+      } else {
+        for (const w of wrapped.splice(0).reverse()) if (w.own) Object.defineProperty(w.p, w.name, w.own);
+        else delete w.p[w.name];
+      }
+    }
+    function setProfiling(on) {
+      profiling = !!on;
+      diag = profiling ? freshDiag() : null;
+      K2.profileSystems?.(profiling);
+      instrumentWorker(profiling);
+    }
+    function takeProfile() {
+      return profiling ? K2.takeSystemProfile?.() || null : null;
+    }
+    function takeDiag() {
+      if (!profiling || !diag) return null;
+      const out = diag;
+      diag = freshDiag();
+      return out;
+    }
     function frame(results, init = false) {
       const t0 = now();
       const f = buildFrame(sim, src, step);
@@ -11194,6 +12005,10 @@
       hashList = [];
       f.stats = { ...stats };
       if (init) f.init = true;
+      const sp = takeProfile();
+      if (sp) f.sysProfile = sp;
+      const dg = takeDiag();
+      if (dg) f.diag = dg;
       post(f);
       const ms = now() - t0;
       stats.frames++;
@@ -11216,6 +12031,11 @@
     }
     const handlers = {
       init(msg) {
+        ls = null;
+        lsResults = [];
+        lsControls = [];
+        lsSnaps = [];
+        if (msg.profile !== void 0) setProfiling(msg.profile);
         sim = new K2.Sim(msg.difficulty, msg.saved || null, msg.options || {});
         rec = msg.saved ? null : attachRecorder(sim, { difficulty: msg.difficulty, options: msg.options || {}, created: msg.created || null, source: "worker" }, { every: 0 });
         if (msg.prewarm !== false) prewarm(sim);
@@ -11261,20 +12081,136 @@
         const value = new Function("sim", "K", msg.src)(sim, K2);
         post({ t: "eval", q: msg.q, value: value === void 0 ? null : JSON.parse(JSON.stringify(value)) });
         src.order = null;
+        src.unitOrder = null;
+        src.buildingOrder = null;
       },
-      stop() {
+      profile(msg) {
+        setProfiling(msg.on);
+      },
+      /* ---- 4c-2: lockstep multiplayer simulation in the worker ---- */
+      lsInit(msg) {
         sim = null;
         rec = null;
         src = null;
+        if (!netCommands2) throw Error("lockstep command rules not loaded in worker");
+        if (msg.profile !== void 0) setProfiling(msg.profile);
+        lsResults = [];
+        lsControls = [];
+        lsSnaps = [];
+        ls = new LockstepClient({
+          K: K2,
+          commands: netCommands2,
+          setup: msg.setup,
+          seat: msg.seat,
+          seats: msg.seats,
+          startAt: msg.startAt,
+          period: msg.period,
+          now,
+          hashes: msg.hashes !== false,
+          resumeAt: msg.resumeAt || null,
+          onResult: (result, cmd, _lat, seq) => lsResults.push({ seq, result, cmd, turn: ls ? ls.nextTurn : 0 })
+        });
+        ls.navRoom = msg.navRoom || null;
+        ls.onControl = (e) => lsControls.push(e);
+        ls.onSnapshot = (snap) => lsSnaps.push({ turn: snap.turn, step: snap.step, hash: snap.hash, text: snap.text, aiSeats: snap.aiSeats, live: snap.live });
+        const h = checksum(ls.sim);
+        post({ t: "lsReady", nextTurn: ls.nextTurn, step: ls.step, hash: h.hash });
+      },
+      lsStep(msg) {
+        if (!ls) throw Error("lsStep before lsInit");
+        if (Array.isArray(msg.rows) && msg.rows.length) ls.receive({ t: msg.rows });
+        if (Number.isFinite(msg.sealed) && msg.sealed > ls.sealed) ls.sealed = msg.sealed;
+        lsResults = [];
+        lsControls = [];
+        lsSnaps = [];
+        const logStart = ls.log.length;
+        const t0 = now(), limit = Math.min(msg.limit, ls.sealed), budget = msg.budget ?? 12;
+        let n = 0;
+        if (!ls.resumeAt && !ls.desync) {
+          while (ls.nextTurn <= limit) {
+            ls.runTurn();
+            n++;
+            if (now() - t0 > budget) break;
+          }
+        }
+        const simMs = now() - t0;
+        const newHashes = ls.hashQueue.splice(0);
+        const log = ls.log.slice(logStart);
+        const catching = ls.nextTurn < ls.sealed - CATCHUP;
+        const prevViewTurn = msg.viewTurn ?? -1;
+        let view = null, viewMs = 0, viewTurn = null;
+        if (msg.wantView && (!catching && ls.nextTurn > prevViewTurn || catching && prevViewTurn < 0 && ls.nextTurn > 0)) {
+          const vt0 = now();
+          view = K2.networkSnapshot(ls.sim, Math.max(0, ls.team), msg.eventAfter || 0, { slim: true, have: msg.have || {} });
+          viewMs = now() - vt0;
+          viewTurn = ls.nextTurn;
+        }
+        const sysProfile = takeProfile();
+        const workerDiag = takeDiag();
+        post({
+          t: "lsFrame",
+          n,
+          simMs,
+          nextTurn: ls.nextTurn,
+          step: ls.step,
+          hashes: newHashes,
+          results: lsResults,
+          controls: lsControls,
+          snaps: lsSnaps,
+          log,
+          aiSeats: [...ls.aiSeats],
+          aiTeams: [...ls.aiTeams],
+          rejected: ls.stats.rejected,
+          view,
+          viewTurn,
+          viewMs,
+          sysProfile,
+          diag: workerDiag
+        });
+      },
+      lsLoadSnapshot(msg) {
+        if (!ls) throw Error("lsLoadSnapshot before lsInit");
+        const r = ls.loadSnapshot(msg.snap);
+        post({
+          t: "lsSnapshotLoaded",
+          q: msg.q,
+          ok: r.ok,
+          hash: r.hash,
+          nextTurn: ls.nextTurn,
+          step: ls.step,
+          sealed: ls.sealed,
+          aiSeats: [...ls.aiSeats],
+          aiTeams: [...ls.aiTeams],
+          logFrom: ls.logFrom || 0,
+          snapshotTurn: ls.stats.snapshotTurn ?? null
+        });
+      },
+      lsChecksum(msg) {
+        if (!ls) throw Error("lsChecksum before lsInit");
+        const h = checksum(ls.sim);
+        post({ t: "lsChecksum", q: msg.q, turn: ls.nextTurn, step: ls.step, hash: h.hash, parts: h.parts, aiSeats: [...ls.aiSeats], logFrom: ls.logFrom || 0 });
+      },
+      stop() {
+        setProfiling(false);
+        sim = null;
+        rec = null;
+        src = null;
+        ls = null;
+        lsResults = [];
+        lsControls = [];
+        lsSnaps = [];
       }
     };
     return {
       stats,
       get sim() {
-        return sim;
+        return sim || ls?.sim || null;
+      },
+      get lockstep() {
+        return ls;
       },
       get step() {
-        return step;
+        return sim ? step : ls ? ls.step : 0;
       },
       handle(msg) {
         try {
@@ -11291,6 +12227,6 @@
   // src/sim/worker.js
   var scope = typeof self !== "undefined" ? self : globalThis;
   var clock = () => typeof performance !== "undefined" ? performance.now() : 0;
-  var host = createHost(import_little_ant.default, (m) => scope.postMessage(m), { now: clock });
+  var host = createHost(import_little_ant.default, (m) => scope.postMessage(m), { now: clock, netCommands: import_network_commands.default });
   scope.onmessage = (e) => host.handle(e.data);
 })();
