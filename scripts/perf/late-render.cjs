@@ -28,10 +28,12 @@ async function run({secs=10,profile,shot,warm=4,stacks:stacksMode=false,pre=null
       set('ai-count',3);for(const t of [1,2,3])set('ai-group-'+t,t+1);set('world-map','coast_l')});
     // Pin the benchmark setting so the compared releases use the same fog workload.
     await p.locator('#world-fog').check();
-    await p.click('#start');
+    // Map changes prepare asynchronously after art readiness; bootstrap is outside the measured frame window.
+    await p.waitForFunction(()=>!document.getElementById('start').disabled,null,{timeout:120000});
+    await p.click('#start',{timeout:120000});
     /* P4 (worker:true = ?simWorker=1): the same scene is set up inside the simulation worker (KingdomCore.simWorker.eval, ?perf=1 only);
        sim.tick never runs on the page then, the per-step time comes from the worker's own counters. */
-    if(worker)await p.waitForFunction(()=>KingdomCore.simWorker&&KingdomCore.simWorker.ready&&KingdomCore.simWorker.stats.frames>3,null,{timeout:30000});else await p.waitForFunction(()=>!!window.__lateSim,null,{timeout:30000});await p.waitForTimeout(500);
+    if(worker)await p.waitForFunction(()=>KingdomCore.simWorker&&KingdomCore.simWorker.ready&&KingdomCore.simWorker.stats.frames>3,null,{timeout:120000});else await p.waitForFunction(()=>!!window.__lateSim,null,{timeout:120000});await p.waitForTimeout(500);
     const SCENE=String((sim,D)=>{const s=sim.s,soldiers=['infantry','archer','musketeer','cavalry','halberd','pikeman','longbow'];
       const towns=s.nations.map((_,t)=>s.buildings.find(b=>b.team===t&&b.kind==='town'));const home=towns[0],cx=s.world?s.world.width/2:home.x,cy=s.world?s.world.height/2:home.y,d=Math.hypot(cx-home.x,cy-home.y)||1;
       const bx=home.x+(cx-home.x)/d*350,by=home.y+(cy-home.y)/d*350;let made=0;for(const t of towns)if(t){t.hp=t.maxhp=t.maxhp*500}/* keep every nation alive for the whole sample: a fallen town ends the match */

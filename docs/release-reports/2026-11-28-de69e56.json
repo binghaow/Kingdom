@@ -1,0 +1,851 @@
+{
+ "verdict": "WARN",
+ "meta": {
+  "commit": "de69e56",
+  "branch": "codex/p4-release-9dd10ce",
+  "dirty": false,
+  "date": "2026-11-28T10:00:16.022Z",
+  "mode": "full",
+  "node": "v24.19.0",
+  "cpus": 16,
+  "platform": "win32",
+  "arch": "x64",
+  "cpuModel": "13th Gen Intel(R) Core(TM) i7-13620H"
+ },
+ "baseline": {
+  "commit": "fb70bd1",
+  "branch": "claude/release-gates",
+  "dirty": false,
+  "date": "2026-11-11T11:22:10.435Z",
+  "mode": "full",
+  "node": "v22.23.4",
+  "cpus": 2,
+  "platform": "linux"
+ },
+ "checks": [
+  {
+   "area": "机器",
+   "name": "性能基线兼容性",
+   "value": "win32/v24.19.0/x64",
+   "baseline": "linux/v22.23.4/未知架构",
+   "unit": "",
+   "rule": "custom",
+   "status": "WARN",
+   "why": "环境不匹配，本次不作性能退化判定：平台不同（win32 / linux）；Node 主版本不同（v24.19.0 / v22.23.4）。请在目标机器上重建基线后比较。"
+  },
+  {
+   "area": "规模 P1",
+   "name": "1005 单位 5 国 8 组 每步均值（预算 ≤ 8）",
+   "value": 128.89,
+   "baseline": null,
+   "unit": "ms",
+   "rule": "custom",
+   "status": "INFO",
+   "why": "超预算 16.11 倍（P5 目标，只记录）"
+  },
+  {
+   "area": "规模 P1",
+   "name": "1005 单位 5 国 8 组 每步 p95（预算 ≤ 16）",
+   "value": 227.85,
+   "baseline": null,
+   "unit": "ms",
+   "rule": "custom",
+   "status": "INFO",
+   "why": "超预算 14.24 倍（只记录）"
+  },
+  {
+   "area": "规模 P1",
+   "name": "1005 单位 5 国 8 组 每步最大值",
+   "value": 867.73,
+   "baseline": null,
+   "unit": "ms",
+   "rule": "custom",
+   "status": "INFO",
+   "why": "只记录"
+  },
+  {
+   "area": "规模 P1",
+   "name": "1005 单位 5 国 8 组 >40 ms 步（第 20 步后）",
+   "value": 559,
+   "baseline": null,
+   "unit": "",
+   "rule": "custom",
+   "status": "WARN",
+   "why": "559 次（全程 569 次）；P5 前预期存在，只记录不判 FAIL"
+  },
+  {
+   "area": "规模 P1",
+   "name": "1005 单位 5 国 8 组 多次运行状态一致",
+   "value": 1,
+   "baseline": null,
+   "unit": "",
+   "rule": "custom",
+   "status": "PASS",
+   "why": ""
+  },
+  {
+   "area": "规模 P1",
+   "name": "录像回放一致 cliff_s-2p（3 次）",
+   "value": 1,
+   "baseline": null,
+   "unit": "",
+   "rule": "custom",
+   "status": "PASS",
+   "why": ""
+  },
+  {
+   "area": "规模 P1",
+   "name": "录像回放一致 coast_s-2p（3 次）",
+   "value": 1,
+   "baseline": null,
+   "unit": "",
+   "rule": "custom",
+   "status": "PASS",
+   "why": ""
+  },
+  {
+   "area": "规模 P1",
+   "name": "录像回放一致 lake_s-3p（3 次）",
+   "value": 1,
+   "baseline": null,
+   "unit": "",
+   "rule": "custom",
+   "status": "PASS",
+   "why": ""
+  },
+  {
+   "area": "规模 P1",
+   "name": "录像回放一致 straits-4p（3 次）",
+   "value": 1,
+   "baseline": null,
+   "unit": "",
+   "rule": "custom",
+   "status": "PASS",
+   "why": ""
+  }
+ ],
+ "results": {
+  "path": {
+   "stuckRule": {
+    "windowSec": 4,
+    "thresholdPx": 16,
+    "sampleSec": 0.5
+   },
+   "scenarios": [
+    {
+     "scenario": "opening",
+     "units": 75,
+     "simSeconds": 120,
+     "dt": 0.1,
+     "astar": {
+      "calls": 1541,
+      "callsPerSimSec": 12.8,
+      "expandedP50": 5,
+      "expandedP95": 23,
+      "expandedMax": 170,
+      "msP50": 0.13,
+      "msP95": 0.58,
+      "msMax": 71.2,
+      "msTotal": 721.7,
+      "failRate": 0,
+      "fails": 0,
+      "retryRate": 0.01,
+      "retries": 19,
+      "unreachableCacheHits": 614,
+      "droppedRoutes": 19,
+      "cacheHitRate": 0.97,
+      "engagement": {
+       "memoHits": 0,
+       "searches": 0,
+       "astarCalls": 0,
+       "noPosition": 0,
+       "memoHitRate": 0
+      },
+      "airDirect": 0,
+      "gridBuilds": 6,
+      "gridMs": 211.7
+     },
+     "step": {
+      "meanMs": 14.63,
+      "p95Ms": 37.63,
+      "p99Ms": 82.61,
+      "stepsOver50ms": 37,
+      "maxMs": 149.9,
+      "worst": {
+       "ms": 149.9,
+       "calls": 2,
+       "at": 40.1
+      }
+     },
+     "stuck": {
+      "stuckUnits": 1,
+      "crowdedAtGoal": 0,
+      "expectedUnreachable": 0,
+      "byReason": {
+       "first-leg-obstructed": 1
+      },
+      "samples": [
+       {
+        "scenario": "opening",
+        "category": "first-leg-obstructed",
+        "id": 9,
+        "kind": "villager",
+        "team": 0,
+        "x": 1944,
+        "y": 2266,
+        "order": "gather",
+        "goal": {
+         "x": 1690,
+         "y": 1987
+        },
+        "toGoal": 378,
+        "since": 48,
+        "at": 119.5,
+        "travelled": 0,
+        "net": 0.1,
+        "pathLeft": 0,
+        "routeFailed": true,
+        "stallTries": 1,
+        "crowd": 1,
+        "nearestBuilding": "house 48px",
+        "reason": "route found but first leg obstructed (dropped, retried every 1.8 s)",
+        "duration": 71.5
+       }
+      ]
+     },
+     "title": "开局：2 人脚本对局（采集、建造、训练、首波进攻），NetworkSim 0.1 s 步"
+    },
+    {
+     "scenario": "battle200",
+     "units": 145,
+     "simSeconds": 40,
+     "dt": 0.05,
+     "astar": {
+      "calls": 4426,
+      "callsPerSimSec": 110.7,
+      "expandedP50": 15,
+      "expandedP95": 1336,
+      "expandedMax": 2159,
+      "msP50": 0.09,
+      "msP95": 2.26,
+      "msMax": 19.45,
+      "msTotal": 2354.3,
+      "failRate": 0,
+      "fails": 0,
+      "retryRate": 0,
+      "retries": 0,
+      "unreachableCacheHits": 0,
+      "droppedRoutes": 0,
+      "cacheHitRate": 0,
+      "engagement": {
+       "memoHits": 0,
+       "searches": 0,
+       "astarCalls": 0,
+       "noPosition": 0,
+       "memoHitRate": 0
+      },
+      "airDirect": 0,
+      "gridBuilds": 0,
+      "gridMs": 99.3
+     },
+     "step": {
+      "meanMs": 43.82,
+      "p95Ms": 102.03,
+      "p99Ms": 217.01,
+      "stepsOver50ms": 161,
+      "maxMs": 287.3,
+      "worst": {
+       "ms": 287.3,
+       "calls": 7,
+       "at": 31.4
+      }
+     },
+     "stuck": {
+      "stuckUnits": 0,
+      "crowdedAtGoal": 0,
+      "expectedUnreachable": 0,
+      "byReason": {},
+      "samples": []
+     },
+     "title": "200 单位会战：coast_s 双方各约 100 混编单位推进对攻"
+    },
+    {
+     "scenario": "siegeEnclosed",
+     "units": 76,
+     "simSeconds": 30,
+     "dt": 0.05,
+     "astar": {
+      "calls": 1345,
+      "callsPerSimSec": 44.8,
+      "expandedP50": 0,
+      "expandedP95": 20,
+      "expandedMax": 83,
+      "msP50": 0.07,
+      "msP95": 0.28,
+      "msMax": 104.68,
+      "msTotal": 322.7,
+      "failRate": 0.27,
+      "fails": 360,
+      "retryRate": 0.12,
+      "retries": 159,
+      "unreachableCacheHits": 0,
+      "droppedRoutes": 0,
+      "cacheHitRate": 0,
+      "engagement": {
+       "memoHits": 12327,
+       "searches": 457,
+       "astarCalls": 754,
+       "noPosition": 63,
+       "memoHitRate": 0.96
+      },
+      "airDirect": 0,
+      "gridBuilds": 5,
+      "gridMs": 136
+     },
+     "step": {
+      "meanMs": 15.93,
+      "p95Ms": 54.44,
+      "p99Ms": 112.47,
+      "stepsOver50ms": 36,
+      "maxMs": 432.7,
+      "worst": {
+       "ms": 432.7,
+       "calls": 371,
+       "at": 0.1
+      }
+     },
+     "stuck": {
+      "stuckUnits": 0,
+      "crowdedAtGoal": 0,
+      "expectedUnreachable": 0,
+      "byReason": {},
+      "samples": []
+     },
+     "title": "围攻被围死目标：敌方城镇中心被完整城墙环绕（迷雾关），60 单位对其下达攻击"
+    },
+    {
+     "scenario": "formation",
+     "units": 187,
+     "simSeconds": 70,
+     "dt": 0.05,
+     "astar": {
+      "calls": 5270,
+      "callsPerSimSec": 75.3,
+      "expandedP50": 87,
+      "expandedP95": 461,
+      "expandedMax": 825,
+      "msP50": 0.13,
+      "msP95": 0.86,
+      "msMax": 20.22,
+      "msTotal": 1707.5,
+      "failRate": 0,
+      "fails": 0,
+      "retryRate": 0,
+      "retries": 0,
+      "unreachableCacheHits": 0,
+      "droppedRoutes": 0,
+      "cacheHitRate": 0,
+      "engagement": {
+       "memoHits": 0,
+       "searches": 0,
+       "astarCalls": 0,
+       "noPosition": 0,
+       "memoHitRate": 0
+      },
+      "airDirect": 0,
+      "gridBuilds": 0,
+      "gridMs": 48.4
+     },
+     "step": {
+      "meanMs": 26.17,
+      "p95Ms": 38.88,
+      "p99Ms": 69.43,
+      "stepsOver50ms": 25,
+      "maxMs": 214.7,
+      "worst": {
+       "ms": 214.7,
+       "calls": 1,
+       "at": 58.5
+      }
+     },
+     "stuck": {
+      "stuckUnits": 0,
+      "crowdedAtGoal": 0,
+      "expectedUnreachable": 0,
+      "byReason": {},
+      "samples": []
+     },
+     "title": "大编队一次下令：160 混编单位按界面阵型（每列 √N、间距 25）移动到约 3000 像素外"
+    }
+   ]
+  },
+  "sim": {
+   "reps": 3,
+   "steps": 240,
+   "dtSec": 0.05,
+   "rows": [
+    {
+     "requested": 50,
+     "units": 55,
+     "meanMs": 3.9,
+     "p50": 2.59,
+     "p95": 8.09,
+     "max": 82.6,
+     "collision": 0.24,
+     "targeting": 0.16,
+     "pathfinding": 0.84,
+     "fog": 0.43,
+     "ai": 0.12,
+     "other": 2.15,
+     "pathCalls": 346
+    },
+    {
+     "requested": 100,
+     "units": 105,
+     "meanMs": 5.11,
+     "p50": 4.28,
+     "p95": 9.7,
+     "max": 45.3,
+     "collision": 0.5,
+     "targeting": 0.29,
+     "pathfinding": 1.15,
+     "fog": 0.38,
+     "ai": 0.04,
+     "other": 2.73,
+     "pathCalls": 694
+    },
+    {
+     "requested": 200,
+     "units": 205,
+     "meanMs": 59.99,
+     "p50": 45.23,
+     "p95": 134.17,
+     "max": 350.1,
+     "collision": 7.55,
+     "targeting": 4.8,
+     "pathfinding": 8.25,
+     "fog": 2.3,
+     "ai": 0.19,
+     "other": 36.56,
+     "pathCalls": 1330
+    },
+    {
+     "requested": 400,
+     "units": 405,
+     "meanMs": 85.82,
+     "p50": 66.14,
+     "p95": 186.72,
+     "max": 343.1,
+     "collision": 18.72,
+     "targeting": 11.05,
+     "pathfinding": 9.15,
+     "fog": 2.22,
+     "ai": 0.24,
+     "other": 44.44,
+     "pathCalls": 1614
+    }
+   ],
+   "growth": {
+    "meanMs": 1.55,
+    "p95": 1.57,
+    "collision": 2.18,
+    "targeting": 2.12,
+    "pathfinding": 1.2,
+    "fog": 0.82,
+    "ai": 0.35,
+    "other": 1.52
+   },
+   "unitRatio": 7.36,
+   "superlinear": [
+    "meanMs ~ units^1.55",
+    "p95 ~ units^1.57",
+    "collision ~ units^2.18",
+    "targeting ~ units^2.12",
+    "other ~ units^1.52"
+   ]
+  },
+  "render": {
+   "note": "headless Chromium --disable-gpu（CPU 软件光栅，无 GPU），2 个共享 CPU 核：只作提交之间的回退信号，不是真机帧率",
+   "reps": 2,
+   "desktop": {
+    "viewport": "1280x720@1",
+    "frames": [
+     36,
+     32
+    ],
+    "drawImagePerFrame": 546.5,
+    "filteredDrawsPerFrame": 0,
+    "units": 203,
+    "unitsAlive": 197,
+    "visible": 250,
+    "dpr": "1/1",
+    "frameP50": 466.7,
+    "frameP95": 525,
+    "fps": 2.2,
+    "renderP50": 95.1,
+    "renderP95": 259.2,
+    "sceneP50": 93.1,
+    "sceneP95": 257.2,
+    "updateP50": 96.7,
+    "updateP95": 168.5,
+    "runs": [
+     {
+      "frameP50": 450,
+      "frameP95": 483.3,
+      "renderP50": 96.3,
+      "renderP95": 249
+     },
+     {
+      "frameP50": 483.4,
+      "frameP95": 566.6,
+      "renderP50": 93.8,
+      "renderP95": 269.3
+     }
+    ],
+    "errors": []
+   },
+   "phone": {
+    "viewport": "393x852@3",
+    "frames": [
+     61,
+     56
+    ],
+    "drawImagePerFrame": 401,
+    "filteredDrawsPerFrame": 0,
+    "units": 203,
+    "unitsAlive": 193,
+    "visible": 231,
+    "dpr": "3/1.25",
+    "frameP50": 275,
+    "frameP95": 316.7,
+    "fps": 3.7,
+    "renderP50": 76.5,
+    "renderP95": 246.5,
+    "sceneP50": 73.8,
+    "sceneP95": 244.8,
+    "updateP50": 84.9,
+    "updateP95": 137.6,
+    "runs": [
+     {
+      "frameP50": 266.6,
+      "frameP95": 300,
+      "renderP50": 74.4,
+      "renderP95": 313.4
+     },
+     {
+      "frameP50": 283.4,
+      "frameP95": 333.4,
+      "renderP50": 78.6,
+      "renderP95": 179.5
+     }
+    ],
+    "errors": []
+   }
+  },
+  "late": {
+   "sim": {
+    "units": 397,
+    "steps": 600,
+    "reps": 3,
+    "meanMs": 48.79,
+    "p50": 46.33,
+    "p95": 86.3,
+    "max": 366.7,
+    "over40": 376,
+    "over40Steady": 374,
+    "maxSteady": 366.7,
+    "over25": 477,
+    "fingerprint": "45df25f4"
+   },
+   "browser": {
+    "skipped": "page.click: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('#start')\u001b[22m\n\u001b[2m    - locator resolved to <button disabled id=\"start\" class=\"primary\">…</button>\u001b[22m\n\u001b[2m  - attempting click action\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      -"
+   }
+  },
+  "net": {
+   "reps": 3,
+   "opening": [
+    {
+     "label": "opening t=0s",
+     "units": 27,
+     "cpuMeanMs": 39,
+     "cpuP50": 32,
+     "cpuP95": 78,
+     "cpuMax": 110,
+     "respKB": 37.1,
+     "respGzKB": 9.5,
+     "storedGzKB": 34.9,
+     "firstTickAfterHydrateMs": 0,
+     "firstTickCachedMs": 0
+    },
+    {
+     "label": "bot t~60s",
+     "units": 60,
+     "cpuMeanMs": 79.7,
+     "cpuP50": 78,
+     "cpuP95": 156,
+     "cpuMax": 188,
+     "respKB": 54.2,
+     "respGzKB": 6.8,
+     "storedGzKB": 41,
+     "firstTickAfterHydrateMs": 0,
+     "firstTickCachedMs": 0
+    }
+   ],
+   "fourSeats": [
+    {
+     "label": "opening t=0s",
+     "units": 47,
+     "cpuMeanMs": 100,
+     "cpuP50": 94,
+     "cpuP95": 156,
+     "cpuMax": 218,
+     "respKB": 16,
+     "respGzKB": 4,
+     "storedGzKB": 66.1,
+     "firstTickAfterHydrateMs": 0,
+     "firstTickCachedMs": 15
+    },
+    {
+     "label": "bot t~60s",
+     "units": 109,
+     "cpuMeanMs": 133.7,
+     "cpuP50": 125,
+     "cpuP95": 250,
+     "cpuMax": 406,
+     "respKB": 28.2,
+     "respGzKB": 7.1,
+     "storedGzKB": 76.9,
+     "firstTickAfterHydrateMs": 203,
+     "firstTickCachedMs": 16
+    },
+    {
+     "label": "bot t~180s",
+     "units": 209,
+     "cpuMeanMs": 177.4,
+     "cpuP50": 172,
+     "cpuP95": 281,
+     "cpuMax": 312,
+     "respKB": 61.9,
+     "respGzKB": 8.1,
+     "storedGzKB": 102.6,
+     "firstTickAfterHydrateMs": 359,
+     "firstTickCachedMs": 31
+    },
+    {
+     "label": "4x140 units, advancing/combat",
+     "units": 571,
+     "cpuMeanMs": 346.1,
+     "cpuP50": 344,
+     "cpuP95": 547,
+     "cpuMax": 563,
+     "respKB": 209,
+     "respGzKB": 23.9,
+     "storedGzKB": 147.8,
+     "firstTickAfterHydrateMs": 266,
+     "firstTickCachedMs": 79
+    }
+   ],
+   "conflicts": {
+    "rounds": 12,
+    "requests": 48,
+    "lostRaces": 72,
+    "conflictsPerReq": 1.5,
+    "failedRequests": 0,
+    "cpuPerRoundSequentialMs": 533.9,
+    "cpuPerRoundSimultaneousMs": 1303.4,
+    "extraCpuPct": 144
+   },
+   "latency": [
+    {
+     "scenario": "2 人开局",
+     "seats": 2,
+     "rttMs": 40,
+     "d1Ms": 20,
+     "cpuMs": 39,
+     "conflictsPerReqModel": 0.41,
+     "ackMeanMs": 196,
+     "ackP95Ms": 399,
+     "firstMoveMeanMs": 512,
+     "firstMoveP95Ms": 757,
+     "ownUnitOnScreen": "next frame (local prediction)"
+    },
+    {
+     "scenario": "2 人开局",
+     "seats": 2,
+     "rttMs": 100,
+     "d1Ms": 20,
+     "cpuMs": 39,
+     "conflictsPerReqModel": 0.01,
+     "ackMeanMs": 228,
+     "ackP95Ms": 353,
+     "firstMoveMeanMs": 558,
+     "firstMoveP95Ms": 685,
+     "ownUnitOnScreen": "next frame (local prediction)"
+    },
+    {
+     "scenario": "2 人开局",
+     "seats": 2,
+     "rttMs": 200,
+     "d1Ms": 20,
+     "cpuMs": 39,
+     "conflictsPerReqModel": 0,
+     "ackMeanMs": 393,
+     "ackP95Ms": 554,
+     "firstMoveMeanMs": 822,
+     "firstMoveP95Ms": 987,
+     "ownUnitOnScreen": "next frame (local prediction)"
+    },
+    {
+     "scenario": "4 人 ~170 单位",
+     "seats": 4,
+     "rttMs": 40,
+     "d1Ms": 20,
+     "cpuMs": 177.4,
+     "conflictsPerReqModel": 1.73,
+     "ackMeanMs": 899,
+     "ackP95Ms": 1795,
+     "firstMoveMeanMs": 1666,
+     "firstMoveP95Ms": 2803,
+     "ownUnitOnScreen": "next frame (local prediction)"
+    },
+    {
+     "scenario": "4 人 ~170 单位",
+     "seats": 4,
+     "rttMs": 100,
+     "d1Ms": 20,
+     "cpuMs": 177.4,
+     "conflictsPerReqModel": 1.95,
+     "ackMeanMs": 1045,
+     "ackP95Ms": 1972,
+     "firstMoveMeanMs": 1910,
+     "firstMoveP95Ms": 3106,
+     "ownUnitOnScreen": "next frame (local prediction)"
+    },
+    {
+     "scenario": "4 人 ~170 单位",
+     "seats": 4,
+     "rttMs": 200,
+     "d1Ms": 20,
+     "cpuMs": 177.4,
+     "conflictsPerReqModel": 1.12,
+     "ackMeanMs": 976,
+     "ackP95Ms": 1806,
+     "firstMoveMeanMs": 1792,
+     "firstMoveP95Ms": 2786,
+     "ownUnitOnScreen": "next frame (local prediction)"
+    },
+    {
+     "scenario": "4 人 ~570 单位对攻",
+     "seats": 4,
+     "rttMs": 40,
+     "d1Ms": 20,
+     "cpuMs": 346.1,
+     "conflictsPerReqModel": 1.4,
+     "ackMeanMs": 1409,
+     "ackP95Ms": 2863,
+     "firstMoveMeanMs": 2506,
+     "firstMoveP95Ms": 4313,
+     "ownUnitOnScreen": "next frame (local prediction)"
+    },
+    {
+     "scenario": "4 人 ~570 单位对攻",
+     "seats": 4,
+     "rttMs": 100,
+     "d1Ms": 20,
+     "cpuMs": 346.1,
+     "conflictsPerReqModel": 1.63,
+     "ackMeanMs": 1591,
+     "ackP95Ms": 3114,
+     "firstMoveMeanMs": 2820,
+     "firstMoveP95Ms": 4748,
+     "ownUnitOnScreen": "next frame (local prediction)"
+    },
+    {
+     "scenario": "4 人 ~570 单位对攻",
+     "seats": 4,
+     "rttMs": 200,
+     "d1Ms": 20,
+     "cpuMs": 346.1,
+     "conflictsPerReqModel": 1.91,
+     "ackMeanMs": 1854,
+     "ackP95Ms": 3454,
+     "firstMoveMeanMs": 3268,
+     "firstMoveP95Ms": 5324,
+     "ownUnitOnScreen": "next frame (local prediction)"
+    }
+   ],
+   "assumptions": "RTT 40/100/200 ms 与 D1 往返 20 ms 为假设值；CPU 为本机 Node 实测（内存 SQLite），不是 Cloudflare Worker / D1 实测。"
+  },
+  "scale": {
+   "sim": {
+    "units": 1005,
+    "nations": 5,
+    "sides": 8,
+    "note": "5 nations (seat maximum) x 200 units; armies split into 8 battle groups",
+    "steps": 600,
+    "reps": 3,
+    "meanMs": 128.89,
+    "p50": 119.04,
+    "p95": 227.85,
+    "max": 867.73,
+    "over40": 569,
+    "over40Steady": 559,
+    "maxSteady": 867.73,
+    "over16": 600,
+    "checksums": [
+     "8e81efe5",
+     "8e81efe5",
+     "8e81efe5"
+    ],
+    "deterministic": true
+   },
+   "replays": [
+    {
+     "replay": "cliff_s-2p",
+     "steps": 1200,
+     "commands": 18,
+     "checksums": 60,
+     "same": true,
+     "matchesRecorded": true,
+     "final": "898e4b22",
+     "recorded": "898e4b22",
+     "resultMismatch": 0
+    },
+    {
+     "replay": "coast_s-2p",
+     "steps": 1200,
+     "commands": 17,
+     "checksums": 60,
+     "same": true,
+     "matchesRecorded": true,
+     "final": "1295b3dc",
+     "recorded": "1295b3dc",
+     "resultMismatch": 0
+    },
+    {
+     "replay": "lake_s-3p",
+     "steps": 1200,
+     "commands": 17,
+     "checksums": 60,
+     "same": true,
+     "matchesRecorded": true,
+     "final": "b2a72980",
+     "recorded": "b2a72980",
+     "resultMismatch": 0
+    },
+    {
+     "replay": "straits-4p",
+     "steps": 1200,
+     "commands": 17,
+     "checksums": 60,
+     "same": true,
+     "matchesRecorded": true,
+     "final": "1db8d859",
+     "recorded": "1db8d859",
+     "resultMismatch": 0
+    }
+   ]
+  },
+  "calibrationMs": 196.13
+ }
+}
