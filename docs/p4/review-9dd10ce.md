@@ -32,4 +32,12 @@ No new third-party libraries, permissions, analytics, identities, remote endpoin
 
 ## Release constraints
 
+## Clean-main candidate and gate status
+
+Clean candidate `codex/p4-release-9dd10ce`: d1dfb30 -> e007598 (only 9dd10ce cherry-picked) -> 238f7a4 (review fixes). Verified 314672c is NOT an ancestor; package.json and .openai/hosting.json are identical to d1dfb30. No Android/mobile/dashboard draft files entered the candidate. Original dirty Gemini checkout remains at 9dd10ce, untouched.
+
+Initial check-all stopped at the core bundle strict comparison because Windows checkout changed generated files to CRLF. Preserved logs under `.local/p4-gates/*initial-crlf*`. A preparation npm run build succeeded, generated files now match source with no semantic Git diff. Restarted the ordered four-gate runner (`.local/run-p4-gates.cjs`); latest confirmed progress: syntax/core bundle and first three replay fixtures passed. With no further confirmed progress and local tool reads timing out, the runner was explicitly interrupted (terminal exit 1). No complete check-all/build/artifact/full-release-check result or 0-FAIL report is available; resilience was not reached in the confirmed output. `.local/p4-gates/status.json` may retain its pre-interruption running flag; consult this note and process state before rerunning. Restore reliable local tool access, then restart the full ordered gates; do not skip checks based on this incomplete run.
+
+Local candidate preview opened at loopback 18865, but the start action and subsequent browser controls timed out/reset. No successful in-game visual sign-off is claimed. Preview server was stopped. New shell and Node REPL reads then became unreliable/timeouts; some queued terminal probes eventually returned but did not provide gate completion. Do not interpret a missing result as PASS. No merge or deployment occurred.
+
 AGENTS requires production UI/performance review, and an iPhone/iPad Safari >=8-minute / >=100-population check for cache/memory strategy changes. This commit changes Worker snapshot caches, mirror lifetime and copying; treat that requirement as applicable. Headless tests do not satisfy it. User has been asked whether relevant device evidence is available. Other device follow-up: Worker initialization/failure, background/lock-screen resume, >25-minute multiplayer, weak network, mixed worker/main peers, save/restore, memory/thermal behavior, both-language HUD and touch controls. Any unpassed mandatory gate prevents merging main or publishing.
