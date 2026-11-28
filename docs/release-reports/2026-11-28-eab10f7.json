@@ -1,0 +1,96 @@
+{
+ "verdict": "WARN",
+ "meta": {
+  "commit": "eab10f7",
+  "branch": "codex/p4-release-9dd10ce",
+  "dirty": false,
+  "date": "2026-11-28T10:29:10.777Z",
+  "mode": "full",
+  "node": "v24.19.0",
+  "cpus": 16,
+  "platform": "win32",
+  "arch": "x64",
+  "cpuModel": "13th Gen Intel(R) Core(TM) i7-13620H"
+ },
+ "baseline": {
+  "commit": "fb70bd1",
+  "branch": "claude/release-gates",
+  "dirty": false,
+  "date": "2026-11-11T11:22:10.435Z",
+  "mode": "full",
+  "node": "v22.23.4",
+  "cpus": 2,
+  "platform": "linux"
+ },
+ "checks": [
+  {
+   "area": "机器",
+   "name": "性能基线兼容性",
+   "value": "win32/v24.19.0/x64",
+   "baseline": "linux/v22.23.4/未知架构",
+   "unit": "",
+   "rule": "custom",
+   "status": "WARN",
+   "why": "环境不匹配，本次不作性能退化判定：平台不同（win32 / linux）；Node 主版本不同（v24.19.0 / v22.23.4）。请在目标机器上重建基线后比较。"
+  }
+ ],
+ "results": {
+  "late": {
+   "sim": {
+    "units": 397,
+    "steps": 600,
+    "reps": 3,
+    "meanMs": 59.64,
+    "p50": 48.44,
+    "p95": 130.38,
+    "max": 569.6,
+    "over40": 415,
+    "over40Steady": 413,
+    "maxSteady": 569.6,
+    "over25": 493,
+    "fingerprint": "45df25f4"
+   },
+   "browser": {
+    "viewport": "1920x1080",
+    "units": 412,
+    "unitsAlive": 375,
+    "frames": [
+     14,
+     15
+    ],
+    "fps": 1.4,
+    "mainJsPerFrame": 321.2,
+    "mainTaskPerFrame": 819.5,
+    "frameP50": 725,
+    "frameP95": 800,
+    "simP50": 35.7,
+    "simP95": 46.4,
+    "renderP50": 130.6,
+    "renderP95": 752.5,
+    "updateP50": 155.9,
+    "updateP95": 241.8,
+    "drawImagePerFrame": 602.8,
+    "savePerFrame": 1243.8,
+    "getImageDataPerFrame": 1.5,
+    "errors": []
+   },
+   "worker": {
+    "fps": 1.7,
+    "frameP50": 600,
+    "frameP95": 750,
+    "mainJsPerFrame": 194,
+    "mainTaskPerFrame": 677.5,
+    "renderP50": 150.6,
+    "updateP50": 0.3,
+    "stepsPerSec": 5.2,
+    "workerTickMs": 184.85,
+    "frameBuildMs": 47.24,
+    "applyMs": 2.72,
+    "owedDropped": 28,
+    "fallback": null,
+    "errors": []
+   }
+  },
+  "calibrationMs": 196.54
+ }
+}
