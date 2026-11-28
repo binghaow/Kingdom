@@ -101,6 +101,17 @@ function faultyFetch(f) {
   }
   // Keep reporting until the last checksums are delivered.
   const until = Date.now() + 3000; while (client.hashQueue.length && Date.now() < until && !client.desync) await sleep(20);
+  if (cfg.waitForPeers && process.send) {
+    // Keep heartbeats alive at the fixed endpoint until all peers finish. Exiting early would inject an unrequested outage.
+    await new Promise((resolve, reject) => {
+      const clean = () => { clearTimeout(timer); process.off('message', message); process.off('disconnect', disconnected); };
+      const message = (msg) => { if (msg?.type === 'peers-finished') { clean(); resolve(); } };
+      const disconnected = () => { clean(); reject(new Error('finish barrier lost parent')); };
+      const timer = setTimeout(() => { clean(); reject(new Error('finish barrier timed out waiting for peers')); }, 60000);
+      process.on('message', message); process.once('disconnect', disconnected);
+      process.send({ type: 'finished' });
+    });
+  }
   transport.stop();
   if (savePending) await savePending;
   const lat = client.stats.latency.slice().sort((a, b) => a - b), q = (p) => (lat.length ? Math.round(lat[Math.min(lat.length - 1, Math.floor(p * lat.length))]) : null);

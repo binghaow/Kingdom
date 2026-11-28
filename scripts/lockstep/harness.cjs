@@ -74,9 +74,10 @@ async function directRoom(DB, n, o) {
   return { id, setup, startAt, period: o.period, seats };
 }
 
-function runClient(cfg) {
+function runClient(cfg, finishBarrier) {
   return new Promise((resolve) => {
-    const child = spawn(process.execPath, [path.join(__dirname, 'headless-client.cjs'), JSON.stringify(cfg)], { stdio: ['ignore', 'pipe', 'pipe'] });
+    const child = spawn(process.execPath, [path.join(__dirname, 'headless-client.cjs'), JSON.stringify(cfg)], { stdio: finishBarrier ? ['ignore', 'pipe', 'pipe', 'ipc'] : ['ignore', 'pipe', 'pipe'] });
+    finishBarrier?.(child);
     let out = '', err = ''; child.stdout.on('data', (d) => (out += d)); child.stderr.on('data', (d) => (err += d));
     child.on('exit', (code) => { try { resolve(JSON.parse(out.trim().split('\n').pop())); } catch { resolve({ seat: cfg.seat, error: 'exit ' + code + ' ' + err.slice(-800) + out.slice(-300) }); } });
   });
@@ -98,7 +99,19 @@ async function main(o = args()) {
   // CPU per relay request, sampled every 5 s of wall time together with the current relay turn.
   const windows = []; let last = { cpu: process.cpuUsage(), n: meter.lockstep, t: Date.now() };
   const sampler = setInterval(() => { const c = process.cpuUsage(), n = meter.lockstep, row = sqlite.prepare('SELECT sealed FROM lockstep_rooms WHERE id = ?').get(room.id); const d = (c.user + c.system - last.cpu.user - last.cpu.system) / 1000; if (n > last.n) windows.push({ sealed: row?.sealed ?? -1, requests: n - last.n, cpuMsPerRequest: d / (n - last.n) }); last = { cpu: c, n, t: Date.now() }; }, 5000);
-  const results = await Promise.all(room.seats.map((s) => runClient({ base, room: room.id, token: s.token, seat: s.seat, seats: (room.allSeats || room.seats).map((x) => ({ seat: x.seat, team: x.team })), setup: room.setup, startAt: room.startAt, period: room.period, turns, jitter: o.jitter, delay: o.delay, loss: o.loss, botSeed: o.seed, keepLatency: true, transport: o.transport, trace: o.trace, stall: o.stall, ...(room.resume ? { resume: room.resume } : {}), ...(o.clientCfg ? o.clientCfg(s) : {}) })));
+  // Recovery tests must not turn a finished peer into an artificial network outage while another catches up.
+  const finished = new Set(), children = [];
+  const finishBarrier = o.waitForPeers ? (child) => {
+    children.push(child);
+    const ready = () => {
+      if (finished.has(child)) return;
+      finished.add(child);
+      if (finished.size === room.seats.length) for (const peer of children) if (peer.connected) peer.send({ type: 'peers-finished' }, () => {});
+    };
+    child.on('message', (msg) => { if (msg?.type === 'finished') ready(); });
+    child.once('exit', ready);
+  } : null;
+  const results = await Promise.all(room.seats.map((s) => runClient({ base, room: room.id, token: s.token, seat: s.seat, seats: (room.allSeats || room.seats).map((x) => ({ seat: x.seat, team: x.team })), setup: room.setup, startAt: room.startAt, period: room.period, turns, jitter: o.jitter, delay: o.delay, loss: o.loss, botSeed: o.seed, keepLatency: true, transport: o.transport, trace: o.trace, stall: o.stall, waitForPeers: !!o.waitForPeers, ...(room.resume ? { resume: room.resume } : {}), ...(o.clientCfg ? o.clientCfg(s) : {}) }, finishBarrier)));
   if (limiter) clearInterval(limiter);
   clearInterval(sampler);
   const cpu = process.cpuUsage(cpu0), wall = (Date.now() - wall0) / 1000, requests = meter.lockstep - req0;

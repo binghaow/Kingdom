@@ -21,9 +21,10 @@ const assert = require('node:assert/strict'), core = require('./server/lockstep/
 const quick = process.argv.includes('--quick');
 const done = [];
 const run = async (name, o) => {
-  const t = Date.now(), r = await H.main({ ...H.args(), quiet: true, stall: 40, keepRaw: true, ...o });
+  console.log('RUN resilience ' + name);
+  const t = Date.now(), r = await H.main({ ...H.args(), quiet: true, stall: 40, keepRaw: true, waitForPeers: true, ...o });
   if (!r.ok) { console.error('FAIL', name, JSON.stringify(r.failures, null, 1)); process.exit(1); }
-  r.seconds = Math.round((Date.now() - t) / 1000); return r;
+  r.seconds = Math.round((Date.now() - t) / 1000); console.log('PASS resilience ' + name + ' (' + r.seconds + ' s; ' + r.consistency.final + ')'); return r;
 };
 const sys = (r, seat) => r.recording.commands.filter((c) => c.seat === core.SYSTEM_SEAT && (seat === undefined || c.c.args.seat === seat)).map((c) => [c.turn, c.c.type, c.c.args.seat, c.c.args.reason || '']);
 
@@ -46,7 +47,10 @@ const sys = (r, seat) => r.recording.commands.filter((c) => c.seat === core.SYST
 
   core.TAKEOVER_MS = 6000; // accelerated (production 60 s)
   // 2. Outage longer than the takeover: wait, takeover, reconnect with backoff, catch up, reclaim.
-  r = await run('outage', { clients: 3, seconds: 110, period: 50, transport: 'ws', clientCfg: (s) => (s.seat === 1 ? { outage: { atTurn: 300, ms: 14000 } } : {}) });
+  // Use the production 100 ms cadence: on Windows three full simulations can take >50 ms/turn.
+  // A 2x relay then stays ahead forever, so this recovery check never reaches reclaim (not a socket failure).
+  // Keep the outage, takeover, reconnect, same-turn control and checksum assertions unchanged.
+  r = await run('outage', { clients: 3, seconds: 110, period: 100, transport: 'ws', clientCfg: (s) => (s.seat === 1 ? { outage: { atTurn: 300, ms: 14000 } } : {}) });
   let s1 = sys(r, 1);
   assert.deepEqual(s1.map((x) => x[1]), ['aiTakeover', 'aiRelease'], 'takeover then release: ' + JSON.stringify(s1));
   assert.ok(r.raw.every((c) => JSON.stringify(c.control.map((e) => [e.turn, e.type])) === JSON.stringify(s1.map((x) => [x[0], x[1]]))), 'every client switched in the same turn');
