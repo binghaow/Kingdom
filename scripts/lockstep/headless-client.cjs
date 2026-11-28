@@ -59,6 +59,9 @@ function faultyFetch(f) {
   function session() {
     const b0 = Date.now();
     const c = new LockstepClient({ K, commands, setup: cfg.setup, seat: cfg.seat, seats: cfg.seats, startAt: cfg.startAt, period: cfg.period, now, resumeAt: cfg.resume || null });
+    // advance() may execute several due turns per call. Stop this finite test at its exact replay endpoint.
+    const horizon = c.horizon.bind(c);
+    c.horizon = () => Math.min(endTurn - 1, horizon());
     buildMs = Date.now() - b0;
     const t = new AutoTransport({ mode: cfg.transport || 'http', httpUrl: cfg.base + '/api/lockstep/' + cfg.room, wsUrl: cfg.base.replace(/^http/, 'ws') + '/api/lockstep/' + cfg.room + '/ws' + (cfg.wsPath || ''), token: cfg.token, client: c, fetch, WebSocket: FlakyWS, timeout: cfg.timeout || 4000, stallMs: cfg.stallMs, stuckMs: cfg.stuckMs, onSwitch: (r) => { switched = r; } });
     if (cfg.trace) c.stats.trace = [];

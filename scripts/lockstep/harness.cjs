@@ -130,7 +130,7 @@ async function main(o = args()) {
   const failures = [];
   const ok = results.filter((r) => !r.error);
   for (const r of results) if (r.error) failures.push('seat ' + r.seat + ' error: ' + r.error.slice(0, 300));
-  for (const r of ok) { if (o.allow?.(r)) continue; if (r.turns < turns) failures.push(`seat ${r.seat} stopped at turn ${r.turns}/${turns}` + (r.stalled ? ` (no turn for ${r.stalled.seconds} s, sealed ${r.stalled.sealed}, transport ${r.transport}, reconnects ${r.reconnects})` : '')); if (r.desync) failures.push('seat ' + r.seat + ' desync ' + JSON.stringify(r.desync)); if (r.fatal) failures.push('seat ' + r.seat + ' fatal ' + r.fatal); }
+  for (const r of ok) { if (o.allow?.(r)) continue; if (r.turns !== turns) failures.push(`seat ${r.seat} stopped at turn ${r.turns}/${turns}` + (r.stalled ? ` (no turn for ${r.stalled.seconds} s, sealed ${r.stalled.sealed}, transport ${r.transport}, reconnects ${r.reconnects})` : '')); if (r.desync) failures.push('seat ' + r.seat + ' desync ' + JSON.stringify(r.desync)); if (r.fatal) failures.push('seat ' + r.seat + ' fatal ' + r.fatal); }
   const ref = ok.find((r) => !o.allow?.(r)) || ok[0]; let compared = 0;
   // Checksums compared by step (a client that caught up after a refresh only hashes every CATCHUP_HASH steps meanwhile).
   const refMap = new Map(ref ? ref.hashes : []);
