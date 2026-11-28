@@ -45,7 +45,7 @@ export function startWorkerLockstep(root, opts) {
     offset: null, samples: [], rtt: null, seatInfo: null, desync: null, desyncInfo: null, offer: null,
     waitingSince: null, log: [], logFrom: 0, margin: 30,
     aiSeats: new Set(), aiTeams: new Set(), reclaim: false, control: [],
-    resumeAt, lastSnap: null, saveHash: null, onSnapshot: null,
+    resumeAt, lastSnap: null, saveHash: null, saveCheckpoint: null, onSnapshot: null,
     stats: { requests: 0, failures: 0, up: 0, down: 0, latency: [], turnLatency: [], catchup: 0, stalls: 0, stallMs: 0, commands: 0, rejected: 0 },
 
     serverNow() { return this.now() + (this.offset ?? 0); },
@@ -127,6 +127,7 @@ export function startWorkerLockstep(root, opts) {
         this.stats.snapshotTurn = msg.snapshotTurn;
         this.lastSnap = { turn: snap.turn, step: msg.step, hash: msg.hash, text: snap.text, aiSeats: [...this.aiSeats], encoded: snap.encoded || null };
         this.saveHash = { turn: msg.nextTurn, hash: msg.hash };
+        this.saveCheckpoint = checkpoint({ turn: msg.nextTurn, step: msg.step, hash: msg.hash, aiSeats: msg.aiSeats, logFrom: msg.logFrom });
         if (this.resumeAt && snap.turn >= this.resumeAt.turn) this.resumeAt = null;
         viewTurn = -1;
         return { ok: true, hash: msg.hash };
@@ -147,7 +148,8 @@ export function startWorkerLockstep(root, opts) {
     const q = ++reqSeq;
     return new Promise((resolve, reject) => {
       waiting.set(q, { resolve, reject });
-      worker.postMessage({ t: type, q, ...extra });
+      try { worker.postMessage({ t: type, q, ...extra }); }
+      catch (e) { waiting.delete(q); reject(e); }
     });
   }
   function waitIdle() {
@@ -158,6 +160,21 @@ export function startWorkerLockstep(root, opts) {
     if (busy || !idleWaiters.length) return;
     const list = idleWaiters.splice(0);
     for (const fn of list) fn();
+  }
+  function checkpoint(m) {
+    return {
+      setup: proxy.setup, seat: proxy.seat, teams: new Map(proxy.teams), period: proxy.period,
+      nextTurn: m.turn, step: m.step, saveHash: { turn: m.turn, hash: m.hash },
+      aiSeats: new Set(m.aiSeats || []), logFrom: m.logFrom || 0,
+      // The array is append-only. makeSave filters at nextTurn; no growing full-log copy per checksum.
+      log: proxy.log, hashLog: [],
+      lastSnap: proxy.lastSnap && proxy.lastSnap.turn <= m.turn ? { ...proxy.lastSnap } : null,
+    };
+  }
+  function fail(error) {
+    if (stopped) return;
+    stop();
+    opts.onError?.(error, true);
   }
   function updateStall(executedTurns) {
     if (!proxy.resumeAt) {
@@ -179,6 +196,7 @@ export function startWorkerLockstep(root, opts) {
     if (msg.t === 'lsReady') {
       ready = true;
       proxy.saveHash = { turn: msg.nextTurn, hash: msg.hash };
+      proxy.saveCheckpoint = checkpoint({ turn: msg.nextTurn, step: msg.step, hash: msg.hash });
       pump();
       return;
     }
@@ -211,6 +229,7 @@ export function startWorkerLockstep(root, opts) {
         proxy.lastSnap = { ...snap };
         proxy.onSnapshot?.(snap);
       }
+      if (msg.checkpoint) proxy.saveCheckpoint = checkpoint(msg.checkpoint);
       if (msg.sysProfile) sysProf = mergeProfile(sysProf, msg.sysProfile);
       if (msg.diag) root.PerformanceAudit?.mergeWorkerDiag?.(msg.diag);
       updateStall(msg.n);
@@ -229,8 +248,7 @@ export function startWorkerLockstep(root, opts) {
     if (msg.t === 'error') {
       const w = msg.q != null && waiting.get(msg.q);
       if (w) { waiting.delete(msg.q); w.reject(Error(msg.message)); return; }
-      busy = false; flushIdle();
-      opts.onError?.(new Error('lockstep worker: ' + msg.message), true);
+      fail(new Error('lockstep worker: ' + msg.message));
       return;
     }
     const w = waiting.get(msg.q);
@@ -238,8 +256,7 @@ export function startWorkerLockstep(root, opts) {
   };
   worker.onerror = (ev) => {
     ev?.preventDefault?.();
-    busy = false; flushIdle();
-    opts.onError?.(new Error('lockstep worker failed: ' + (ev?.message || 'script error')), true);
+    fail(new Error('lockstep worker failed: ' + (ev?.message || 'script error')));
   };
 
   let mode = ls.transport === 'ws' ? 'ws' : 'http';
@@ -273,18 +290,18 @@ export function startWorkerLockstep(root, opts) {
     const replica = opts.replica?.();
     wasCatchup = !!p;
     busy = true;
-    worker.postMessage({
+    try { worker.postMessage({
       t: 'lsStep', rows, sealed: proxy.sealed, limit, budget,
       wantView, viewTurn,
       eventAfter: wantView ? (replica?.lastEvent || 0) : 0,
       have: wantView ? (replica?.have?.() || {}) : null,
-    });
+    }); } catch (e) { fail(e); }
   }
 
   const wake = () => { if (!root.document || !root.document.hidden) transport.wake(); };
   function stop() {
     if (stopped) return;
-    stopped = true; clearInterval(timer); transport.stop();
+    stopped = true; ready = false; busy = false; clearInterval(timer); transport.stop();
     root.document?.removeEventListener?.('visibilitychange', wake);
     root.removeEventListener?.('online', wake);
     root.removeEventListener?.('pageshow', wake);
@@ -295,13 +312,13 @@ export function startWorkerLockstep(root, opts) {
   }
 
   async function prepareSave() {
-    if (stopped || !ready) return null;
+    if (stopped || !ready) throw Error('lockstep worker not ready');
     saving = true;
     try {
       await waitIdle();
       const m = await ask('lsChecksum');
       proxy.saveHash = { turn: m.turn, hash: m.hash };
-      return m;
+      return { ...m, checkpoint: checkpoint(m) };
     } finally { saving = false; }
   }
   function setProfile(on) {

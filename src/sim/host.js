@@ -154,10 +154,12 @@ export function createHost(K, post, { now = () => 0, netCommands = null } = {}) 
       lsResults = []; lsControls = []; lsSnaps = [];
       const logStart = ls.log.length;
       const t0 = now(), limit = Math.min(msg.limit, ls.sealed), budget = msg.budget ?? 12;
-      let n = 0;
+      let n = 0, checkpoint = null;
       if (!ls.resumeAt && !ls.desync) {
         while (ls.nextTurn <= limit) {
           ls.runTurn(); n++;
+          const lastHash = ls.hashQueue.at(-1);
+          if (lastHash?.[0] === ls.step) checkpoint = { turn: ls.nextTurn, step: ls.step, hash: lastHash[1], aiSeats: [...ls.aiSeats], logFrom: ls.logFrom || 0 };
           if (now() - t0 > budget) break;
         }
       }
@@ -179,7 +181,7 @@ export function createHost(K, post, { now = () => 0, netCommands = null } = {}) 
         t: 'lsFrame', n, simMs, nextTurn: ls.nextTurn, step: ls.step,
         hashes: newHashes, results: lsResults, controls: lsControls, snaps: lsSnaps, log,
         aiSeats: [...ls.aiSeats], aiTeams: [...ls.aiTeams], rejected: ls.stats.rejected,
-        view, viewTurn, viewMs, sysProfile, diag: workerDiag,
+        view, viewTurn, viewMs, sysProfile, diag: workerDiag, checkpoint,
       });
     },
     lsLoadSnapshot(msg) {

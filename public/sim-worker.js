@@ -11782,7 +11782,7 @@
       const s = JSON.stringify(v);
       if (had && prev && prev.__j === s) continue;
       if (!had) rec.__n++;
-      if (prev && "__j" in prev) prev.__j = s;
+      if (prev && typeof prev === "object" && "__j" in prev) prev.__j = s;
       else rec[k] = { __j: s };
       (patch || (patch = { id: e.id }))[k] = v;
     }
@@ -12125,11 +12125,13 @@
         lsSnaps = [];
         const logStart = ls.log.length;
         const t0 = now(), limit = Math.min(msg.limit, ls.sealed), budget = msg.budget ?? 12;
-        let n = 0;
+        let n = 0, checkpoint = null;
         if (!ls.resumeAt && !ls.desync) {
           while (ls.nextTurn <= limit) {
             ls.runTurn();
             n++;
+            const lastHash = ls.hashQueue.at(-1);
+            if (lastHash?.[0] === ls.step) checkpoint = { turn: ls.nextTurn, step: ls.step, hash: lastHash[1], aiSeats: [...ls.aiSeats], logFrom: ls.logFrom || 0 };
             if (now() - t0 > budget) break;
           }
         }
@@ -12165,7 +12167,8 @@
           viewTurn,
           viewMs,
           sysProfile,
-          diag: workerDiag
+          diag: workerDiag,
+          checkpoint
         });
       },
       lsLoadSnapshot(msg) {

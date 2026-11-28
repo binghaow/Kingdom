@@ -73,7 +73,12 @@ async function main() {
   mainClient.onControl = (e) => mainControls.push(e);
   mainClient.receive({ t: rows, se: TOTAL_TURNS - 1 });
   mainClient.sparseCatchup = false;
-  while (mainClient.nextTurn < TOTAL_TURNS) mainClient.runTurn();
+  const referenceCheckpoints = new Map();
+  while (mainClient.nextTurn < TOTAL_TURNS) {
+    mainClient.runTurn();
+    const h = mainClient.hashQueue.at(-1);
+    if (h?.[0] === mainClient.step) referenceCheckpoints.set(mainClient.nextTurn, { turn: mainClient.nextTurn, step: mainClient.step, hash: h[1], aiSeats: [...mainClient.aiSeats], logFrom: mainClient.logFrom || 0 });
+  }
   const mainFinal = checksum(mainClient.sim).hash;
 
   // 2. Worker run with irregular batches + slim view expansion + profiling toggle.
@@ -100,6 +105,8 @@ async function main() {
     const f = await next();
     assert.equal(f.t, 'lsFrame', 'unexpected worker reply: ' + JSON.stringify(f).slice(0, 300));
     assert.equal(f.sysProfile, null, 'profile: false must not emit sysProfile');
+    assert.equal(f.diag, null, 'profile: false must not emit worker diagnostics');
+    if (f.checkpoint) assert.deepEqual(f.checkpoint, referenceCheckpoints.get(f.checkpoint.turn), 'save checkpoint hash/AI seats must describe the exact reference turn');
     curTurn = f.nextTurn;
     workerHashes.push(...f.hashes);
     for (const r of f.results) workerResults.push({ seq: r.seq, type: r.cmd.type, result: r.result });
@@ -168,6 +175,11 @@ async function main() {
   const postSnap = await next();
   assert.equal(postSnap.hash, checksum(mainSnap.sim).hash, 'post-snapshot checksum differs between worker and main thread');
   assert.deepEqual(pf.hashes, mainSnap.hashQueue, 'post-snapshot hash sequence differs');
+  post({ t: 'profile', on: false });
+  post({ t: 'lsStep', rows: [], sealed: 259, limit: 259, budget: 100, wantView: false });
+  const disabled = await next();
+  assert.equal(disabled.sysProfile, null);
+  assert.equal(disabled.diag, null);
 
   await w.terminate();
   console.log(`PASS lockstep worker: 3-nation (2 human + 1 AI) ${TOTAL_TURNS} turns (${workerHashes.length} checksums, ${workerResults.length} results, ${workerControls.length} control events, ${viewsChecked} slim views) identical between main thread and worker (final ${mainFinal}); snapshot load + bad-hash reject + 40 post-snap turns identical (${postSnap.hash}); opt-in pipeline profile works`);

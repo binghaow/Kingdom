@@ -1328,6 +1328,7 @@
       resumeAt,
       lastSnap: null,
       saveHash: null,
+      saveCheckpoint: null,
       onSnapshot: null,
       stats: { requests: 0, failures: 0, up: 0, down: 0, latency: [], turnLatency: [], catchup: 0, stalls: 0, stallMs: 0, commands: 0, rejected: 0 },
       serverNow() {
@@ -1426,6 +1427,7 @@
           this.stats.snapshotTurn = msg.snapshotTurn;
           this.lastSnap = { turn: snap.turn, step: msg.step, hash: msg.hash, text: snap.text, aiSeats: [...this.aiSeats], encoded: snap.encoded || null };
           this.saveHash = { turn: msg.nextTurn, hash: msg.hash };
+          this.saveCheckpoint = checkpoint({ turn: msg.nextTurn, step: msg.step, hash: msg.hash, aiSeats: msg.aiSeats, logFrom: msg.logFrom });
           if (this.resumeAt && snap.turn >= this.resumeAt.turn) this.resumeAt = null;
           viewTurn = -1;
           return { ok: true, hash: msg.hash };
@@ -1453,7 +1455,12 @@
       const q = ++reqSeq;
       return new Promise((resolve, reject) => {
         waiting.set(q, { resolve, reject });
-        worker.postMessage({ t: type, q, ...extra });
+        try {
+          worker.postMessage({ t: type, q, ...extra });
+        } catch (e) {
+          waiting.delete(q);
+          reject(e);
+        }
       });
     }
     function waitIdle() {
@@ -1464,6 +1471,28 @@
       if (busy || !idleWaiters.length) return;
       const list2 = idleWaiters.splice(0);
       for (const fn of list2) fn();
+    }
+    function checkpoint(m) {
+      return {
+        setup: proxy.setup,
+        seat: proxy.seat,
+        teams: new Map(proxy.teams),
+        period: proxy.period,
+        nextTurn: m.turn,
+        step: m.step,
+        saveHash: { turn: m.turn, hash: m.hash },
+        aiSeats: new Set(m.aiSeats || []),
+        logFrom: m.logFrom || 0,
+        // The array is append-only. makeSave filters at nextTurn; no growing full-log copy per checksum.
+        log: proxy.log,
+        hashLog: [],
+        lastSnap: proxy.lastSnap && proxy.lastSnap.turn <= m.turn ? { ...proxy.lastSnap } : null
+      };
+    }
+    function fail(error) {
+      if (stopped) return;
+      stop();
+      opts.onError?.(error, true);
     }
     function updateStall(executedTurns) {
       if (!proxy.resumeAt) {
@@ -1490,6 +1519,7 @@
       if (msg.t === "lsReady") {
         ready = true;
         proxy.saveHash = { turn: msg.nextTurn, hash: msg.hash };
+        proxy.saveCheckpoint = checkpoint({ turn: msg.nextTurn, step: msg.step, hash: msg.hash });
         pump();
         return;
       }
@@ -1533,6 +1563,7 @@
           proxy.lastSnap = { ...snap };
           proxy.onSnapshot?.(snap);
         }
+        if (msg.checkpoint) proxy.saveCheckpoint = checkpoint(msg.checkpoint);
         if (msg.sysProfile) sysProf = mergeProfile(sysProf, msg.sysProfile);
         if (msg.diag) root2.PerformanceAudit?.mergeWorkerDiag?.(msg.diag);
         updateStall(msg.n);
@@ -1564,9 +1595,7 @@
           w2.reject(Error(msg.message));
           return;
         }
-        busy = false;
-        flushIdle();
-        opts.onError?.(new Error("lockstep worker: " + msg.message), true);
+        fail(new Error("lockstep worker: " + msg.message));
         return;
       }
       const w = waiting.get(msg.q);
@@ -1577,9 +1606,7 @@
     };
     worker.onerror = (ev) => {
       ev?.preventDefault?.();
-      busy = false;
-      flushIdle();
-      opts.onError?.(new Error("lockstep worker failed: " + (ev?.message || "script error")), true);
+      fail(new Error("lockstep worker failed: " + (ev?.message || "script error")));
     };
     let mode = ls.transport === "ws" ? "ws" : "http";
     try {
@@ -1634,17 +1661,21 @@
       const replica = opts.replica?.();
       wasCatchup = !!p;
       busy = true;
-      worker.postMessage({
-        t: "lsStep",
-        rows,
-        sealed: proxy.sealed,
-        limit,
-        budget,
-        wantView,
-        viewTurn,
-        eventAfter: wantView ? replica?.lastEvent || 0 : 0,
-        have: wantView ? replica?.have?.() || {} : null
-      });
+      try {
+        worker.postMessage({
+          t: "lsStep",
+          rows,
+          sealed: proxy.sealed,
+          limit,
+          budget,
+          wantView,
+          viewTurn,
+          eventAfter: wantView ? replica?.lastEvent || 0 : 0,
+          have: wantView ? replica?.have?.() || {} : null
+        });
+      } catch (e) {
+        fail(e);
+      }
     }
     const wake = () => {
       if (!root2.document || !root2.document.hidden) transport.wake();
@@ -1652,6 +1683,8 @@
     function stop() {
       if (stopped) return;
       stopped = true;
+      ready = false;
+      busy = false;
       clearInterval(timer);
       transport.stop();
       root2.document?.removeEventListener?.("visibilitychange", wake);
@@ -1670,13 +1703,13 @@
       }
     }
     async function prepareSave() {
-      if (stopped || !ready) return null;
+      if (stopped || !ready) throw Error("lockstep worker not ready");
       saving = true;
       try {
         await waitIdle();
         const m = await ask("lsChecksum");
         proxy.saveHash = { turn: m.turn, hash: m.hash };
-        return m;
+        return { ...m, checkpoint: checkpoint(m) };
       } finally {
         saving = false;
       }
@@ -1959,6 +1992,10 @@
   var STORE = "saves";
   var LS_PREFIX = "kingdom-online-save:";
   function makeSave(client, room, { auto = false, commands = null, from = null } = {}) {
+    if (!client.sim) {
+      if (client.saveHash?.turn !== client.nextTurn) client = client.saveCheckpoint;
+      if (!client || client.saveHash?.turn !== client.nextTurn) throw Error("worker save requires an exact checkpoint");
+    }
     const players = (room.players || []).map((p, seat) => p ? { seat, name: p.name, nation: p.nation, group: p.group, team: p.team ?? null } : null).filter(Boolean);
     return {
       format: FORMAT2,
@@ -1972,7 +2009,7 @@
       seats: [...client.teams].map(([seat, team]) => ({ seat, team })),
       turns: client.nextTurn,
       step: client.step,
-      hash: client.sim ? checksum(client.sim).hash : client.saveHash?.turn === client.nextTurn ? client.saveHash.hash : client.hashLog?.at(-1)?.[1] || "",
+      hash: client.sim ? checksum(client.sim).hash : client.saveHash.hash,
       aiSeats: [...client.aiSeats],
       // A client that resumed from a relay snapshot has no local log before it: the caller passes the relay recording instead.
       from: from ?? (commands ? 0 : client.logFrom || 0),
@@ -2309,8 +2346,18 @@
       if (detached || !target?.s) return;
       detached = true;
       const s = target.s;
-      if (Array.isArray(s.units)) s.units = s.units.map((u) => ({ ...u }));
-      if (Array.isArray(s.buildings)) s.buildings = s.buildings.map((b) => b.queue ? { ...b, queue: b.queue.slice() } : { ...b });
+      const copies = /* @__PURE__ */ new WeakMap();
+      const copy = (v) => {
+        if (!v || typeof v !== "object") return v;
+        if (copies.has(v)) return copies.get(v);
+        if (!Array.isArray(v) && Object.getPrototypeOf(v) !== Object.prototype && Object.getPrototypeOf(v) !== null) return v;
+        const out = Array.isArray(v) ? new Array(v.length) : {};
+        copies.set(v, out);
+        for (const k of Object.keys(v)) out[k] = copy(v[k]);
+        return out;
+      };
+      if (Array.isArray(s.units)) s.units = copy(s.units);
+      if (Array.isArray(s.buildings)) s.buildings = copy(s.buildings);
       target._idIndex = null;
     }
     function install2(target) {
@@ -2567,11 +2614,14 @@
             u.y = p.y + (u.y - p.y) * a;
           }
         }
-        capture?.(target);
-        prev = new Map(units.map((u) => [u.id, { x: u.x, y: u.y, kind: u.kind }]));
-        for (let i = 0; i < saved.length; i += 3) {
-          saved[i].x = saved[i + 1];
-          saved[i].y = saved[i + 2];
+        try {
+          capture?.(target);
+          prev = new Map(units.map((u) => [u.id, { x: u.x, y: u.y, kind: u.kind }]));
+        } finally {
+          for (let i = 0; i < saved.length; i += 3) {
+            saved[i].x = saved[i + 1];
+            saved[i].y = saved[i + 2];
+          }
         }
         const first = frameStep;
         for (const f of pendingFrames) applyFrame(target, f);

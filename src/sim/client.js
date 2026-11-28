@@ -17,7 +17,7 @@
    - rendering interpolates between the drawn position at the moment a frame is applied and the new frame (alpha grows
      over the frame's game time), so units glide at 60 fps although frames arrive at 20 per second.
 
-   Online play is not proxied here (lockstep stays on the main thread in this step; see docs/p4/progress.md for 4c-2). */
+   Online play uses the separate worker-lockstep proxy; this controller owns single-player only. */
 
 import { CAPTURED } from '../replay/replay.js';
 import { checksum } from '../core/hash.js';
@@ -51,13 +51,24 @@ export function createSimWorker(root, { url = 'sim-worker.js', debug = false, ge
     return new Promise((resolve, reject) => { waiting.set(q, { resolve, reject }); post({ t: type, q, ...extra }); });
   }
 
-  /* Detach target.s entity objects from the pristine mirror lazily, only when local command prediction is about to mutate them. */
+  /* Detach entity graphs from the pristine mirror lazily, only before local command prediction. */
   function detachForPrediction(target) {
     if (detached || !target?.s) return;
     detached = true;
     const s = target.s;
-    if (Array.isArray(s.units)) s.units = s.units.map((u) => ({ ...u }));
-    if (Array.isArray(s.buildings)) s.buildings = s.buildings.map((b) => (b.queue ? { ...b, queue: b.queue.slice() } : { ...b }));
+    // Commands also mutate nested fields (e.g. hero.spellCooldowns). A shallow clone would poison unchanged deltas.
+    const copies = new WeakMap();
+    const copy = (v) => {
+      if (!v || typeof v !== 'object') return v;
+      if (copies.has(v)) return copies.get(v);
+      if (!Array.isArray(v) && Object.getPrototypeOf(v) !== Object.prototype && Object.getPrototypeOf(v) !== null) return v;
+      const out = Array.isArray(v) ? new Array(v.length) : {};
+      copies.set(v, out);
+      for (const k of Object.keys(v)) out[k] = copy(v[k]);
+      return out;
+    };
+    if (Array.isArray(s.units)) s.units = copy(s.units);
+    if (Array.isArray(s.buildings)) s.buildings = copy(s.buildings);
     target._idIndex = null;
   }
 
@@ -214,9 +225,12 @@ export function createSimWorker(root, { url = 'sim-worker.js', debug = false, ge
           u.x = p.x + (u.x - p.x) * a; u.y = p.y + (u.y - p.y) * a;
         }
       }
-      capture?.(target);
-      prev = new Map(units.map((u) => [u.id, { x: u.x, y: u.y, kind: u.kind }]));
-      for (let i = 0; i < saved.length; i += 3) { saved[i].x = saved[i + 1]; saved[i].y = saved[i + 2]; }
+      try {
+        capture?.(target);
+        prev = new Map(units.map((u) => [u.id, { x: u.x, y: u.y, kind: u.kind }]));
+      } finally {
+        for (let i = 0; i < saved.length; i += 3) { saved[i].x = saved[i + 1]; saved[i].y = saved[i + 2]; }
+      }
       const first = frameStep;
       for (const f of pendingFrames) applyFrame(target, f);
       const last = pendingFrames[pendingFrames.length - 1];

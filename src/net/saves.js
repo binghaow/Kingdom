@@ -20,12 +20,16 @@ const DB_NAME = 'kingdom-online-saves', STORE = 'saves', LS_PREFIX = 'kingdom-on
 
 /* Builds a save from a running LockstepClient. room: the lobby room (publicRoom shape). */
 export function makeSave(client, room, { auto = false, commands = null, from = null } = {}) {
+  if (!client.sim) {
+    if (client.saveHash?.turn !== client.nextTurn) client = client.saveCheckpoint;
+    if (!client || client.saveHash?.turn !== client.nextTurn) throw Error('worker save requires an exact checkpoint');
+  }
   const players = (room.players || []).map((p, seat) => (p ? { seat, name: p.name, nation: p.nation, group: p.group, team: p.team ?? null } : null)).filter(Boolean);
   return {
     format: FORMAT, version: VERSION, savedAt: new Date().toISOString(), auto,
     room: { id: room.id, code: room.code || null, config: room.config, players },
     self: client.seat, setup: client.setup, period: client.period, seats: [...client.teams].map(([seat, team]) => ({ seat, team })),
-    turns: client.nextTurn, step: client.step, hash: client.sim ? checksum(client.sim).hash : (client.saveHash?.turn === client.nextTurn ? client.saveHash.hash : (client.hashLog?.at(-1)?.[1] || '')), aiSeats: [...client.aiSeats],
+    turns: client.nextTurn, step: client.step, hash: client.sim ? checksum(client.sim).hash : client.saveHash.hash, aiSeats: [...client.aiSeats],
     // A client that resumed from a relay snapshot has no local log before it: the caller passes the relay recording instead.
     from: from ?? (commands ? 0 : client.logFrom || 0),
     commands: (commands || client.log).filter((r) => r.turn < client.nextTurn).map((r) => ({ turn: r.turn, seat: r.seat, seq: r.seq, c: r.c })),

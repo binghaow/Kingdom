@@ -137,7 +137,7 @@ function diffEntity(rec, e, isUnit) {
     const s = JSON.stringify(v);
     if (had && prev && prev.__j === s) continue;
     if (!had) rec.__n++;
-    if (prev && '__j' in prev) prev.__j = s; else rec[k] = { __j: s };
+    if (prev && typeof prev === 'object' && '__j' in prev) prev.__j = s; else rec[k] = { __j: s };
     (patch ||= { id: e.id })[k] = v;
   }
   if (count !== rec.__n) {
@@ -305,7 +305,7 @@ export function createFrameMirror() {
 
 /* Applies one worker frame onto `mirror` in place and returns the complete `sim.s` state object (with fresh arrays so
    identity-keyed caches like Sim.byId and expansion.js visibleView notice the update). Callers that mutate entities locally
-   (local command prediction) must shallow-clone target.s.units/buildings before mutating so `mirror` stays pristine. */
+   (local command prediction) must detach nested mutable entity data before mutating so `mirror` stays pristine. */
 export function applyFrameState(mirror, frame) {
   if (frame.world) mirror.world = frame.world;
   const st = frame.state;
