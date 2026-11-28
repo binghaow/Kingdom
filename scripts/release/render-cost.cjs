@@ -20,7 +20,9 @@ async function measure(browser,port,name,{warm,secs,shots}){const v=VIEWPORTS[na
     await p.evaluate(()=>{const P=KingdomSim.Sim.prototype,t=P.tick;P.tick=function(...a){window.__releaseSim=this;return t.apply(this,a)}});
     // Pin the benchmark setting so the compared releases use the same fog workload.
     await p.locator('#world-fog').check();
-    await p.click('#start');await p.waitForFunction(()=>!!window.__releaseSim,null,{timeout:30000});await p.waitForTimeout(800);
+    // Art readiness precedes asynchronous map preparation. Bootstrap is outside the measured frame window.
+    await p.waitForFunction(()=>!document.getElementById('start').disabled,null,{timeout:120000});
+    await p.click('#start',{timeout:120000});await p.waitForFunction(()=>!!window.__releaseSim,null,{timeout:120000});await p.waitForTimeout(800);
     const n=await p.evaluate(({kinds})=>{const sim=window.__releaseSim,s=sim.s;sim.ai=()=>{};sim.raids=()=>{};s.units=s.units.filter(u=>u.team===0&&u.kind==='villager').slice(0,3);s.effects=[];
       const base=s.buildings.find(b=>b.team===0&&b.kind==='town'),cx=base.x+80,cy=base.y-80;for(const b of s.buildings){b.x+=1500;b.y+=1100}
       for(let i=0;i<100;i++){const row=Math.floor(i/10),col=i%10;for(const [team,dir] of [[0,-1],[1,1]]){const u=sim.add(kinds[(i+(team?3:0))%kinds.length],team,cx+dir*(170+row*26),cy-170+col*38+((row&1)*10));u.hp=u.maxhp=6000}}
